@@ -1,4 +1,4 @@
-from backend import models
+from backend import schemas
 from app.models import User, Order, Product, Feedback
 
 from fastapi import FastAPI
@@ -10,7 +10,7 @@ app = FastAPI(redoc_url=None, docs_url=None)
 
 
 @app.post('/register')
-async def register(user: models.User):
+async def register(user: schemas.User):
     if User.get_or_none(User.phone_number == user.phone_number) is not None:
         return HTTPException(400, 'This phone number is already registered')
 
@@ -22,7 +22,7 @@ async def register(user: models.User):
 
 
 @app.post('/login')
-async def login(user: models.User):
+async def login(user: schemas.User):
     usr: User = User.get_or_none(User.phone_number == user.phone_number)
     if usr is None or not hasher.validate(user.password, usr.password):
         return HTTPException(400, 'Invalid phone number or password')
@@ -36,13 +36,13 @@ async def get_products():
 
 
 @app.put('/make_order')  # REDO maybe post
-async def make_order(order: models.Order):
+async def make_order(order: schemas.Order):
     order = Order.create(**dict(order))
     return order
 
 
 @app.post('/feedback')
-async def feedback(fb: models.Feedback):
+async def feedback(fb: schemas.Feedback):
     user = User.get_or_none(User.id == fb.user)
     if user is None:
         return HTTPException(400, 'User not exist')
