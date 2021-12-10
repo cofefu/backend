@@ -1,9 +1,8 @@
-from backend import schemas
-from app.models import User, Order, Product, Feedback
-
 from fastapi import FastAPI
 from fastapi import HTTPException, Response
 
+from app.models import User, Order, Product, Feedback
+from backend import schemas
 from . import hasher
 
 app = FastAPI(redoc_url=None, docs_url=None)

@@ -1,8 +1,8 @@
-import json
 from datetime import datetime, timedelta
-from pytz import timezone  # TODO try to delete
+
 from pydantic import BaseModel, validator, constr
 from pydantic.typing import List
+from pytz import timezone  # TODO try to delete
 
 
 class User(BaseModel):

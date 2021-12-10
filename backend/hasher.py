@@ -1,5 +1,3 @@
-import os
-import binascii
 import hashlib
 import random
 import string
