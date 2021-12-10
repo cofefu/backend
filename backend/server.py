@@ -1,4 +1,4 @@
-from backend import models
+from backend import schemas
 from app.models import User, Order, Product, Feedback
 
 from fastapi import FastAPI
