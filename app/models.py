@@ -22,6 +22,7 @@ class User(BaseModel):
 class Product(BaseModel):
     name = CharField(max_length=20)
     description = CharField(max_length=200, null=True)
+    img = CharField(max_length=200)
     has_additions = BooleanField(default=False)
 
     def __str__(self):

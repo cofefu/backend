@@ -31,7 +31,7 @@ async def login(user: schemas.User):
 
 @app.get('/products')
 async def get_products():
-    return [p.data() for p in Product.select()]
+    return [p.data(hide=['description', 'has_additions']) for p in Product.select()]
 
 
 @app.put('/make_order')  # REDO maybe post
