@@ -1,49 +1,31 @@
 from fastapi import FastAPI
 from fastapi import HTTPException, Response
 
-from app.models import User, Order, Product, Feedback
+from app.models import *
 from backend import schemas
-from . import hasher
 
 app = FastAPI(redoc_url=None, docs_url=None)
 
 
-@app.post('/register')
-async def register(user: schemas.User):
-    if User.get_or_none(User.phone_number == user.phone_number) is not None:
-        return HTTPException(400, 'This phone number is already registered')
-
-    user.password = hasher.hash_psw(user.password)
-    User.create(**dict(user))
-
-    # TODO good response
-    return Response('The phone number was successfully registered')
-
-
-@app.post('/login')
-async def login(user: schemas.User):
-    usr: User = User.get_or_none(User.phone_number == user.phone_number)
-    if usr is None or not hasher.validate(user.password, usr.password):
-        return HTTPException(400, 'Invalid phone number or password')
-
-    return Response('Success')
-
-
 @app.get('/products')
 async def get_products():
-    return [p.data(hide=['description', 'has_additions']) for p in Product.select()]
+    return [p.data(hide=['description']) for p in Product.select()]
 
 
-@app.put('/make_order')  # REDO maybe post
+@app.post('/make_order')
 async def make_order(order: schemas.Order):
-    order = Order.create(**dict(order))
-    return order
+    customer: Customer = Customer.get_or_create(**dict(order.customer))[0]
+    coffee_house: CoffeeHouse = CoffeeHouse.get_or_none(CoffeeHouse.name == order.coffee_house)
+    product: Product = Product.get_or_none(Product.id == order.product)
 
+    if coffee_house is None:
+        return HTTPException(400, 'Incorrect coffee house')
+    if product is None:
+        return HTTPException(400, 'Incorrect product')
 
-@app.post('/feedback')
-async def feedback(fb: schemas.Feedback):
-    user = User.get_or_none(User.id == fb.user)
-    if user is None:
-        return HTTPException(400, 'User not exist')
-    Feedback.create(user=user.id, text=fb.text)
-    return Response('Thank you for your feedback')
+    order = Order.create(coffee_house=coffee_house, customer=customer, product=product, time=order.time)
+    return {'coffee_house_chat_id': coffee_house.chat_id,
+            'order_number': order.id,
+            'customer_name': customer.name,
+            'customer_phone_number': customer.phone_number,
+            'product_name': product.name, 'time': order.time}
