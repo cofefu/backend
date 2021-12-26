@@ -1,32 +1,30 @@
 from datetime import datetime
 
 from peewee import \
-    ForeignKeyField, CharField, DateTimeField, BooleanField
+    ForeignKeyField, CharField, DateTimeField, IntegerField
 
 from db import BaseModel
 
 
-class User(BaseModel):
-    name = CharField(max_length=20, null=True)
+class Customer(BaseModel):
+    name = CharField(max_length=20)
     phone_number = CharField(max_length=20)
-    password = CharField(max_length=100)
+    email = CharField(max_length=100)  # Maybe less characters
 
     def __str__(self):
-        return f'{self.name = }, {self.phone_number = }'
+        return f'name: {self.name}, phone_number: {self.phone_number}, email: {self.email}'
 
     class Meta:
-        hidden_fields = ['password']
-        table_name = 'users'
+        table_name = 'customers'
 
 
 class Product(BaseModel):
     name = CharField(max_length=20)
     description = CharField(max_length=200, null=True)
     img = CharField(max_length=200)
-    has_additions = BooleanField(default=False)
 
     def __str__(self):
-        return f'{self.name = }, {self.has_additions = }, {self.description = }'
+        return f'name: {self.name}'
 
     class Meta:
         table_name = 'products'
@@ -35,40 +33,37 @@ class Product(BaseModel):
 class CoffeeHouse(BaseModel):
     name = CharField(max_length=20)
     placement = CharField(max_length=20)
+    chat_id = IntegerField()
 
     def __str__(self):
-        return f'{self.name = }, {self.placement = }'
+        return f'name: {self.name}, placement: {self.placement}'
 
     class Meta:
         table_name = 'coffeehouses'
 
 
+STATUS = (
+    (0, 'None'),
+    (1, 'Accept'),
+    (2, 'Work'),
+    (3, 'Ready')
+)
+
+
 class Order(BaseModel):
     coffee_house = ForeignKeyField(CoffeeHouse, backref='coffee_house')
-    customer = ForeignKeyField(User, backref='customer')
+    customer = ForeignKeyField(Customer, backref='customer')
     product = ForeignKeyField(Product, related_name='products')
     time = DateTimeField()
-
-    def __str__(self):
-        return f"{self.coffee_house: }, {self.customer: }, {self.product = }, {self.time = }"
+    status = IntegerField(choices=STATUS, default=0)
 
     class Meta:
         table_name = 'orders'
 
 
-class Feedback(BaseModel):
-    user = ForeignKeyField(User, backref='customer')
-    text = CharField(max_length=250)
-    time = DateTimeField(default=datetime.now())
-
-    def __str__(self):
-        return f"{self.user: }, {self.feedback = }, {self.time = }"
-
-    class Meta:
-        table_name = 'feedbacks'
-
-
 if __name__ == '__main__':
     import db
 
-    db.db.create_tables([User, Product, CoffeeHouse, Order, Feedback])
+    db.db.create_tables([Customer, Product, CoffeeHouse, Order, ])
+
+__all__ = ['Customer', 'Product', 'CoffeeHouse', 'Order']

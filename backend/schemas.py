@@ -1,23 +1,22 @@
 from datetime import datetime, timedelta
 
 from pydantic import BaseModel, validator, constr
-from pydantic.typing import List
-from pytz import timezone  # TODO try to delete
+from pytz import timezone
 
 
-class User(BaseModel):
-    name: constr(max_length=20) = None
+class Customer(BaseModel):
+    name: constr(max_length=20)
     phone_number: constr(max_length=20)
-    password: constr(max_length=20)
+    email: constr(max_length=100)
 
 
-# REDO Order pydantic model
 class Order(BaseModel):
-    coffee_house_name: str
-    customer: int
-    product: List[int]
+    coffee_house: str  # TEST maybe int
+    customer: Customer
+    product: int
     time: datetime
 
+    # REDO Order time_validator
     @validator('time')
     def time_validator(cls, future: datetime):
         future = timezone('Asia/Vladivostok').localize(future)
@@ -30,8 +29,3 @@ class Order(BaseModel):
             "Incorrect order time. The allowed time is from 5 minutes to 5 hours"
 
         return future
-
-
-class Feedback(BaseModel):
-    user: int  # TEST id or phone_number
-    text: constr(max_length=250)
