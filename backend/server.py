@@ -3,7 +3,6 @@ from fastapi import HTTPException
 
 from app.models import *
 from backend import schemas
-from bot import *
 
 app = FastAPI(redoc_url=None, docs_url=None)
 
