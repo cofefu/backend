@@ -9,7 +9,7 @@ args = parser.parse_args()
 
 def main():
     if args.runserver:
-        os.system('uvicorn backend.server:app --reload')
+        os.system('uvicorn backend.server:app --host 0.0.0.0 --reload')
 
 
 if __name__ == '__main__':

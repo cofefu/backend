@@ -1,5 +1,6 @@
 .env
 .idea
 coffefu.db
-migrations
+venv/
+migrations/
 __pycache__
