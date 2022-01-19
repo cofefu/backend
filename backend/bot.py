@@ -1,8 +1,17 @@
 import os
 
 from aiogram import Dispatcher, Bot, types
-from backend.server import app
-from .bot import bot, dp
+from .server import app
+
+TOKEN = "1945118170:AAH4ZVOXOgEC8F3wDCB-rZ81817fynT7INk"
+bot = Bot(token=TOKEN)
+dp = Dispatcher(bot)
+
+
+@dp.message_handler(commands="start")
+async def start(message: types.Message):
+    await message.answer(f"Salom, {message.from_user.full_name}")
+
 
 WEBHOOK_PATH = f"/bot/{os.getenv('BOT_TOKEN')}"
 WEBHOOK_URL = f"{os.getenv('BOT_URL')}" + WEBHOOK_PATH
