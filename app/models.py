@@ -42,20 +42,12 @@ class CoffeeHouse(BaseModel):
         table_name = 'coffeehouses'
 
 
-STATUS = (
-    (0, 'None'),
-    (1, 'Accept'),
-    (2, 'Work'),
-    (3, 'Ready')
-)
-
-
 class Order(BaseModel):
     coffee_house = ForeignKeyField(CoffeeHouse, backref='coffee_house')
     customer = ForeignKeyField(Customer, backref='customer')
     product = ForeignKeyField(Product, related_name='products')
     time = DateTimeField()
-    status = IntegerField(choices=STATUS, default=0)
+    status = IntegerField(default=0)
 
     class Meta:
         table_name = 'orders'
