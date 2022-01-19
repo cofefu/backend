@@ -12,3 +12,5 @@ DATABASE = {
     'USER': os.getenv("DB_USER"),
     'PASSWORD': os.getenv("DB_PASSWORD"),
 }
+
+BOT_MODULE_PATH = '../coffefu_webhook/bot_funcs.py'
