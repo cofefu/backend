@@ -1,8 +1,9 @@
 from fastapi import FastAPI
-from fastapi import HTTPException, Response
+from fastapi import HTTPException
 
 from app.models import *
 from backend import schemas
+from bot import *
 
 app = FastAPI(redoc_url=None, docs_url=None)
 
@@ -24,6 +25,7 @@ async def make_order(order: schemas.Order):
         return HTTPException(400, 'Incorrect product')
 
     order = Order.create(coffee_house=coffee_house, customer=customer, product=product, time=order.time)
+    # TODO add customer_email, time
     return {'coffee_house_chat_id': coffee_house.chat_id,
             'order_number': order.id,
             'customer_name': customer.name,

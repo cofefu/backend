@@ -2,3 +2,4 @@
 .idea
 coffefu.db
 migrations
+__pycache__
