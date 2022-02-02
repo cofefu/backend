@@ -13,4 +13,5 @@ DATABASE = {
     'PASSWORD': os.getenv("DB_PASSWORD"),
 }
 
-BOT_MODULE_PATH = '../coffefu_webhook/bot_funcs.py'
+SERVER_HOST = os.getenv('SERVER_HOST', '0.0.0.0')
+SERVER_PORT = 8000

@@ -1,17 +1,18 @@
 # TODO implement the module
-import argparse
-import os
-import subprocess
+import sys
+import uvicorn
 
-parser = argparse.ArgumentParser(description=None)
-parser.add_argument('--runserver', action='store_true', help='run server')
-args = parser.parse_args()
+from backend.settings import SERVER_HOST, SERVER_PORT
 
 
 def main():
-    if args.runserver:
-        subprocess.run(['py', '../coffefu_webhook/start_bot_webhook.py'])
-        os.system('uvicorn server:app --host 0.0.0.0 --reload')
+    if 'runserver' in sys.argv:
+        uvicorn.run(
+            'server:app',
+            host=SERVER_HOST,
+            port=SERVER_PORT,
+            log_level='info'
+        )
 
 
 if __name__ == '__main__':
