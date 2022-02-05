@@ -1,5 +1,5 @@
-from fastapi import FastAPI
-from fastapi import HTTPException
+from fastapi import FastAPI, HTTPException
+from starlette.responses import FileResponse
 
 from app.models import *
 from backend import schemas
@@ -10,6 +10,17 @@ app = FastAPI(redoc_url=None, docs_url=None)
 @app.get('/products')
 async def get_products():
     return [p.data(hide=['description']) for p in Product.select()]
+
+
+# TEST return svg or ico depending on the user's browser
+@app.get('/favicon.svg')
+async def get_favicon_svg():
+    return FileResponse('assets/beans.svg')
+
+
+@app.get('/favicon.ico')
+async def get_favicon_svg():
+    return FileResponse('assets/beans.ico')
 
 
 @app.post('/make_order')
