@@ -4,3 +4,5 @@ coffefu.db
 venv/
 migrations/
 __pycache__
+webhook_cert.pem
+webhook_pkey.pem

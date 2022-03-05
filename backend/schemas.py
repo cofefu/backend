@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from typing import List
 
 from pydantic import BaseModel, validator, constr
 from pytz import timezone
@@ -10,10 +11,15 @@ class Customer(BaseModel):
     email: constr(max_length=100)
 
 
+class Product(BaseModel):
+    id: int
+    toppings: List[int]
+
+
 class Order(BaseModel):
     coffee_house: str  # TEST maybe int
     customer: Customer
-    product: int
+    products: List[Product]
     time: datetime
 
     # REDO Order time_validator

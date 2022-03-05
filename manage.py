@@ -2,15 +2,14 @@
 import sys
 import uvicorn
 
-from backend.settings import SERVER_HOST, SERVER_PORT
-
 
 def main():
     if 'runserver' in sys.argv:
         uvicorn.run(
             'server:app',
-            host=SERVER_HOST,
-            port=SERVER_PORT,
+            port=8001,
+            # ssl_certfile=WEBHOOK_SSL_CERT,
+            # ssl_keyfile=WEBHOOK_SSL_PRIV,
             log_level='info'
         )
 
