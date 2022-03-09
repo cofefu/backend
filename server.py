@@ -25,7 +25,18 @@ async def on_startup():
 
 @app.get('/products')
 async def get_products():
-    return [p.data(hide=['description']) for p in Product.select()]
+    def unpack(p):
+        p_tt = [tuple(p.items())[0]]
+        p_new = tuple(p.values())[1]
+        p_new.update(p_tt)
+        return p_new
+
+    products = (ProductVarious
+                .select(Product.id, Product.name, Product.description, fn.min(ProductVarious.price))
+                .join(Product)
+                .group_by(Product.id)
+                )
+    return [unpack(p.data()) for p in products]
 
 
 # TEST return svg or ico depending on the user's browser
