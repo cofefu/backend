@@ -144,9 +144,10 @@ def callback_processing(call):
     order = Order.get_or_none(id=int(order_number))
     status = (cb_ans == 'yes')
     order.status = status
-    customer_email = order.customer.email
-
-    send_email(customer_email, int(order_number), status)
 
     bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
                           text=call.message.text + ans, reply_markup=None)
+
+    if 'email' in order.customer:
+        customer_email = order.customer.email
+        send_email(customer_email, int(order_number), status)
