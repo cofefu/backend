@@ -19,9 +19,10 @@ app = FastAPI(redoc_url=None, docs_url=None)
 
 @app.on_event("startup")
 async def on_startup():
-    if bot.get_webhook_info().ip_address != DOMAIN:
+    webhook_url = f"https://{DOMAIN}:{SERVER_PORT}" + f'/{API_TOKEN}/'
+    if bot.get_webhook_info().url != webhook_url:
         bot.remove_webhook()
-        bot.set_webhook(url=f"https://{DOMAIN}:{SERVER_PORT}" + f'/{API_TOKEN}/',
+        bot.set_webhook(url=webhook_url,
                         certificate=open(WEBHOOK_SSL_CERT, 'r'))
 
 
