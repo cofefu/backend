@@ -39,6 +39,12 @@ async def get_products():
     return [unpack(p.data()) for p in products]
 
 
+@app.get('/products_various/{prod_id}')
+async def get_products_various(prod_id: int):
+    prods = ProductVarious.select().where(ProductVarious.product == prod_id)
+    return [p.data(hide=['product']) for p in prods]
+
+
 # TEST return svg or ico depending on the user's browser
 @app.get('/favicon.svg')
 async def get_favicon_svg():
@@ -78,11 +84,8 @@ def validate_worktime(time: datetime, coffee_house: str) -> bool:
             open_time = datetime.strptime(timetbl.worktime.open_time, '%H:%M:%S').time()
             close_time = datetime.strptime(timetbl.worktime.close_time, '%H:%M:%S').time()
             if open_time <= time.time() <= close_time:
-                print('True')
                 return True
-            print('False')
             return False
-    print('not found. False')
     return False
 
 
