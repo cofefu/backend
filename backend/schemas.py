@@ -8,7 +8,7 @@ from pytz import timezone
 class Customer(BaseModel):
     name: constr(max_length=20)
     phone_number: constr(max_length=20)
-    email: constr(max_length=100)
+    email: constr(max_length=100) = None
 
 
 class Product(BaseModel):
