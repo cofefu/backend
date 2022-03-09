@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import List
+from peewee import fn
 
 from fastapi import FastAPI, HTTPException
 from starlette.responses import FileResponse
@@ -18,10 +19,10 @@ app = FastAPI(redoc_url=None, docs_url=None)
 
 @app.on_event("startup")
 async def on_startup():
-    pass
-    # bot.remove_webhook()
-    # bot.set_webhook(url=f"https://{DOMAIN}:{SERVER_PORT}" + f'/{API_TOKEN}/',
-    #                 certificate=open(WEBHOOK_SSL_CERT, 'r'))
+    if bot.get_webhook_info().ip_address != DOMAIN:
+        bot.remove_webhook()
+        bot.set_webhook(url=f"https://{DOMAIN}:{SERVER_PORT}" + f'/{API_TOKEN}/',
+                        certificate=open(WEBHOOK_SSL_CERT, 'r'))
 
 
 @app.get('/products')
