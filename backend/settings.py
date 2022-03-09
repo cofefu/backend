@@ -14,7 +14,7 @@ DATABASE = {
 }
 
 SERVER_HOST = os.getenv('SERVER_HOST', 'localhost')
-SERVER_PORT = 8443
+SERVER_PORT = 80
 
 API_TOKEN = os.getenv('API_TOKEN')
 DOMAIN = os.getenv('DOMAIN')

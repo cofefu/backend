@@ -18,9 +18,10 @@ app = FastAPI(redoc_url=None, docs_url=None)
 
 @app.on_event("startup")
 async def on_startup():
-    bot.remove_webhook()
-    bot.set_webhook(url=f"https://{DOMAIN}:{SERVER_PORT}" + f'/{API_TOKEN}/',
-                    certificate=open(WEBHOOK_SSL_CERT, 'r'))
+    pass
+    # bot.remove_webhook()
+    # bot.set_webhook(url=f"https://{DOMAIN}:{SERVER_PORT}" + f'/{API_TOKEN}/',
+    #                 certificate=open(WEBHOOK_SSL_CERT, 'r'))
 
 
 @app.get('/products')
@@ -43,6 +44,11 @@ async def get_products():
 async def get_products_various(prod_id: int):
     prods = ProductVarious.select().where(ProductVarious.product == prod_id)
     return [p.data(hide=['product']) for p in prods]
+
+
+@app.get('/toppings')
+async def get_toppings():
+    return [t.data() for t in Topping.select()]
 
 
 # TEST return svg or ico depending on the user's browser
