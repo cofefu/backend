@@ -106,7 +106,7 @@ async def make_order(order_inf: schemas.Order):
     if not validate_worktime(order_inf.time, order_inf.coffee_house):
         return HTTPException(400, 'Incorrect worktime')
 
-    coffee_house: CoffeeHouse = CoffeeHouse.get(order_inf.coffee_house)
+    coffee_house: CoffeeHouse = CoffeeHouse.get(CoffeeHouse.id == order_inf.coffee_house)
     customer: Customer = Customer.get_or_create(**dict(order_inf.customer))[0]
     order = Order.create(coffee_house=coffee_house, customer=customer, time=order_inf.time)
     for p in order_inf.products:
