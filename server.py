@@ -1,11 +1,12 @@
 from datetime import datetime
 from typing import List
-from peewee import fn
 
-from fastapi import FastAPI, HTTPException
-from starlette.responses import FileResponse
 import telebot
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from peewee import fn
 from pytz import timezone
+from starlette.responses import FileResponse
 
 from app.models import *
 from backend import schemas
@@ -16,14 +17,29 @@ from bot.email_sender import send_email
 
 app = FastAPI(redoc_url=None, docs_url=None)
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+# urls
+# bot_api
+# app_funcs
+
 
 @app.on_event("startup")
 async def on_startup():
+    # todo def set_webhook from bot_funcs
     webhook_url = f"https://{DOMAIN}:{SERVER_PORT}" + f'/{API_TOKEN}/'
     if bot.get_webhook_info().url != webhook_url:
         bot.remove_webhook()
         bot.set_webhook(url=webhook_url,
-                        certificate=open(WEBHOOK_SSL_CERT, 'r'))
+                        # certificate=open(WEBHOOK_SSL_CERT, 'r')
+                        )
 
 
 @app.get('/products')
@@ -116,7 +132,7 @@ async def make_order(order_inf: schemas.Order):
             ToppingToProduct.create(ordered_product=order_prod, topping=top)
 
     send_order(order_number=order.id)
-    return 'Success'
+    return 'Success'  # todo return order_number
 
 
 @app.post(f'/{API_TOKEN}/')
