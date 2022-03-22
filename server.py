@@ -164,6 +164,6 @@ def callback_processing(call):
     bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
                           text=call.message.text + ans, parse_mode='HTML', reply_markup=None)
 
-    if 'email' in order.customer:
+    if order.customer.email:
         customer_email = order.customer.email
         send_email(customer_email, int(order_number), status)
