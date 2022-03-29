@@ -11,12 +11,15 @@ from app.models import CoffeeHouse, TimeTable, ProductVarious, Topping
 class Customer(BaseModel):
     name: constr(max_length=20)
     phone_number: constr(max_length=20)
-    # email: constr(max_length=100) = None
     email: EmailStr = None
 
     @validator('phone_number')
     def phone_number_validator(cls, number: str):
-        pass
+        try:
+            int(number)
+        except ValueError:
+            raise HTTPException(status_code=400, detail=f"PhoneNumber not a number")
+        return number
 
 
 class Product(BaseModel):
