@@ -1,19 +1,40 @@
 from datetime import datetime, timedelta
 from typing import List
 
-from pydantic import BaseModel, validator, constr
+from fastapi import HTTPException
+from pydantic import BaseModel, validator, constr, EmailStr
 from pytz import timezone
+
+from app.models import CoffeeHouse, TimeTable, ProductVarious, Topping
 
 
 class Customer(BaseModel):
     name: constr(max_length=20)
     phone_number: constr(max_length=20)
-    email: constr(max_length=100) = None
+    # email: constr(max_length=100) = None
+    email: EmailStr = None
+
+    @validator('phone_number')
+    def phone_number_validator(cls, number: str):
+        pass
 
 
 class Product(BaseModel):
     id: int
     toppings: List[int]
+
+    @validator('id')
+    def product_validator(cls, prod: int):
+        if ProductVarious.get_or_none(ProductVarious.id == prod) is None:
+            raise HTTPException(status_code=400, detail=f"Incorrect product id: {prod}")
+        return prod
+
+    @validator('toppings')
+    def toppings_validator(cls, toppings: List[int]):
+        for top in toppings:
+            if Topping.get_or_none(Topping.id == top) is None:
+                raise HTTPException(status_code=400, detail=f'Incorrect topping id: {top}')
+        return toppings
 
 
 class Order(BaseModel):
@@ -22,16 +43,28 @@ class Order(BaseModel):
     products: List[Product]
     time: datetime
 
-    # REDO Order time_validator
+    @validator('coffee_house')
+    def coffeehouse_validator(cls, coffee_house: str):
+        if CoffeeHouse.get_or_none(coffee_house) is None:
+            raise HTTPException(status_code=400, detail="Incorrect coffee_house id")
+        return coffee_house
+
     @validator('time')
-    def time_validator(cls, future: datetime):
-        future = timezone('Asia/Vladivostok').localize(future)
+    def time_validator(cls, order_time: datetime, values: dict):
+        order_time = timezone('Asia/Vladivostok').localize(order_time)
 
         now = datetime.now(tz=timezone('Asia/Vladivostok'))
         min_time = timedelta(minutes=5)
         max_time = timedelta(hours=5)
+        if not now < order_time and min_time <= order_time - now <= max_time:
+            raise HTTPException(status_code=400,
+                                detail="Incorrect order time. The allowed time is from 5 minutes to 5 hours")
 
-        assert now < future and min_time <= future - now <= max_time, \
-            "Incorrect order time. The allowed time is from 5 minutes to 5 hours"
-
-        return future
+        weekday = datetime.now(tz=timezone('Asia/Vladivostok')).weekday()
+        for timetbl in TimeTable.select().where(TimeTable.coffee_house == values['coffee_house']):
+            if timetbl.worktime.day_of_week == weekday:
+                open_time = datetime.strptime(timetbl.worktime.open_time, '%H:%M:%S').time()
+                close_time = datetime.strptime(timetbl.worktime.close_time, '%H:%M:%S').time()
+                if not open_time <= order_time.time() <= close_time:
+                    raise HTTPException(status_code=400, detail="The coffee house is closed")
+        return order_time

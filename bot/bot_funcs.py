@@ -26,12 +26,10 @@ def send_order(order_number: int):
     if order.customer.email is not None:
         message += f'<i>Почта покупателя:</i> {order.customer.email}\n'
 
+    markup_btns = types.InlineKeyboardMarkup(row_width=2)
     markup_btns.add(
         types.InlineKeyboardButton('Принять', callback_data=f'yes {order_number}'),
         types.InlineKeyboardButton('Отклонить', callback_data=f'no {order_number}')
     )
 
     bot.send_message(chat_id=order.coffee_house.chat_id, text=message, parse_mode='HTML', reply_markup=markup_btns)
-
-
-markup_btns = types.InlineKeyboardMarkup(row_width=2)

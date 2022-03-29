@@ -8,8 +8,8 @@ from db import BaseModel
 
 class Customer(BaseModel):
     name = CharField(max_length=20)
-    phone_number = CharField(max_length=20)
-    email = CharField(max_length=100, null=True)  # Maybe less characters
+    phone_number = CharField(max_length=10)
+    email = CharField(max_length=256, null=True)  # Maybe less characters
 
     def __str__(self):
         return f'name: {self.name}, phone_number: {self.phone_number}, email: {self.email}'
