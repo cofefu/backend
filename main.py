@@ -5,7 +5,15 @@ from bot import bot_api
 from bot.bot_api import set_webhook
 from urls import api
 
-app = FastAPI()
+tags_metadata = [
+    {
+        "name": "common",
+        "description": "Для получения общей информации из бд",
+    }
+]
+
+
+app = FastAPI(openapi_tags=tags_metadata)
 
 app.add_middleware(
     CORSMiddleware,

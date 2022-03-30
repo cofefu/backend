@@ -46,6 +46,29 @@ class Order(BaseModel):
     products: List[Product]
     time: datetime
 
+    class Config:
+        schema_extra = {
+            "example": {
+                "coffee_house": "1",
+                "customer": {
+                    "name": "test",
+                    "phone_number": "9993332211",
+                    "email": "user@example.com"
+                },
+                "products": [
+                    {
+                        "id": 1,
+                        "toppings": []
+                    },
+                    {
+                        "id": 3,
+                        "toppings": [2]
+                    }
+                ],
+                "time": "2022-03-29 22:59"
+            }
+        }
+
     @validator('coffee_house')
     def coffeehouse_validator(cls, coffee_house: str):
         if CoffeeHouse.get_or_none(coffee_house) is None:
@@ -71,3 +94,25 @@ class Order(BaseModel):
                 if not open_time <= order_time.time() <= close_time:
                     raise HTTPException(status_code=400, detail="The coffee house is closed")
         return order_time
+
+
+class CoffeeHouseResponseModel(BaseModel):
+    id: int
+    name: str
+    placement: str
+
+
+class ProductsVariousResponseModel(BaseModel):
+    id: int
+    size: int
+    price: int
+
+
+class OrderResponseModel(BaseModel):
+    order_number: int
+
+
+class ToppingsResponseModel(BaseModel):
+    id: int
+    name: str
+    price: int
