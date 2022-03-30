@@ -5,7 +5,7 @@ from bot import bot_api
 from bot.bot_api import set_webhook
 from urls import api
 
-app = FastAPI(redoc_url=None, docs_url=None)
+app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
