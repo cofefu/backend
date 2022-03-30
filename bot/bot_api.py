@@ -16,7 +16,7 @@ def set_webhook():
         bot.set_webhook(url=webhook_url)
 
 
-@router.post(f'/{API_TOKEN}/')
+@router.post(f'/{API_TOKEN}/', include_in_schema=False)
 def process_webhook(update: dict):
     if update:
         update = telebot.types.Update.de_json(update)
