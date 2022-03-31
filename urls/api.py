@@ -98,4 +98,4 @@ async def make_order(order_inf: schemas.Order):
             ToppingToProduct.create(ordered_product=order_prod, topping=top)
 
     send_order(order_number=order.id)
-    return order.id
+    return {'order_number': order.id}
