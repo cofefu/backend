@@ -39,6 +39,7 @@ def callback_processing(call):
 
     order = Order.get_or_none(id=int(order_number))
     order.status = cb_status
+    order.save()
 
     bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
                           text=call.message.text + ans, parse_mode='HTML', reply_markup=None)
