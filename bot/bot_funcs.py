@@ -28,8 +28,8 @@ def send_order(order_number: int):
 
     markup_btns = types.InlineKeyboardMarkup(row_width=2)
     markup_btns.add(
-        types.InlineKeyboardButton('Принять', callback_data=f'yes {order_number}'),
-        types.InlineKeyboardButton('Отклонить', callback_data=f'no {order_number}')
+        types.InlineKeyboardButton('Принять', callback_data=f'{1} {order_number}'),
+        types.InlineKeyboardButton('Отклонить', callback_data=f'{2} {order_number}')
     )
 
     bot.send_message(chat_id=order.coffee_house.chat_id, text=message, parse_mode='HTML', reply_markup=markup_btns)
