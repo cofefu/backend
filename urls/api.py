@@ -46,7 +46,7 @@ async def get_order_status(number: int):
     order = Order.get_or_none(number)
     if order is None:
         raise HTTPException(status_code=400, detail="Invalid order number")
-    return order.status == 1
+    return order.get_status_name()
 
 
 @router.get('/products_various/{prod_id}',

@@ -50,13 +50,23 @@ class CoffeeHouse(BaseModel):
 
 
 class Order(BaseModel):
+    OrderStatus = (
+        (0, 'В ожидании'),
+        (1, 'Принят'),
+        (2, 'Отклонен'),
+        (3, 'Выполнен'),
+        (4, 'Не выполнен')
+    )
     coffee_house = ForeignKeyField(CoffeeHouse, backref='coffee_house')
     customer = ForeignKeyField(Customer, backref='customer')
     time = DateTimeField()
-    status = IntegerField(default=0)
+    status = IntegerField(default=0, choices=OrderStatus)
 
     class Meta:
         table_name = 'orders'
+
+    def get_status_name(self):
+        return dict(self.OrderStatus)[self.status]
 
 
 class OrderedProduct(BaseModel):
@@ -64,21 +74,22 @@ class OrderedProduct(BaseModel):
     product = ForeignKeyField(ProductVarious)
 
 
-DaysOfWeek = (
-    (0, 'Понедельник'),
-    (1, 'Вторник'),
-    (2, 'Среда'),
-    (3, 'Четверг'),
-    (4, 'Пятница'),
-    (5, 'Суббота'),
-    (6, 'Воскресенье'),
-)
-
-
 class Worktime(BaseModel):
+    DaysOfWeek = (
+        (0, 'Понедельник'),
+        (1, 'Вторник'),
+        (2, 'Среда'),
+        (3, 'Четверг'),
+        (4, 'Пятница'),
+        (5, 'Суббота'),
+        (6, 'Воскресенье'),
+    )
     day_of_week = IntegerField(choices=DaysOfWeek)
     open_time = TimeField(formats='%H:%M:%S')
     close_time = TimeField(formats='%H:%M:%S')
+
+    def get_day_of_week_name(self):
+        return dict(self.DaysOfWeek)[self.day_of_week]
 
 
 class TimeTable(BaseModel):

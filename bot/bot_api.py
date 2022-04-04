@@ -27,24 +27,22 @@ def process_webhook(update: dict):
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    print(message.chat.id)
     bot.reply_to(message, f"Hello, i'm coffefu webhook bot. Chat {message.chat.id}")
 
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback_processing(call):
-    cb_ans, order_number = call.data.split()
-    ans = 'Заказ принят' if cb_ans == 'yes' else 'Заказ отклонен'
+    cb_status, order_number = map(int, call.data.split())
+    ans = 'Заказ принят' if cb_status == 'yes' else 'Заказ отклонен'
     bot.answer_callback_query(call.id, ans)
     ans = f"\n<b>{ans}</b>"
 
     order = Order.get_or_none(id=int(order_number))
-    status = (cb_ans == 'yes')
-    order.status = status
+    order.status = cb_status
 
     bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
                           text=call.message.text + ans, parse_mode='HTML', reply_markup=None)
 
     if order.customer.email:
         customer_email = order.customer.email
-        send_email(customer_email, int(order_number), status)
+        send_email(customer_email, int(order_number), cb_status == 1)  # redo
