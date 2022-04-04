@@ -33,7 +33,7 @@ def send_welcome(message):
 @bot.callback_query_handler(func=lambda call: True)
 def callback_processing(call):
     cb_status, order_number = map(int, call.data.split())
-    ans = 'Заказ принят' if cb_status == 'yes' else 'Заказ отклонен'
+    ans = 'Заказ принят' if cb_status == 1 else 'Заказ отклонен'
     bot.answer_callback_query(call.id, ans)
     ans = f"\n<b>{ans}</b>"
 
