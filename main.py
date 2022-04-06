@@ -12,7 +12,6 @@ tags_metadata = [
     }
 ]
 
-
 app = FastAPI(openapi_tags=tags_metadata)
 
 app.add_middleware(
@@ -23,13 +22,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(api.router)
-app.include_router(bot_api.router)
-
-
-# api
-# bot_api
-# fastapp_funcs / events
+app.include_router(api.router, prefix='/api')
+app.include_router(bot_api.router, prefix='/bot')
 
 
 @app.on_event("startup")
