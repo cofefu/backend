@@ -12,7 +12,11 @@ tags_metadata = [
     }
 ]
 
-app = FastAPI(openapi_tags=tags_metadata)
+app = FastAPI(
+    openapi_tags=tags_metadata,
+    docs_url='/api/docs',
+    redoc_url='/api/redoc'
+)
 
 app.add_middleware(
     CORSMiddleware,
