@@ -16,7 +16,9 @@ app = FastAPI(
     openapi_tags=tags_metadata,
     docs_url='/api/docs',
     redoc_url='/api/redoc',
-    openapi_prefix='/api'
+    # openapi_prefix='/api',
+    openapi_url='/api/openapi.json'
+
 )
 
 app.add_middleware(
