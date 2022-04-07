@@ -49,7 +49,7 @@ def send_chat_id(message):
 
 @bot.message_handler(content_types=['contact'])
 def contact_handler(message):
-    bot.send_message(chat_id=message.chat.id, text=message.contact.phone_number)
+    bot.send_message(chat_id=message.chat.id, text=message.contact.phone_number, reply_markup=None)
 
 
 @bot.message_handler(func=lambda call: 'отмена' in call.text.lower())
