@@ -13,7 +13,9 @@ router = APIRouter()
 def gen_send_contact_markup():
     btn = types.InlineKeyboardMarkup()
     btn.add(
-        types.InlineKeyboardButton('Подтвердить номер телефона', request_contact=True),
+        types.InlineKeyboardButton('Подтвердить номер телефона',
+                                   callback_data='phone',
+                                   request_contact=True),
     )
     return btn
 
