@@ -5,6 +5,15 @@ from bot import bot
 from app.models import *
 
 
+def gen_markup(order_number: int):
+    markup_btns = types.InlineKeyboardMarkup(row_width=2)
+    markup_btns.add(
+        types.InlineKeyboardButton('Принять', callback_data=f'order {1} {order_number}'),
+        types.InlineKeyboardButton('Отклонить', callback_data=f'order {2} {order_number}')
+    )
+    return markup_btns
+
+
 def send_order(order_number: int):
     order = Order.get_or_none(order_number)
     products = OrderedProduct.select().where(OrderedProduct.order == order)
@@ -26,10 +35,5 @@ def send_order(order_number: int):
     if order.customer.email is not None:
         message += f'<i>Почта покупателя:</i> {order.customer.email}\n'
 
-    markup_btns = types.InlineKeyboardMarkup(row_width=2)
-    markup_btns.add(
-        types.InlineKeyboardButton('Принять', callback_data=f'{1} {order_number}'),
-        types.InlineKeyboardButton('Отклонить', callback_data=f'{2} {order_number}')
-    )
-
-    bot.send_message(chat_id=order.coffee_house.chat_id, text=message, parse_mode='HTML', reply_markup=markup_btns)
+    bot.send_message(chat_id=order.coffee_house.chat_id, text=message, parse_mode='HTML',
+                     reply_markup=gen_markup(order_number))
