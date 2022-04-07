@@ -51,7 +51,12 @@ def send_chat_id(message):
 
 @bot.message_handler(content_types=['contact'])
 def contact_handler(message):
-    bot.send_message(chat_id=message.chat.id, text=message.contact.phone_number,
+    msg = message.contact.phone_number
+    if message.contact.user_id == message.from_user.id:
+        msg += " Это ваш номер телефона"
+    else:
+        msg += " Это НЕ ваш номер телефона"
+    bot.send_message(chat_id=message.chat.id, text=msg,
                      reply_markup=types.ReplyKeyboardRemove(selective=False))
 
 
