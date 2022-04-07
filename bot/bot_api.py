@@ -11,10 +11,9 @@ router = APIRouter()
 
 
 def gen_send_contact_markup():
-    btn = types.ReplyKeyboardMarkup(row_width=2)
+    btn = types.ReplyKeyboardMarkup()
     btn.add(
-        types.KeyboardButton('Подтвердить номер телефона', request_contact=True),
-        types.KeyboardButton('Отмена'),
+        types.KeyboardButton('Подтвердить номер телефона', request_contact=True)
     )
     return btn
 
@@ -51,12 +50,6 @@ def send_chat_id(message):
 def contact_handler(message):
     bot.send_message(chat_id=message.chat.id, text=message.contact.phone_number,
                      reply_markup=types.ReplyKeyboardRemove(selective=False))
-
-
-@bot.message_handler(func=lambda call: 'отмена' in call.text.lower())
-def cancel_func(message):
-    bot.edit_message_reply_markup(message.chat.id, message.id,
-                                  reply_markup=types.ReplyKeyboardRemove(selective=False))
 
 
 @bot.callback_query_handler(func=lambda call: True)
