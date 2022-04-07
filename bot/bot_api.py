@@ -19,7 +19,7 @@ def gen_send_contact_markup():
 
 
 def set_webhook():
-    webhook_url = f"https://{DOMAIN}:{SERVER_PORT}" + f'/{API_TOKEN}/'
+    webhook_url = f"https://{DOMAIN}:{SERVER_PORT}" + f'/bot/{API_TOKEN}/'
     if bot.get_webhook_info().url != webhook_url:
         bot.remove_webhook()
         bot.set_webhook(url=webhook_url)
