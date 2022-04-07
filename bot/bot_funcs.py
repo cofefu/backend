@@ -8,8 +8,8 @@ from app.models import *
 def gen_markup(order_number: int):
     markup_btns = types.InlineKeyboardMarkup(row_width=2)
     markup_btns.add(
-        types.InlineKeyboardButton('Принять', callback_data=f'order {1} {order_number}'),
-        types.InlineKeyboardButton('Отклонить', callback_data=f'order {2} {order_number}')
+        types.InlineKeyboardButton('Принять', callback_data=f'{1} {order_number}'),
+        types.InlineKeyboardButton('Отклонить', callback_data=f'{2} {order_number}')
     )
     return markup_btns
 

@@ -11,11 +11,10 @@ router = APIRouter()
 
 
 def gen_send_contact_markup():
-    btn = types.InlineKeyboardMarkup()
+    btn = types.ReplyKeyboardMarkup(row_width=2)
     btn.add(
-        types.InlineKeyboardButton('Подтвердить номер телефона',
-                                   callback_data='phone',
-                                   request_contact=True),
+        types.KeyboardButton('Подтвердить номер телефона', request_contact=True),
+        types.KeyboardButton('Отмена'),
     )
     return btn
 
@@ -48,17 +47,19 @@ def send_chat_id(message):
     bot.reply_to(message, message.chat.id)
 
 
-@bot.callback_query_handler(func=lambda call: 'phone' in call.data.split())
-def confirm_phone_number(call: types.CallbackQuery):
-    bot.send_message(chat_id=call.message.chat.id, text=f"Your phone number is {call.contact.phone_number}")
+@bot.message_handler(content_types=['contact'])
+def contact_handler(message):
+    bot.send_message(chat_id=message.chat.id, text=message.contact.phone_number)
 
 
-@bot.callback_query_handler(func=lambda call: 'order' in call.data.split())
+@bot.message_handler(func=lambda call: 'отмена' in call.text.lower())
+def cancel_func(message):
+    bot.edit_message_reply_markup(message.chat.id, message.id, reply_markup=None)
+
+
+@bot.callback_query_handler(func=lambda call: True)
 def callback_processing(call: types.CallbackQuery):
-    _, cb_status, order_number = call.data.split()
-    cb_status = int(cb_status)
-    order_number = int(order_number)
-
+    cb_status, order_number = map(int, call.data.split())
     order = Order.get_or_none(id=int(order_number))
     order.status = cb_status
     order.save()
