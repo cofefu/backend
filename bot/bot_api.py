@@ -36,9 +36,12 @@ def process_webhook(update: dict):
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
+    markup = gen_send_contact_markup()
+    if message.chat.type == 'group':
+        markup = None
     bot.send_message(message.chat.id,
                      f"Hello, i'm coffefu webhook bot.",
-                     reply_markup=gen_send_contact_markup())
+                     reply_markup=markup)
 
 
 @bot.message_handler(commands=['chat_id'])
