@@ -11,7 +11,6 @@ from app.models import CoffeeHouse, TimeTable, ProductVarious, Topping
 class Customer(BaseModel):
     name: constr(max_length=20)
     phone_number: constr(max_length=20)
-    email: EmailStr = None
 
     @validator('phone_number')
     def phone_number_validator(cls, number: str):

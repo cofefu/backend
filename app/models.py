@@ -9,7 +9,8 @@ from db import BaseModel
 class Customer(BaseModel):
     name = CharField(max_length=20)
     phone_number = CharField(max_length=10)
-    email = CharField(max_length=256, null=True)  # Maybe less characters
+    confirmed = BooleanField(default=False)
+    chat_id = IntegerField(null=True)
 
     def __str__(self):
         return f'name: {self.name}, phone_number: {self.phone_number}, email: {self.email}'
@@ -19,6 +20,11 @@ class Customer(BaseModel):
 
 
 class Product(BaseModel):
+    ProductTypes = (
+        (0, 'Кофе'),
+        (1, 'Не кофе')
+    )
+    type = IntegerField(choices=ProductTypes, default=0)
     name = CharField(max_length=20)
     description = CharField(max_length=200, null=True)
     img = CharField(max_length=200, null=True)
