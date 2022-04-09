@@ -115,3 +115,11 @@ class ToppingsResponseModel(BaseModel):
     id: int
     name: str
     price: int
+
+
+class ProductResponseModel(BaseModel):
+    id: int
+    type: int
+    name: str
+    description: str
+    variations = List[ProductsVariousResponseModel]
