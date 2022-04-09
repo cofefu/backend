@@ -29,11 +29,14 @@ class Product(BaseModel):
     description = CharField(max_length=200, null=True)
     img = CharField(max_length=200, null=True)
 
+    class Meta:
+        table_name = 'products'
+
     def __str__(self):
         return f'name: {self.name}'
 
-    class Meta:
-        table_name = 'products'
+    def get_type_name(self):
+        return dict(self.ProductTypes)[self.type]
 
 
 class ProductVarious(BaseModel):

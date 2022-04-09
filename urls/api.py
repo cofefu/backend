@@ -8,7 +8,7 @@ from app.models import ProductVarious, Product, Topping, CoffeeHouse, Customer, 
     ToppingToProduct
 from backend import schemas
 from backend.schemas import CoffeeHouseResponseModel, ProductsVariousResponseModel, OrderResponseModel, \
-    ToppingsResponseModel
+    ToppingsResponseModel, ProductResponseModel
 from bot.bot_funcs import send_order
 
 router = APIRouter()
@@ -16,7 +16,8 @@ router = APIRouter()
 
 @router.get('/products',
             tags=['common'],
-            description='Возвращает список продуктов и его вариации')
+            description='Возвращает список продуктов и его вариации',
+            response_model=ProductResponseModel)
 async def get_products():
     products = []
     for prod in Product.select():
