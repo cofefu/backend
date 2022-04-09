@@ -37,7 +37,7 @@ class Product(BaseModel):
 
 
 class ProductVarious(BaseModel):
-    product = ForeignKeyField(Product)
+    product = ForeignKeyField(Product, backref='variations')
     size = IntegerField(constraints=[Check('size >= 0')])
     price = IntegerField(constraints=[Check('size >= 0')])
 
@@ -63,8 +63,8 @@ class Order(BaseModel):
         (3, 'Выполнен'),
         (4, 'Не выполнен')
     )
-    coffee_house = ForeignKeyField(CoffeeHouse, backref='coffee_house')
-    customer = ForeignKeyField(Customer, backref='customer')
+    coffee_house = ForeignKeyField(CoffeeHouse, backref='house_orders')
+    customer = ForeignKeyField(Customer, backref='customer_orders')
     time = DateTimeField()
     status = IntegerField(default=0, choices=OrderStatus)
 
@@ -100,7 +100,7 @@ class Worktime(BaseModel):
 
 class TimeTable(BaseModel):
     worktime = ForeignKeyField(Worktime)
-    coffee_house = ForeignKeyField(CoffeeHouse, backref='coffee_house')
+    coffee_house = ForeignKeyField(CoffeeHouse, backref='timetables')
 
 
 class Topping(BaseModel):

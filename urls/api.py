@@ -2,7 +2,7 @@ from typing import List
 
 from fastapi import APIRouter, HTTPException
 from starlette.responses import FileResponse
-from peewee import fn
+from peewee import fn, JOIN
 
 from app.models import ProductVarious, Product, Topping, CoffeeHouse, Customer, Order, OrderedProduct, \
     ToppingToProduct
@@ -18,18 +18,14 @@ router = APIRouter()
             tags=['common'],
             description='Возвращает список продуктов и его вариации')
 async def get_products():
-    def unpack(p):
-        p_tt = [tuple(p.items())[0]]
-        p_new = tuple(p.values())[1]
-        p_new.update(p_tt)
-        return p_new
+    products = []
+    for prod in Product.select():
+        variations = [var.data(hide=['product']) for var in prod.variations]
 
-    products = (ProductVarious
-                .select(Product.id, Product.name, Product.description, fn.min(ProductVarious.price))
-                .join(Product)
-                .group_by(Product.id)
-                )
-    return [unpack(p.data()) for p in products]
+        prod_with_vars = prod.data(hide=['img'])
+        prod_with_vars['variations'] = variations
+        products.append(prod_with_vars)
+    return products
 
 
 @router.get('/coffee_houses',
