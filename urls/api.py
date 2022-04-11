@@ -17,7 +17,7 @@ router = APIRouter()
 @router.get('/products',
             tags=['common'],
             description='Возвращает список продуктов и его вариации',
-            response_model=ProductResponseModel)
+            response_model=List[ProductResponseModel])
 async def get_products():
     products = []
     for prod in Product.select():
@@ -96,3 +96,11 @@ async def make_order(order_inf: schemas.Order):
 
     send_order(order_number=order.id)
     return {'order_number': order.id}
+
+
+@router.post('/make_customer',
+             description='Служит для создание аккаунта покупателя')
+async def make_customer(customer: schemas.Customer):
+    Customer.create(name=customer.name, phone_number=customer.phone_number)
+
+    return "Success"  # todo возвращать jwt token
