@@ -32,8 +32,6 @@ def send_order(order_number: int):
     message += f'<i>Имя покупателя:</i> {order.customer.name}\n'
     if order.customer.phone_number is not None:
         message += f'<i>Телефон покупателя:</i> +7{order.customer.phone_number}\n'
-    if order.customer.email is not None:
-        message += f'<i>Почта покупателя:</i> {order.customer.email}\n'
 
     bot.send_message(chat_id=order.coffee_house.chat_id, text=message, parse_mode='HTML',
                      reply_markup=gen_markup(order_number))
