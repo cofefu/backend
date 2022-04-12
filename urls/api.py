@@ -50,11 +50,15 @@ async def get_coffeehouses():
 
 
 @router.get('/order_status/{number}',
-            description='Возвращает статус заказа по его id или ошибку, если заказа нет')
-async def get_order_status(number: int):
+            tags=['jwt require'],
+            description='Возвращает статус заказа по его id или ошибку, если заказа нет',
+            response_description='В ожидании | Принят | Отклонен | Выполнен | Не выполнен')
+async def get_order_status(number: int, customer: Customer = Depends(get_current_user)):
     order = Order.get_or_none(number)
     if order is None:
-        raise HTTPException(status_code=400, detail="Invalid order number")
+        raise HTTPException(status_code=400, detail="Неверный номер заказа")
+    if order.customer != customer:
+        raise HTTPException(status_code=400, detail="Это заказ другого пользователя")
     return order.get_status_name()
 
 
@@ -94,6 +98,7 @@ async def get_favicon_svg():
 
 
 @router.post('/make_order',
+             tags=['jwt require'],
              description='Служит для создания заказа',
              response_model=OrderResponseModel)
 async def make_order(order_inf: schemas.Order, customer: Customer = Depends(get_current_active_user)):
@@ -110,7 +115,8 @@ async def make_order(order_inf: schemas.Order, customer: Customer = Depends(get_
 
 
 @router.post('/register_customer',
-             description='Служит для создание аккаунта покупателя')
+             description='Служит для создание аккаунта покупателя',
+             response_description="Возвращает jwt-токен customer'а")
 async def register_customer(customer: schemas.Customer):
     if Customer.get_or_none(phone_number=customer.phone_number):
         raise HTTPException(status_code=400, detail='Пользователь с таким номером телефона уже существует.')
@@ -119,12 +125,17 @@ async def register_customer(customer: schemas.Customer):
     return create_token(new_customer)
 
 
-@router.post('/update_token', description='Служит для обновления токена')
+@router.post('/update_token',
+             tags=['jwt require'],
+             description='Служит для обновления токена',
+             response_description='Возвращает обновленный jwt-токен')
 async def update_token(customer: Customer = Depends(get_current_user)):
     return create_token(customer)
 
 
-@router.post('/send_login_code', description='Отправляет пользователя в чат с ботом код для подтверждения входа')
+@router.post('/send_login_code',
+             description='Отправляет пользователю код для подтверждения входа',
+             response_description='Ничего не возвращает')
 async def create_login_code(customer_data: schemas.Customer):
     customer = Customer.get_or_none(phone_number=customer_data.phone_number)
     if customer is None:
@@ -145,7 +156,9 @@ async def create_login_code(customer_data: schemas.Customer):
     return "Success"
 
 
-@router.get('/verify_login_code', description='Для проверки login кода и получения jwt-токена')
+@router.get('/verify_login_code',
+            description='Для проверки login кода и получения jwt-токена',
+            response_description='Возвращает jwt-токен')
 async def verify_login_code(code: int):
     login_code: LoginCode = LoginCode.get_or_none(code=code)
     if login_code is None:
@@ -154,3 +167,10 @@ async def verify_login_code(code: int):
         raise HTTPException(status_code=401, detail='Срок действия кода подтверждения истек.')
 
     return create_token(login_code.customer)
+
+
+@router.get('/my_orders',
+            tags=['jwt require'],
+            description="Возвращает историю заказов")
+async def get_my_order_history(customer: Customer = Depends(get_current_user)):
+    pass

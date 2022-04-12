@@ -5,8 +5,8 @@ from app.models import LoginCode
 from bot import bot
 from app.models import *
 
-
 ProductSizes = ('S', 'M', 'L')
+
 
 def gen_markup(order_number: int):
     markup_btns = types.InlineKeyboardMarkup(row_width=2)

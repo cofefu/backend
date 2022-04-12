@@ -12,6 +12,14 @@ class Customer(BaseModel):
     name: constr(max_length=20)
     phone_number: constr(max_length=10)
 
+    class Config:
+        schema_extra = {
+            "example": {
+                "name": "Иван",
+                "phone_number": "9997773322"
+            }
+        }
+
     @validator('phone_number')
     def phone_number_validator(cls, number: str):
         try:

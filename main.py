@@ -9,6 +9,10 @@ tags_metadata = [
     {
         "name": "common",
         "description": "Для получения общей информации из бд",
+    },
+    {
+        "name": 'jwt require',
+        'description': 'Требуется jwt-токен'
     }
 ]
 
