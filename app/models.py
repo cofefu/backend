@@ -14,7 +14,7 @@ class Customer(BaseModel):
     chat_id = IntegerField(null=True)
 
     def __str__(self):
-        return f'name: {self.name}, phone_number: {self.phone_number}, email: {self.email}'
+        return f'name: {self.name}, phone_number: {self.phone_number}'
 
     class Meta:
         table_name = 'customers'
@@ -123,8 +123,11 @@ class LoginCode(BaseModel):
     expire = TimestampField()
 
 
+# TODO вынести в db.migrate
 if __name__ == '__main__':
     import db
+
+    Customer.delete()
 
     db.db.create_tables(
         [Customer, Product, CoffeeHouse, Order, Worktime, TimeTable,
