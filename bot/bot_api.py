@@ -56,7 +56,7 @@ def contact_handler(message):
         bot.send_message(chat_id=message.chat.id, text='Это НЕ ваш номер телефона.')
         return
 
-    if customer := Customer.get_or_none(phone_number=phone_number[-11:-1]):
+    if customer := Customer.get_or_none(phone_number=phone_number[-10:]):
         customer.confirmed = True
         customer.chat_id = message.chat.id
         customer.save()
