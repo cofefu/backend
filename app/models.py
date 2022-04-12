@@ -1,7 +1,8 @@
 from datetime import datetime
 
 from peewee import \
-    ForeignKeyField, CharField, DateTimeField, IntegerField, TimeField, BooleanField, Check, TimestampField
+    ForeignKeyField, CharField, DateTimeField, IntegerField, TimeField, \
+    BooleanField, Check, TimestampField
 
 from db import BaseModel
 
@@ -125,8 +126,11 @@ class LoginCode(BaseModel):
 if __name__ == '__main__':
     import db
 
-    db.db.create_tables([Customer, Product, CoffeeHouse, Order, Worktime, TimeTable, ProductVarious,
-                         OrderedProduct, ToppingToProduct, Topping])
+    db.db.create_tables(
+        [Customer, Product, CoffeeHouse, Order, Worktime, TimeTable,
+         ProductVarious, OrderedProduct, ToppingToProduct, Topping,
+         LoginCode, ])
 
-__all__ = ['Customer', 'Product', 'CoffeeHouse', 'Order', 'Worktime', 'TimeTable', 'ProductVarious',
-           'OrderedProduct', 'ToppingToProduct', 'Topping']
+__all__ = ['Customer', 'Product', 'CoffeeHouse', 'Order', 'Worktime',
+           'TimeTable', 'ProductVarious', 'OrderedProduct', 'ToppingToProduct',
+           'Topping', 'LoginCode', ]
