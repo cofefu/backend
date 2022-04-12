@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from peewee import \
-    ForeignKeyField, CharField, DateTimeField, IntegerField, TimeField, BooleanField, Check
+    ForeignKeyField, CharField, DateTimeField, IntegerField, TimeField, BooleanField, Check, TimestampField
 
 from db import BaseModel
 
@@ -114,6 +114,12 @@ class Topping(BaseModel):
 class ToppingToProduct(BaseModel):
     ordered_product = ForeignKeyField(OrderedProduct)
     topping = ForeignKeyField(Topping)
+
+
+class LoginCode(BaseModel):
+    customer = ForeignKeyField(Customer)
+    code = IntegerField(unique=True)
+    expire = TimestampField()
 
 
 if __name__ == '__main__':

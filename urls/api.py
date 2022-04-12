@@ -1,17 +1,29 @@
+import random
 from typing import List
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from starlette.responses import FileResponse
-from peewee import fn, JOIN
+from jose import jwt
+from datetime import datetime, timedelta
 
 from app.models import ProductVarious, Product, Topping, CoffeeHouse, Customer, Order, OrderedProduct, \
-    ToppingToProduct
+    ToppingToProduct, LoginCode
 from backend import schemas
 from backend.schemas import CoffeeHouseResponseModel, ProductsVariousResponseModel, OrderResponseModel, \
     ToppingsResponseModel, ProductResponseModel
-from bot.bot_funcs import send_order
+from backend.settings import JWT_SECRET_KEY, JWT_ALGORITHM
+from bot.bot_funcs import send_order, send_login_code
+from urls.dependencies import get_current_active_user, get_current_user
 
 router = APIRouter()
+
+
+def create_token(customer: Customer) -> str:
+    user_data = {
+        "sub": str(customer.phone_number),
+        "exp": datetime.utcnow() + timedelta(days=14)
+    }
+    return jwt.encode(user_data, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
 
 
 @router.get('/products',
@@ -24,7 +36,7 @@ async def get_products():
         variations = [var.data(hide=['product']) for var in prod.variations]
 
         prod_with_vars = prod.data(hide=['img'])
-        prod_with_vars['variations'] = variations
+        prod_with_vars.update({'variations': variations})
         products.append(prod_with_vars)
     return products
 
@@ -84,9 +96,8 @@ async def get_favicon_svg():
 @router.post('/make_order',
              description='Служит для создания заказа',
              response_model=OrderResponseModel)
-async def make_order(order_inf: schemas.Order):
+async def make_order(order_inf: schemas.Order, customer: Customer = Depends(get_current_active_user)):
     coffee_house: CoffeeHouse = CoffeeHouse.get(CoffeeHouse.id == order_inf.coffee_house)
-    customer: Customer = Customer.get_or_create(**dict(order_inf.customer))[0]  # redo
     order = Order.create(coffee_house=coffee_house, customer=customer, time=order_inf.time)
     for p in order_inf.products:
         prod: ProductVarious = ProductVarious.get(ProductVarious.id == p.id)
@@ -98,9 +109,48 @@ async def make_order(order_inf: schemas.Order):
     return {'order_number': order.id}
 
 
-@router.post('/make_customer',
+@router.post('/register_customer',
              description='Служит для создание аккаунта покупателя')
-async def make_customer(customer: schemas.Customer):
-    Customer.create(name=customer.name, phone_number=customer.phone_number)
+async def register_customer(customer: schemas.Customer):
+    if Customer.get_or_none(phone_number=customer.phone_number):
+        raise HTTPException(status_code=400, detail='Пользователь с таким номером телефона уже существует.')
 
-    return "Success"  # todo возвращать jwt token
+    new_customer = Customer.create(name=customer.name, phone_number=customer.phone_number)
+    return create_token(new_customer)
+
+
+@router.post('/update_token', description='Служит для обновления токена')
+async def update_token(customer: Customer = Depends(get_current_user)):
+    return create_token(customer)
+
+
+@router.post('/send_login_code', description='Отправляет пользователя в чат с ботом код для подтверждения входа')
+async def create_login_code(customer_data: schemas.Customer):
+    customer = Customer.get_or_none(phone_number=customer_data.phone_number)
+    if customer is None:
+        raise HTTPException(status_code=400, detail='Пользователя с таким номером телефона не существует.')
+    if not customer.confirmed:
+        raise HTTPException(status_code=401, detail='Пользователь не подтвердил номер телефона.')
+
+    code = random.randint(100000, 999999)
+    while LoginCode.get_or_none(code=code):
+        code = random.randint(100000, 999999)
+
+    login_code_data = {
+        "customer": customer,
+        "code": code,
+        "expire": datetime.utcnow() + timedelta(minutes=5)
+    }
+    send_login_code(LoginCode.create(**login_code_data))
+    return "Success"
+
+
+@router.get('/verify_login_code', description='Для проверки login кода и получения jwt-токена')
+async def verify_login_code(code: int):
+    login_code: LoginCode = LoginCode.get_or_none(code=code)
+    if login_code is None:
+        raise HTTPException(status_code=401, detail='Неверный код подтверждения.')
+    if login_code.expire < datetime.utcnow():
+        raise HTTPException(status_code=401, detail='Срок действия кода подтверждения истек.')
+
+    return create_token(login_code.customer)

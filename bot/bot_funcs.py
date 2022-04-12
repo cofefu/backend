@@ -1,6 +1,7 @@
 from datetime import datetime
 from telebot import types
 
+from app.models import LoginCode
 from bot import bot
 from app.models import *
 
@@ -35,3 +36,8 @@ def send_order(order_number: int):
 
     bot.send_message(chat_id=order.coffee_house.chat_id, text=message, parse_mode='HTML',
                      reply_markup=gen_markup(order_number))
+
+
+def send_login_code(login_code: LoginCode):
+    msg = f'Код для входа: {login_code.code}'
+    bot.send_message(chat_id=login_code.customer.chat_id, text=msg)

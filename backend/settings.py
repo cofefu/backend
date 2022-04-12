@@ -25,3 +25,6 @@ WEBHOOK_SSL_PRIV = '/etc/nginx/ssl/pkey.pem'  # Path to the ssl private key
 EMAIL_USER_LOGIN = 'coffefuorder@mail.ru'
 EMAIL_USER_PASSWORD = os.getenv('EMAIL_USER_PASSWORD')
 EMAIL_SERVER = 'smtp.mail.ru'
+
+JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY')
+JWT_ALGORITHM = "HS256"
