@@ -49,10 +49,6 @@ class Order(BaseModel):
         schema_extra = {
             "example": {
                 "coffee_house": "1",
-                "customer": {
-                    "name": "test",
-                    "phone_number": "9993332211"
-                },
                 "products": [
                     {
                         "id": 1,
