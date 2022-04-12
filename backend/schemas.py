@@ -41,7 +41,6 @@ class Product(BaseModel):
 
 class Order(BaseModel):
     coffee_house: str  # TEST maybe int
-    customer: Customer
     products: List[Product]
     time: datetime
 
