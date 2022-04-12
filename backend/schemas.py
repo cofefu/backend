@@ -51,8 +51,7 @@ class Order(BaseModel):
                 "coffee_house": "1",
                 "customer": {
                     "name": "test",
-                    "phone_number": "9993332211",
-                    "email": "user@example.com"
+                    "phone_number": "9993332211"
                 },
                 "products": [
                     {
