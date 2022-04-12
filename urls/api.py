@@ -1,7 +1,7 @@
 import random
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException
 from starlette.responses import FileResponse
 from jose import jwt
 from datetime import datetime, timedelta
@@ -101,7 +101,9 @@ async def get_favicon_svg():
              tags=['jwt require'],
              description='Служит для создания заказа',
              response_model=OrderResponseModel)
-async def make_order(order_inf: schemas.Order, customer: Customer = Depends(get_current_active_user)):
+async def make_order(order_inf: schemas.Order,
+                     background_tasks: BackgroundTasks,
+                     customer: Customer = Depends(get_current_active_user)):
     coffee_house: CoffeeHouse = CoffeeHouse.get(CoffeeHouse.id == order_inf.coffee_house)
     order = Order.create(coffee_house=coffee_house, customer=customer, time=order_inf.time)
     for p in order_inf.products:
@@ -110,7 +112,7 @@ async def make_order(order_inf: schemas.Order, customer: Customer = Depends(get_
         for top in p.toppings:
             ToppingToProduct.create(ordered_product=order_prod, topping=top)
 
-    send_order(order_number=order.id)
+    background_tasks.add_task(send_order, order.id)
     return {'order_number': order.id}
 
 
@@ -136,7 +138,7 @@ async def update_token(customer: Customer = Depends(get_current_user)):
 @router.post('/send_login_code',
              description='Отправляет пользователю код для подтверждения входа',
              response_description='Ничего не возвращает')
-async def create_login_code(customer_data: schemas.Customer):
+async def create_login_code(customer_data: schemas.Customer, background_tasks: BackgroundTasks):
     customer = Customer.get_or_none(phone_number=customer_data.phone_number)
     if customer is None:
         raise HTTPException(status_code=400, detail='Пользователя с таким номером телефона не существует.')
@@ -152,7 +154,7 @@ async def create_login_code(customer_data: schemas.Customer):
         "code": code,
         "expire": datetime.utcnow() + timedelta(minutes=5)
     }
-    send_login_code(LoginCode.create(**login_code_data))
+    background_tasks.add_task(send_login_code, LoginCode.create(**login_code_data))
     return "Success"
 
 
