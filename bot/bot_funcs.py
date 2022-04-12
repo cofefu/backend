@@ -6,6 +6,8 @@ from bot import bot
 from app.models import *
 
 
+ProductSizes = ('S', 'M', 'L')
+
 def gen_markup(order_number: int):
     markup_btns = types.InlineKeyboardMarkup(row_width=2)
     markup_btns.add(
@@ -24,15 +26,14 @@ def send_order(order_number: int):
     message += f'<i>Содержание:</i>\n'
 
     for prod in products:
-        message += f'  - {prod.product.product.name} {prod.product.size}мл'
+        message += f'  - {prod.product.product.name}, размер {ProductSizes[prod.product.size]}'
         for top in ToppingToProduct.select().where(ToppingToProduct.ordered_product == prod):
             message += f' + {top.topping.name}'
         message += '\n'
 
     message += f'<i>Приготовить к:</i> {time.strftime("%H:%M")}\n'
     message += f'<i>Имя покупателя:</i> {order.customer.name}\n'
-    if order.customer.phone_number is not None:
-        message += f'<i>Телефон покупателя:</i> +7{order.customer.phone_number}\n'
+    message += f'<i>Телефон покупателя:</i> +7{order.customer.phone_number}\n'
 
     bot.send_message(chat_id=order.coffee_house.chat_id, text=message, parse_mode='HTML',
                      reply_markup=gen_markup(order_number))
