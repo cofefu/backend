@@ -2,7 +2,7 @@ from fastapi import APIRouter
 import telebot
 
 from app.models import Order, Customer
-from backend.settings import DOMAIN, SERVER_PORT, API_TOKEN
+from backend.settings import DOMAIN, SERVER_PORT, BOT_TOKEN
 from bot import bot
 from telebot import types
 from bot.email_sender import send_email
@@ -19,13 +19,13 @@ def gen_send_contact_markup():
 
 
 def set_webhook():
-    webhook_url = f"https://{DOMAIN}:{SERVER_PORT}" + f'/bot/{API_TOKEN}/'
+    webhook_url = f"https://{DOMAIN}:{SERVER_PORT}" + f'/bot/{BOT_TOKEN}/'
     if bot.get_webhook_info().url != webhook_url:
         bot.remove_webhook()
         bot.set_webhook(url=webhook_url)
 
 
-@router.post(f'/{API_TOKEN}/', include_in_schema=False)
+@router.post(f'/{BOT_TOKEN}/', include_in_schema=False)
 def process_webhook(update: dict):
     if update:
         update = telebot.types.Update.de_json(update)

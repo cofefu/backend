@@ -16,7 +16,7 @@ DATABASE = {
 SERVER_HOST = os.getenv('SERVER_HOST', 'localhost')
 SERVER_PORT = 443
 
-API_TOKEN = os.getenv('API_TOKEN')
+BOT_TOKEN = os.getenv('BOT_TOKEN')
 DOMAIN = os.getenv('DOMAIN')
 
 WEBHOOK_SSL_CERT = '/etc/nginx/ssl/cofefu.ru.cert'  # Path to the ssl certificate
