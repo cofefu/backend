@@ -53,7 +53,7 @@ async def get_coffeehouses():
             tags=['jwt require'],
             description='Возвращает статус заказа по его id или ошибку, если заказа нет',
             response_description='В ожидании | Принят | Отклонен | Выполнен | Не выполнен')
-async def get_order_status(number: int, customer: Customer = Depends(get_current_user)):
+async def get_order_status(number: int, customer: Customer = Depends(get_current_active_user)):
     order = Order.get_or_none(number)
     if order is None:
         raise HTTPException(status_code=400, detail="Неверный номер заказа")
@@ -174,5 +174,13 @@ async def verify_login_code(code: int):
 @router.get('/my_orders',
             tags=['jwt require'],
             description="Возвращает историю заказов")
-async def get_my_order_history(customer: Customer = Depends(get_current_user)):
+async def get_my_order_history(customer: Customer = Depends(get_current_active_user)):
     pass
+
+
+@router.get('/me',
+            tags=['jwt require'],
+            description='Возвращает информацию о текущем пользователе',
+            response_model=schemas.Customer)
+async def get_me(customer: Customer = Depends(get_current_user)):
+    return {"name": customer.name, "phone_number": customer.phone_number}
