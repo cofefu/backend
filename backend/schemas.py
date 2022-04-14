@@ -102,6 +102,8 @@ class CoffeeHouseResponseModel(BaseModel):
     id: int
     name: str
     placement: str
+    open_time: str
+    close_time: str
 
 
 class ProductsVariousResponseModel(BaseModel):

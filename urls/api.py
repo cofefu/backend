@@ -5,9 +5,10 @@ from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException
 from starlette.responses import FileResponse
 from jose import jwt
 from datetime import datetime, timedelta
+from pytz import timezone
 
 from app.models import ProductVarious, Product, Topping, CoffeeHouse, Customer, Order, OrderedProduct, \
-    ToppingToProduct, LoginCode
+    ToppingToProduct, LoginCode, TimeTable
 from backend import schemas
 from backend.settings import JWT_SECRET_KEY, JWT_ALGORITHM
 from bot.bot_funcs import send_order, send_login_code
@@ -42,9 +43,18 @@ async def get_products():
 @router.get('/coffee_houses',
             tags=['common'],
             description='Возвращает список кофеен с именем и расположением',
-            response_model=List[schemas.CoffeeHouseResponseModel])
+            response_model=List[schemas.CoffeeHouseResponseModel])      # redo
 async def get_coffeehouses():
-    return [h.data(hide=('chat_id', 'is_open')) for h in CoffeeHouse.select()]
+    response = []
+    for house in CoffeeHouse.select():
+        house_data = house.data(hide=('chat_id', 'is_open'))
+
+        day_of_week = datetime.now(tz=timezone('Asia/Vladivostok')).weekday()
+        for tt in house.timetables:
+            if tt.worktime.day_of_week == day_of_week:
+                house_data.update(tt.worktime.data(hide=['id', 'day_of_week']))
+        response.append(house_data)
+    return response
 
 
 @router.get('/order_status/{number}',
@@ -204,4 +214,3 @@ async def get_me(customer: Customer = Depends(get_current_user)):
 async def get_last_order(customer: Customer = Depends(get_current_active_user)):
     order = Order.select().where(Order.customer == customer).order_by(Order.id.desc())[0]
     return schemas.OrderResponseModel.to_dict(order)
-
