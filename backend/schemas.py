@@ -6,7 +6,7 @@ from pydantic import BaseModel, validator, constr, EmailStr
 from pytz import timezone
 
 from app import models
-from app.models import CoffeeHouse, TimeTable, ProductVarious, Topping
+from app.models import CoffeeHouse, ProductVarious, Topping, Worktime
 
 
 class Customer(BaseModel):
@@ -89,12 +89,16 @@ class OrderIn(BaseModel):
                                 detail="Incorrect order time. The allowed time is from 5 minutes to 5 hours")
 
         weekday = datetime.now(tz=timezone('Asia/Vladivostok')).weekday()
-        for timetbl in TimeTable.select().where(TimeTable.coffee_house == values['coffee_house']):
-            if timetbl.worktime.day_of_week == weekday:
-                open_time = datetime.strptime(timetbl.worktime.open_time, '%H:%M:%S').time()
-                close_time = datetime.strptime(timetbl.worktime.close_time, '%H:%M:%S').time()
-                if not open_time <= order_time.time() <= close_time:
-                    raise HTTPException(status_code=400, detail="The coffee house is closed")
+        worktime = Worktime.get_or_none(
+            (Worktime.coffee_house == values['coffee_house']) & (Worktime.day_of_week == weekday))
+        if worktime is None:
+            raise HTTPException(status_code=400, detail="The coffee house is closed")
+
+        open_time = datetime.strptime(worktime.open_time, '%H:%M:%S').time()
+        close_time = datetime.strptime(worktime.close_time, '%H:%M:%S').time()
+        if not open_time <= order_time.time() <= close_time:
+            raise HTTPException(status_code=400, detail="The coffee house is closed")
+
         return order_time
 
 
