@@ -128,7 +128,7 @@ if __name__ == '__main__':
         [Customer, Product, CoffeeHouse, Order, Worktime,
          ProductVarious, OrderedProduct, ToppingToProduct, Topping,
          LoginCode, ])
-    field_db.field()
+    # field_db.field()
 
 __all__ = ['Customer', 'Product', 'CoffeeHouse', 'Order', 'Worktime', 'ProductVarious', 'OrderedProduct',
            'ToppingToProduct', 'Topping', 'LoginCode', ]
