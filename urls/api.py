@@ -212,5 +212,7 @@ async def get_me(customer: Customer = Depends(get_current_user)):
             description='Возвращает последний заказ пользователя',
             response_model=schemas.OrderResponseModel)
 async def get_last_order(customer: Customer = Depends(get_current_active_user)):
-    order = Order.select().where(Order.customer == customer).order_by(Order.id.desc())[0]
-    return schemas.OrderResponseModel.to_dict(order)
+    order = Order.select().where(Order.customer == customer).order_by(Order.id.desc())
+    if len(order) == 0:
+        return None
+    return schemas.OrderResponseModel.to_dict(order[0])
