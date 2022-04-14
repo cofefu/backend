@@ -94,17 +94,13 @@ class Worktime(BaseModel):
         (5, 'Суббота'),
         (6, 'Воскресенье'),
     )
+    coffee_house = ForeignKeyField(CoffeeHouse, backref='worktime')
     day_of_week = IntegerField(choices=DaysOfWeek)
     open_time = TimeField(formats='%H:%M:%S')
     close_time = TimeField(formats='%H:%M:%S')
 
     def get_day_of_week_name(self):
         return dict(self.DaysOfWeek)[self.day_of_week]
-
-
-class TimeTable(BaseModel):
-    worktime = ForeignKeyField(Worktime)
-    coffee_house = ForeignKeyField(CoffeeHouse, backref='timetables')
 
 
 class Topping(BaseModel):
@@ -126,14 +122,13 @@ class LoginCode(BaseModel):
 # TODO вынести в db.migrate
 if __name__ == '__main__':
     import db
-
-    Customer.delete()
+    from app import field_db
 
     db.db.create_tables(
-        [Customer, Product, CoffeeHouse, Order, Worktime, TimeTable,
+        [Customer, Product, CoffeeHouse, Order, Worktime,
          ProductVarious, OrderedProduct, ToppingToProduct, Topping,
          LoginCode, ])
+    field_db.field()
 
-__all__ = ['Customer', 'Product', 'CoffeeHouse', 'Order', 'Worktime',
-           'TimeTable', 'ProductVarious', 'OrderedProduct', 'ToppingToProduct',
-           'Topping', 'LoginCode', ]
+__all__ = ['Customer', 'Product', 'CoffeeHouse', 'Order', 'Worktime', 'ProductVarious', 'OrderedProduct',
+           'ToppingToProduct', 'Topping', 'LoginCode', ]
