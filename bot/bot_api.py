@@ -2,7 +2,7 @@ from fastapi import APIRouter
 import telebot
 
 from app.models import Order, Customer
-from backend.settings import DOMAIN, SERVER_PORT, BOT_TOKEN
+from backend.settings import DOMAIN, BOT_TOKEN, BOT_PORT
 from bot import bot
 from telebot import types
 from bot.email_sender import send_email
@@ -19,7 +19,7 @@ def gen_send_contact_markup():
 
 
 def set_webhook():
-    webhook_url = f"https://{DOMAIN}:{SERVER_PORT}" + f'/bot/{BOT_TOKEN}/'
+    webhook_url = f"https://{DOMAIN}:{BOT_PORT}" + f'/bot/{BOT_TOKEN}/'
     if bot.get_webhook_info().url != webhook_url:
         bot.remove_webhook()
         bot.set_webhook(url=webhook_url)
@@ -53,7 +53,8 @@ def send_chat_id(message):
 def contact_handler(message):
     phone_number = message.contact.phone_number
     if message.contact.user_id != message.from_user.id:
-        bot.send_message(chat_id=message.chat.id, text='Это НЕ ваш номер телефона.')
+        bot.send_message(chat_id=message.chat.id,
+                         text='Это НЕ ваш номер телефона.')
         return
 
     if customer := Customer.get_or_none(phone_number=phone_number[-10:]):
@@ -63,7 +64,8 @@ def contact_handler(message):
 
         bot.send_message(chat_id=message.chat.id,
                          text='Номер телефона подтвержден.',
-                         reply_markup=types.ReplyKeyboardRemove(selective=False))
+                         reply_markup=types.ReplyKeyboardRemove(
+                             selective=False))
     else:
         bot.send_message(chat_id=message.chat.id,
                          text='Пользователь с таким номером телефона не найден.')
@@ -79,5 +81,7 @@ def callback_processing(call: types.CallbackQuery):
     ans = 'Заказ принят' if cb_status == 1 else 'Заказ отклонен'
     bot.answer_callback_query(call.id, ans)
     ans = f"\n<b>{ans}</b>"
-    bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                          text=call.message.text + ans, parse_mode='HTML', reply_markup=None)
+    bot.edit_message_text(chat_id=call.message.chat.id,
+                          message_id=call.message.message_id,
+                          text=call.message.text + ans, parse_mode='HTML',
+                          reply_markup=None)
