@@ -47,7 +47,7 @@ class Product(BaseModel):
         return toppings
 
 
-class Order(BaseModel):
+class OrderIn(BaseModel):
     coffee_house: str  # TEST maybe int
     products: List[Product]
     time: datetime
@@ -83,7 +83,7 @@ class Order(BaseModel):
         now = datetime.now(tz=timezone('Asia/Vladivostok'))
         min_time = timedelta(minutes=5)
         max_time = timedelta(hours=5)
-        if not now < order_time and min_time <= order_time - now <= max_time:
+        if not (now < order_time and min_time <= order_time - now <= max_time):
             raise HTTPException(status_code=400,
                                 detail="Incorrect order time. The allowed time is from 5 minutes to 5 hours")
 
@@ -109,7 +109,7 @@ class ProductsVariousResponseModel(BaseModel):
     price: int
 
 
-class OrderResponseModel(BaseModel):
+class OrderNumberResponseModel(BaseModel):
     order_number: int
 
 
@@ -125,3 +125,16 @@ class ProductResponseModel(BaseModel):
     name: str
     description: str
     variations: List[ProductsVariousResponseModel]
+
+
+class SmallProductResponseModel(BaseModel):
+    id: int
+    toppings: List[int]
+
+
+class OrderResponseModel(BaseModel):
+    order_number: int
+    coffee_house: int
+    time: str
+    status: str
+    products: List[SmallProductResponseModel]

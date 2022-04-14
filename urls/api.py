@@ -9,8 +9,6 @@ from datetime import datetime, timedelta
 from app.models import ProductVarious, Product, Topping, CoffeeHouse, Customer, Order, OrderedProduct, \
     ToppingToProduct, LoginCode
 from backend import schemas
-from backend.schemas import CoffeeHouseResponseModel, ProductsVariousResponseModel, OrderResponseModel, \
-    ToppingsResponseModel, ProductResponseModel
 from backend.settings import JWT_SECRET_KEY, JWT_ALGORITHM
 from bot.bot_funcs import send_order, send_login_code
 from urls.dependencies import get_current_active_user, get_current_user
@@ -29,7 +27,7 @@ def create_token(customer: Customer) -> str:
 @router.get('/products',
             tags=['common'],
             description='Возвращает список продуктов и его вариации',
-            response_model=List[ProductResponseModel])
+            response_model=List[schemas.ProductResponseModel])
 async def get_products():
     products = []
     for prod in Product.select():
@@ -44,7 +42,7 @@ async def get_products():
 @router.get('/coffee_houses',
             tags=['common'],
             description='Возвращает список кофеен с именем и расположением',
-            response_model=List[CoffeeHouseResponseModel])
+            response_model=List[schemas.CoffeeHouseResponseModel])
 async def get_coffeehouses():
     return [h.data(hide=('chat_id', 'is_open')) for h in CoffeeHouse.select()]
 
@@ -65,7 +63,7 @@ async def get_order_status(number: int, customer: Customer = Depends(get_current
 @router.get('/products_various/{prod_id}',
             tags=['common'],
             description='Возвращает все вариации продукта или ошибку, если продукта нет',
-            response_model=List[ProductsVariousResponseModel])
+            response_model=List[schemas.ProductsVariousResponseModel])
 async def get_products_various(prod_id: int):
     if Product.get_or_none(prod_id) is None:
         raise HTTPException(status_code=400, detail='Invalid product id')
@@ -77,7 +75,7 @@ async def get_products_various(prod_id: int):
 @router.get('/toppings',
             tags=['common'],
             description='Возвращает список топингов',
-            response_model=List[ToppingsResponseModel])
+            response_model=List[schemas.ToppingsResponseModel])
 async def get_toppings():
     return [t.data() for t in Topping.select()]
 
@@ -100,8 +98,8 @@ async def get_favicon_svg():
 @router.post('/make_order',
              tags=['jwt require'],
              description='Служит для создания заказа',
-             response_model=OrderResponseModel)
-async def make_order(order_inf: schemas.Order,
+             response_model=schemas.OrderNumberResponseModel)
+async def make_order(order_inf: schemas.OrderIn,
                      background_tasks: BackgroundTasks,
                      customer: Customer = Depends(get_current_active_user)):
     coffee_house: CoffeeHouse = CoffeeHouse.get(CoffeeHouse.id == order_inf.coffee_house)
@@ -173,9 +171,35 @@ async def verify_login_code(code: int):
 
 @router.get('/my_orders',
             tags=['jwt require'],
-            description="Возвращает историю заказов")
+            description="Возвращает историю заказов",
+            response_model=List[schemas.OrderResponseModel])
 async def get_my_order_history(customer: Customer = Depends(get_current_active_user)):
-    pass
+    orders = []
+    for order in Order.select().where(Order.customer == customer):
+        products = []
+        for prod in order.ordered_products:
+            toppings = []
+            for top in prod.toppings:
+                toppings.append(top.topping.id)
+            products.append({"id": prod.product.id, "toppings": toppings})
+        data = {
+            "order_number": order.id,
+            "coffee_house": order.coffee_house.id,
+            "time": order.time,
+            "status": order.get_status_name(),
+            "products": products
+        }
+        orders.append(data)
+    return orders
+
+
+# @router.get('/test_my_orders')
+# async def my_orders_test(customer: Customer = Depends(get_current_active_user)):
+#     ordered_products = (OrderedProduct.select()
+#           .join(Order)
+#           .where(OrderedProduct.order.customer == customer)
+#           .order_by(Order))
+#     # todo do smth
 
 
 @router.get('/me',

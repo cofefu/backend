@@ -80,7 +80,7 @@ class Order(BaseModel):
 
 
 class OrderedProduct(BaseModel):
-    order = ForeignKeyField(Order)
+    order = ForeignKeyField(Order, backref='ordered_products')
     product = ForeignKeyField(ProductVarious)
 
 
@@ -113,7 +113,7 @@ class Topping(BaseModel):
 
 
 class ToppingToProduct(BaseModel):
-    ordered_product = ForeignKeyField(OrderedProduct)
+    ordered_product = ForeignKeyField(OrderedProduct, backref='toppings')
     topping = ForeignKeyField(Topping)
 
 
