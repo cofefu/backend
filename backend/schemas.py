@@ -5,6 +5,7 @@ from fastapi import HTTPException
 from pydantic import BaseModel, validator, constr, EmailStr
 from pytz import timezone
 
+from app import models
 from app.models import CoffeeHouse, TimeTable, ProductVarious, Topping
 
 
@@ -138,6 +139,23 @@ class OrderResponseModel(BaseModel):
     time: str
     status: str
     products: List[SmallProductResponseModel]
+
+    @staticmethod
+    def to_dict(order: models.Order) -> dict:
+        products = []
+        for prod in order.ordered_products:
+            toppings = []
+            for top in prod.toppings:
+                toppings.append(top.topping.id)
+            products.append({"id": prod.product.id, "toppings": toppings})
+        data = {
+            "order_number": order.id,
+            "coffee_house": order.coffee_house.id,
+            "time": order.time,
+            "status": order.get_status_name(),
+            "products": products
+        }
+        return data
 
     class Config:
         schema_extra = {

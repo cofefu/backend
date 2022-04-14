@@ -176,20 +176,7 @@ async def verify_login_code(code: int):
 async def get_my_order_history(customer: Customer = Depends(get_current_active_user)):
     orders = []
     for order in Order.select().where(Order.customer == customer):
-        products = []
-        for prod in order.ordered_products:
-            toppings = []
-            for top in prod.toppings:
-                toppings.append(top.topping.id)
-            products.append({"id": prod.product.id, "toppings": toppings})
-        data = {
-            "order_number": order.id,
-            "coffee_house": order.coffee_house.id,
-            "time": order.time,
-            "status": order.get_status_name(),
-            "products": products
-        }
-        orders.append(data)
+        orders.append(schemas.OrderResponseModel.to_dict(order))
     return orders
 
 
@@ -208,3 +195,13 @@ async def get_my_order_history(customer: Customer = Depends(get_current_active_u
             response_model=schemas.Customer)
 async def get_me(customer: Customer = Depends(get_current_user)):
     return {"name": customer.name, "phone_number": customer.phone_number}
+
+
+@router.get('/last_order',
+            tags=['jwt require'],
+            description='Возвращает последний заказ пользователя',
+            response_model=schemas.OrderResponseModel)
+async def get_last_order(customer: Customer = Depends(get_current_active_user)):
+    order = Order.select().where(Order.customer == customer).order_by(Order.id.desc())[0]
+    return schemas.OrderResponseModel.to_dict(order)
+
