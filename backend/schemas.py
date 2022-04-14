@@ -142,23 +142,21 @@ class OrderResponseModel(BaseModel):
     class Config:
         schema_extra = {
             "example": {
-                [
-                    {
-                        "order_number": 4,
-                        "coffee_house": 1,
-                        "time": "2022-04-12 19:59",
-                        "status": "Принят",
-                        "products": [
-                            {
-                                "id": 26,
-                                "toppings": [11]
-                            },
-                            {
-                                "id": 25,
-                                "toppings": [3]
-                            }
-                        ]
-                    }
-                ]
+                {
+                    "order_number": 4,
+                    "coffee_house": 1,
+                    "time": "2022-04-12 19:59",
+                    "status": "Принят",
+                    "products": [
+                        {
+                            "id": 26,
+                            "toppings": [11]
+                        },
+                        {
+                            "id": 25,
+                            "toppings": [3]
+                        }
+                    ]
+                }
             }
         }
