@@ -2,6 +2,8 @@
 import argparse
 import uvicorn
 
+from backend.settings import SERVER_PORT
+
 # init parser
 parser = argparse.ArgumentParser(add_help=False)
 parser.add_argument('--runserver', action='store_true')
@@ -12,7 +14,7 @@ def main():
     if args.runserver:
         uvicorn.run(
             'main:app',
-            port=8000,
+            port=SERVER_PORT,
             log_level='info',
             workers=1,
         )
