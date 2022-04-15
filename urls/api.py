@@ -50,9 +50,8 @@ async def get_coffeehouses():
         house_data = house.data(hide=('chat_id', 'is_open'))
 
         worktime = Worktime.get(Worktime.coffee_house == house)
-        if worktime.day_of_week == day_of_week:
-            house_data.update(
-                worktime.data(hide=['id', 'day_of_week', 'coffee_house']))
+        house_data.update(
+            worktime.data(hide=['id', 'day_of_week', 'coffee_house']))
         response.append(house_data)
     return response
 
