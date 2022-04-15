@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from pytz import timezone
 
 from app.models import ProductVarious, Product, Topping, CoffeeHouse, Customer, Order, OrderedProduct, \
-    ToppingToProduct, LoginCode
+    ToppingToProduct, LoginCode, Worktime
 from backend import schemas
 from backend.settings import JWT_SECRET_KEY, JWT_ALGORITHM
 from bot.bot_funcs import send_order, send_login_code
