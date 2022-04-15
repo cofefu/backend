@@ -49,10 +49,10 @@ async def get_coffeehouses():
     for house in CoffeeHouse.select():
         house_data = house.data(hide=('chat_id', 'is_open'))
 
-        day_of_week = datetime.now(tz=timezone('Asia/Vladivostok')).weekday()
-        for tt in house.timetables:
-            if tt.worktime.day_of_week == day_of_week:
-                house_data.update(tt.worktime.data(hide=['id', 'day_of_week']))
+        worktime = Worktime.get(Worktime.coffee_house == house)
+        if worktime.day_of_week == day_of_week:
+            house_data.update(
+                worktime.data(hide=['id', 'day_of_week', 'coffee_house']))
         response.append(house_data)
     return response
 
