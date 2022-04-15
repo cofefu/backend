@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from pytz import timezone
 
 from app.models import ProductVarious, Product, Topping, CoffeeHouse, Customer, Order, OrderedProduct, \
-    ToppingToProduct, LoginCode
+    ToppingToProduct, LoginCode, Worktime
 from backend import schemas
 from backend.settings import JWT_SECRET_KEY, JWT_ALGORITHM
 from bot.bot_funcs import send_order, send_login_code
@@ -50,9 +50,9 @@ async def get_coffeehouses():
         house_data = house.data(hide=('chat_id', 'is_open'))
 
         day_of_week = datetime.now(tz=timezone('Asia/Vladivostok')).weekday()
-        for tt in house.timetables:
-            if tt.worktime.day_of_week == day_of_week:
-                house_data.update(tt.worktime.data(hide=['id', 'day_of_week']))
+        worktime = Worktime.get(Worktime.coffee_house == house)
+        if worktime.day_of_week == day_of_week:
+            house_data.update(worktime.data(hide=['id', 'day_of_week', 'coffee_house']))
         response.append(house_data)
     return response
 
