@@ -14,7 +14,7 @@ DATABASE = {
 }
 
 SERVER_HOST = os.getenv('SERVER_HOST', 'localhost')
-SERVER_PORT = os.getenv('SERVER_PORT', 8000)
+SERVER_PORT = int(os.getenv('SERVER_PORT', 8000))
 
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 BOT_PORT = os.getenv('BOT_PORT', 443)
