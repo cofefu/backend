@@ -41,9 +41,17 @@ class Product(BaseModel):
 
 
 class ProductVarious(BaseModel):
+    ProductSizes = (
+        (0, 'S'),
+        (1, 'M'),
+        (2, 'L')
+    )
     product = ForeignKeyField(Product, backref='variations')
-    size = IntegerField(constraints=[Check('size >= 0')])
+    size = IntegerField(choices=ProductSizes, constraints=[Check('size >= 0')])
     price = IntegerField(constraints=[Check('size >= 0')])
+
+    def get_size_name(self):
+        return dict(self.ProductSizes)[self.size]
 
 
 class CoffeeHouse(BaseModel):

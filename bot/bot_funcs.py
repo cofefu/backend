@@ -5,8 +5,6 @@ from app.models import LoginCode
 from bot import bot
 from app.models import *
 
-ProductSizes = ('S', 'M', 'L')
-
 
 def gen_markup(order_number: int):
     markup_btns = types.InlineKeyboardMarkup(row_width=2)
@@ -26,7 +24,7 @@ def send_order(order_number: int):
     message += f'<i>Содержание:</i>\n'
 
     for prod in products:
-        message += f'  - {prod.product.product.name}, размер {ProductSizes[prod.product.size]}'
+        message += f'  - {prod.product.product.name}, размер {prod.product.get_size_name()}'
         for top in ToppingToProduct.select().where(ToppingToProduct.ordered_product == prod):
             message += f' + {top.topping.name}'
         message += '\n'
