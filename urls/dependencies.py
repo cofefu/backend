@@ -19,7 +19,7 @@ def get_current_user(data: dict = Depends(decode_jwt_token)) -> Customer:
     if phone_number is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Отсутствуют необходимые поля.')
 
-    customer: Customer = Customer.get_or_none(Customer.phone_number=phone_number)
+    customer: Customer = Customer.get_or_none(Customer.phone_number == phone_number)
     if customer is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail='Пользователь с таким номером телефона отсутствует.')
