@@ -90,7 +90,8 @@ class OrderIn(BaseModel):
 
         weekday = datetime.now(tz=timezone('Asia/Vladivostok')).weekday()
         worktime = Worktime.get_or_none(
-            (Worktime.coffee_house == values['coffee_house']) & (Worktime.day_of_week == weekday))
+            (Worktime.coffee_house == values['coffee_house']) &
+            (Worktime.day_of_week == weekday))
         if worktime is None:
             raise HTTPException(status_code=400, detail="The coffee house is closed")
 

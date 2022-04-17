@@ -43,15 +43,20 @@ async def get_products():
 @router.get('/coffee_houses',
             tags=['common'],
             description='Возвращает список кофеен с именем и расположением',
-            response_model=List[schemas.CoffeeHouseResponseModel])      # redo
+            response_model=List[schemas.CoffeeHouseResponseModel])  # redo
 async def get_coffeehouses():
     response = []
     for house in CoffeeHouse.select():
         house_data = house.data(hide=('chat_id', 'is_open'))
 
-        worktime = Worktime.get(Worktime.coffee_house == house)
-        house_data.update(
-            worktime.data(hide=['id', 'day_of_week', 'coffee_house']))
+        weekday = datetime.now(tz=timezone('Asia/Vladivostok')).weekday()
+        worktime = Worktime.get_or_none(
+            (Worktime.coffee_house == house) &
+            (Worktime.day_of_week == weekday))
+        if worktime is not None:
+            house_data.update(worktime.data(hide=['id', 'day_of_week', 'coffee_house']))
+        else:
+            house_data.update({'open_time': None, 'close_time': None})
         response.append(house_data)
     return response
 
@@ -128,7 +133,8 @@ async def make_order(order_inf: schemas.OrderIn,
              response_description="Возвращает jwt-токен customer'а")
 async def register_customer(customer: schemas.Customer):
     if Customer.get_or_none(phone_number=customer.phone_number):
-        raise HTTPException(status_code=400, detail='Пользователь с таким номером телефона уже существует.')
+        raise HTTPException(status_code=400,
+                            detail='Пользователь с таким номером телефона уже существует.')
 
     new_customer = Customer.create(name=customer.name, phone_number=customer.phone_number)
     return create_token(new_customer)
@@ -148,7 +154,8 @@ async def update_token(customer: Customer = Depends(get_current_user)):
 async def create_login_code(customer_data: schemas.Customer, background_tasks: BackgroundTasks):
     customer = Customer.get_or_none(phone_number=customer_data.phone_number)
     if customer is None:
-        raise HTTPException(status_code=400, detail='Пользователя с таким номером телефона не существует.')
+        raise HTTPException(status_code=400,
+                            detail='Пользователя с таким номером телефона не существует.')
     if not customer.confirmed:
         raise HTTPException(status_code=401, detail='Пользователь не подтвердил номер телефона.')
 

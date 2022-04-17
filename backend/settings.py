@@ -14,13 +14,11 @@ DATABASE = {
 }
 
 SERVER_HOST = os.getenv('SERVER_HOST', 'localhost')
-SERVER_PORT = 443
+SERVER_PORT = int(os.getenv('SERVER_PORT', 8000))
 
 BOT_TOKEN = os.getenv('BOT_TOKEN')
+BOT_PORT = os.getenv('BOT_PORT', 443)
 DOMAIN = os.getenv('DOMAIN')
-
-WEBHOOK_SSL_CERT = '/etc/nginx/ssl/cofefu.ru.cert'  # Path to the ssl certificate
-WEBHOOK_SSL_PRIV = '/etc/nginx/ssl/pkey.pem'  # Path to the ssl private key
 
 EMAIL_USER_LOGIN = 'coffefuorder@mail.ru'
 EMAIL_USER_PASSWORD = os.getenv('EMAIL_USER_PASSWORD')
