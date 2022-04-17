@@ -8,9 +8,9 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 DATABASE = {
-    'NAME': 'coffefu.db',
-    'USER': 'admin',
-    'PASSWORD': '123',
+    'NAME': os.getenv('DB_NAME'),
+    'USER': os.getenv('DB_USER'),
+    'PASSWORD': os.getenv('DB_PASSWORD'),
 }
 
 SERVER_HOST = os.getenv('SERVER_HOST', 'localhost')
