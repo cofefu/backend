@@ -46,7 +46,7 @@ class ProductVarious(BaseModel):
         (1, 'M'),
         (2, 'L')
     )
-    product = ForeignKeyField(Product, backref='variations')
+    product = ForeignKeyField(Product, backref='variations', on_delete='CASCADE')
     size = IntegerField(choices=ProductSizes, constraints=[Check('size >= 0')])
     price = IntegerField(constraints=[Check('size >= 0')])
 
@@ -88,8 +88,8 @@ class Order(BaseModel):
 
 
 class OrderedProduct(BaseModel):
-    order = ForeignKeyField(Order, backref='ordered_products')
-    product = ForeignKeyField(ProductVarious)
+    order = ForeignKeyField(Order, backref='ordered_products', on_delete='CASCADE')
+    product = ForeignKeyField(ProductVarious, on_delete='CASCADE')
 
 
 class Worktime(BaseModel):
@@ -102,7 +102,7 @@ class Worktime(BaseModel):
         (5, 'Суббота'),
         (6, 'Воскресенье'),
     )
-    coffee_house = ForeignKeyField(CoffeeHouse, backref='worktime')
+    coffee_house = ForeignKeyField(CoffeeHouse, backref='worktime', on_delete='CASCADE')
     day_of_week = IntegerField(choices=DaysOfWeek)
     open_time = TimeField(formats='%H:%M:%S')
     close_time = TimeField(formats='%H:%M:%S')
@@ -117,8 +117,8 @@ class Topping(BaseModel):
 
 
 class ToppingToProduct(BaseModel):
-    ordered_product = ForeignKeyField(OrderedProduct, backref='toppings')
-    topping = ForeignKeyField(Topping)
+    ordered_product = ForeignKeyField(OrderedProduct, backref='toppings', on_delete='CASCADE')
+    topping = ForeignKeyField(Topping, on_delete='CASCADE')
 
 
 class LoginCode(BaseModel):

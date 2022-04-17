@@ -8,7 +8,7 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 DATABASE = {
-    'NAME': 'coffefu.db',
+    'NAME': 'cofefu.db',
     'USER': 'admin',
     'PASSWORD': '123',
 }
