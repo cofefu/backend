@@ -124,7 +124,7 @@ def callback_processing(call: types.CallbackQuery):
     bot.answer_callback_query(call.id, ans)
     ans = f"\n<b>{ans}</b>"
 
-    if cb_status in (1, 2):
+    if cb_status == 1:
         bot.edit_message_text(chat_id=call.message.chat.id,
                               message_id=call.message.message_id,
                               text=call.message.text + ans,
