@@ -44,6 +44,19 @@ def send_welcome(message):
                      reply_markup=markup)
 
 
+@bot.message_handler(commands=['help'])
+def send_help_info(message):
+    msg = 'Команды:\n'
+    if message.chat.type == 'group':
+        msg += '<b>/status</b> НОМЕР_ЗАКАЗА - чтобы узнать статус указанного заказа'
+    else:
+        msg += '<b>/start</b> - для подтверждения номера телефона'
+    msg += '<b>/bug_report</b> ТЕКСТ - для информации о различных ошибках'
+    msg += '<b>/feed_back</b> ТЕКСТ - для советов, пожеланий'
+
+    bot.send_message(chat_id=message.chat.id, text=msg, parse_mode='HTML')
+
+
 @bot.message_handler(commands=['chat_id'])
 def send_chat_id(message):
     bot.reply_to(message, message.chat.id)
