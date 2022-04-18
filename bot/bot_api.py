@@ -65,7 +65,7 @@ def send_bug_report(message):
     if message.text.split()[0] == '/feed_back':
         msg = '<b>FEED BACK</b>\n'
     msg += message.text
-    bot.send_message(chat_id=-487736638, message=msg)
+    bot.send_message(chat_id=-487736638, text=msg)
 
 
 @bot.message_handler(content_types=['contact'])
