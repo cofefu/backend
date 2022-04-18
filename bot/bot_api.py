@@ -18,6 +18,15 @@ def gen_send_contact_markup():
     return btn
 
 
+def gen_status_order_markup(order_number: int):
+    markup_btns = types.InlineKeyboardMarkup(row_width=2)
+    markup_btns.add(
+        types.InlineKeyboardButton('Выполнен', callback_data=f'{3} {order_number}'),
+        types.InlineKeyboardButton('Не выполнен', callback_data=f'{4} {order_number}')
+    )
+    return markup_btns
+
+
 def set_webhook():
     webhook_url = f"https://{DOMAIN}:{BOT_PORT}" + f'/bot/{BOT_TOKEN}/'
     if bot.get_webhook_info().url != webhook_url:
@@ -106,14 +115,24 @@ def contact_handler(message):
 @bot.callback_query_handler(func=lambda call: True)
 def callback_processing(call: types.CallbackQuery):
     cb_status, order_number = map(int, call.data.split())
-    order = Order.get_or_none(id=int(order_number))
+    order = Order.get_or_none(id=int(order_number))  # todo если None кидать ошибку
     order.status = cb_status
     order.save()
 
-    ans = 'Заказ принят' if cb_status == 1 else 'Заказ отклонен'
+    ans_templates = ('', 'Заказ принят', 'Заказ отклонен', 'Заказ выполнен', 'Заказ не выполнен')
+    ans = ans_templates[cb_status]
     bot.answer_callback_query(call.id, ans)
     ans = f"\n<b>{ans}</b>"
-    bot.edit_message_text(chat_id=call.message.chat.id,
-                          message_id=call.message.message_id,
-                          text=call.message.text + ans, parse_mode='HTML',
-                          reply_markup=None)
+
+    if cb_status in (1, 2):
+        bot.edit_message_text(chat_id=call.message.chat.id,
+                              message_id=call.message.message_id,
+                              text=call.message.text + ans,
+                              parse_mode='HTML',
+                              reply_markup=gen_status_order_markup(order.id))
+    else:
+        bot.edit_message_text(chat_id=call.message.chat.id,
+                              message_id=call.message.message_id,
+                              text=call.message.text + ans,
+                              parse_mode='HTML',
+                              reply_markup=None)
