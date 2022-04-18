@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 import telebot
 
-from app.models import Order, Customer
+from app.models import Order, Customer, CoffeeHouse
 from backend.settings import DOMAIN, BOT_TOKEN, BOT_PORT
 from bot import bot
 from telebot import types
@@ -47,6 +47,25 @@ def send_welcome(message):
 @bot.message_handler(commands=['chat_id'])
 def send_chat_id(message):
     bot.reply_to(message, message.chat.id)
+
+
+@bot.message_handler(commands=['status'])
+def get_order_status(message):
+    if CoffeeHouse.get_or_none(CoffeeHouse.chat_id == message.chat.id):
+        order = Order.get_or_none(Order.id == message.text.split()[1])
+        if order is not None:
+            bot.send_message(chat_id=message.chat.id, text=f'Статус заказа №{order.id}: {order.get_status_name()}')
+        else:
+            bot.send_message(chat_id=message.chat.id, text=f'Заказ с номером {message.text} не найден')
+
+
+@bot.message_handler(commands=['bug_report', 'feed_back'])
+def send_bug_report(message):
+    msg = '<b>BUG REPORT</b>\n'
+    if message.text.split()[0] == '/feed_back':
+        msg = '<b>FEED BACK</b>\n'
+    msg += message.text
+    bot.send_message(chat_id=-487736638, message=msg)
 
 
 @bot.message_handler(content_types=['contact'])
