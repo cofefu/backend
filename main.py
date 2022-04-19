@@ -5,6 +5,8 @@ from bot import bot_api
 from bot.bot_api import set_webhook
 from urls import api
 
+from backend.settings import API_PREFIX
+
 tags_metadata = [
     {
         "name": "common",
@@ -20,7 +22,7 @@ app = FastAPI(
     openapi_tags=tags_metadata,
     docs_url='/api/docs',
     redoc_url='/api/redoc',
-    # openapi_prefix='/api',
+    openapi_prefix=API_PREFIX,
     openapi_url='/api/openapi.json'
 
 )

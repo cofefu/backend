@@ -20,11 +20,8 @@ BOT_TOKEN = os.getenv('BOT_TOKEN')
 BOT_PORT = os.getenv('BOT_PORT', 443)
 DOMAIN = os.getenv('DOMAIN')
 
-EMAIL_USER_LOGIN = 'coffefuorder@mail.ru'
-EMAIL_USER_PASSWORD = os.getenv('EMAIL_USER_PASSWORD')
-EMAIL_SERVER = 'smtp.mail.ru'
-
 JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY')
 JWT_ALGORITHM = "HS256"
 
 WORKERS = os.getenv('WORKERS', 1)
+API_PREFIX = os.getenv('API_PREFIX', '')
