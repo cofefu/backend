@@ -2,7 +2,7 @@ from fastapi import APIRouter
 import telebot
 
 from app.models import Order, Customer, CoffeeHouse
-from backend.settings import DOMAIN, BOT_TOKEN, BOT_PORT
+from backend.settings import DOMAIN, BOT_TOKEN, BOT_PORT, DEBUG
 from bot import bot
 from telebot import types
 from bot.email_sender import send_email
@@ -29,7 +29,7 @@ def gen_status_order_markup(order_number: int):
 
 def set_webhook():
     webhook_url = f"https://{DOMAIN}:{BOT_PORT}" + f'/bot/{BOT_TOKEN}/'
-    if bot.get_webhook_info().url != webhook_url:
+    if (not DEBUG) and bot.get_webhook_info().url != webhook_url:
         bot.remove_webhook()
         bot.set_webhook(url=webhook_url)
 
