@@ -23,5 +23,6 @@ DOMAIN = os.getenv('DOMAIN')
 JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY')
 JWT_ALGORITHM = "HS256"
 
-WORKERS = os.getenv('WORKERS', 1)
-API_PREFIX = os.getenv('API_PREFIX', '')
+WORKERS = int(os.getenv('WORKERS', 1))
+
+DEBUG = os.getenv("DEBUG", 'False').lower() in ('true', '1', 't')

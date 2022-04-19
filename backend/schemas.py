@@ -50,8 +50,8 @@ class Product(BaseModel):
 
 class OrderIn(BaseModel):
     coffee_house: str  # TEST maybe int
-    products: List[Product]
     comment: constr(max_length=200, strip_whitespace=True) = None
+    products: List[Product]
     time: datetime
 
     class Config:
