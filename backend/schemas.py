@@ -10,8 +10,8 @@ from app.models import CoffeeHouse, ProductVarious, Topping, Worktime
 
 
 class Customer(BaseModel):
-    name: constr(max_length=20)
-    phone_number: constr(max_length=10)
+    name: constr(max_length=20, strip_whitespace=True)
+    phone_number: constr(min_length=10, max_length=10, strip_whitespace=True)
 
     class Config:
         schema_extra = {
@@ -51,6 +51,7 @@ class Product(BaseModel):
 class OrderIn(BaseModel):
     coffee_house: str  # TEST maybe int
     products: List[Product]
+    comment: constr(max_length=200, strip_whitespace=True) = None
     time: datetime
 
     class Config:
@@ -67,6 +68,7 @@ class OrderIn(BaseModel):
                         "toppings": [2]
                     }
                 ],
+                "comment": "Хочу много сахара и воду без газа",
                 "time": "2022-03-29 22:59"
             }
         }
@@ -143,6 +145,7 @@ class SmallProductResponseModel(BaseModel):
 class OrderResponseModel(BaseModel):
     order_number: int
     coffee_house: int
+    comment: str = None
     time: str
     status: str
     products: List[SmallProductResponseModel]
@@ -158,6 +161,7 @@ class OrderResponseModel(BaseModel):
         data = {
             "order_number": order.id,
             "coffee_house": order.coffee_house.id,
+            "comment": order.comment,
             "time": order.time,
             "status": order.get_status_name(),
             "products": products

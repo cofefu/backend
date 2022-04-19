@@ -1,31 +1,31 @@
 from fastapi.testclient import TestClient
-from main import app
+import app
 
 client = TestClient(app)
 
 
 def test_get_products():
-    responce = client.get('/products')
+    response = client.get('/products')
     assert response.status_code == 200
 
 
 def test_get_coffee_houses():
-    responce = client.get('/coffee_houses')
+    response = client.get('/coffee_houses')
     assert response.status_code == 200
 
 
 def test_get_order_status():
-    responce = client.get('/order_status')
+    response = client.get('/order_status')
     assert response.status_code == 200
 
 
 def test_get_products_various():
-    responce = client.get('/products_various/1')
+    response = client.get('/products_various/1')
     assert response.status_code == 200
 
 
 def test_get_toppings():
-    responce = client.get('/products_various/1')
+    response = client.get('/products_various/1')
     assert response.status_code == 200
 
 
@@ -40,40 +40,40 @@ def test_get_toppings():
 
 
 def test_post_make_order():
-    responce = client.post('/make_order')
+    response = client.post('/make_order')
     assert response.status_code == 200
 
 
 def test_post_register_customer():
-    responce = client.post('/register_customer')
+    response = client.post('/register_customer')
     assert response.status_code == 200
 
 
 def test_post_update_token():
-    responce = client.post('/update_token')
+    response = client.post('/update_token')
     assert response.status_code == 200
 
 
 def test_post_send_login_code():
-    responce = client.post('/send_login_code')
+    response = client.post('/send_login_code')
     assert response.status_code == 200
 
 
 def testp_get_verify_login_code():
-    responce = client.get('/verify_login_code')
+    response = client.get('/verify_login_code')
     assert response.status_code == 200
 
 
 def test_get_my_orders():
-    responce = client.get('/my_orders')
+    response = client.get('/my_orders')
     assert response.status_code == 200
 
 
 def test_get_me():
-    responce = client.get('/me')
+    response = client.get('/me')
     assert response.status_code == 200
 
 
 def test_get_last_order():
-    responce = client.get('/last_order')
+    response = client.get('/last_order')
     assert response.status_code == 200

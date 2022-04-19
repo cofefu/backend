@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 import telebot
 
-from app.models import Order, Customer
+from app.models import Order, Customer, CoffeeHouse
 from backend.settings import DOMAIN, BOT_TOKEN, BOT_PORT
 from bot import bot
 from telebot import types
@@ -16,6 +16,15 @@ def gen_send_contact_markup():
         types.KeyboardButton('Подтвердить номер телефона', request_contact=True)
     )
     return btn
+
+
+def gen_status_order_markup(order_number: int):
+    markup_btns = types.InlineKeyboardMarkup(row_width=2)
+    markup_btns.add(
+        types.InlineKeyboardButton('Выполнен', callback_data=f'{3} {order_number}'),
+        types.InlineKeyboardButton('Не выполнен', callback_data=f'{4} {order_number}')
+    )
+    return markup_btns
 
 
 def set_webhook():
@@ -44,9 +53,41 @@ def send_welcome(message):
                      reply_markup=markup)
 
 
+@bot.message_handler(commands=['help'])
+def send_help_info(message):
+    msg = 'Команды:\n'
+    if message.chat.type == 'group':
+        msg += '<b>/status</b> НОМЕР_ЗАКАЗА - <i>чтобы узнать статус указанного заказа</i>\n'
+    else:
+        msg += '<b>/start</b> - <i>для подтверждения номера телефона</i>\n'
+    msg += '<b>/bug_report</b> ТЕКСТ - <i>для информации о различных ошибках</i>\n'
+    msg += '<b>/feed_back</b> ТЕКСТ - <i>для советов, пожеланий</i>'
+
+    bot.send_message(chat_id=message.chat.id, text=msg, parse_mode='HTML')
+
+
 @bot.message_handler(commands=['chat_id'])
 def send_chat_id(message):
     bot.reply_to(message, message.chat.id)
+
+
+@bot.message_handler(commands=['status'])
+def get_order_status(message):
+    if CoffeeHouse.get_or_none(CoffeeHouse.chat_id == message.chat.id):
+        order = Order.get_or_none(Order.id == message.text.split()[1])
+        if order is not None:
+            bot.send_message(chat_id=message.chat.id, text=f'Статус заказа №{order.id}: {order.get_status_name()}')
+        else:
+            bot.send_message(chat_id=message.chat.id, text=f'Заказ с номером {message.text} не найден')
+
+
+@bot.message_handler(commands=['bug_report', 'feed_back'])
+def send_bug_report(message):
+    msg = '<b>BUG REPORT</b>\n'
+    if message.text.split()[0] == '/feed_back':
+        msg = '<b>FEED BACK</b>\n'
+    msg += message.text
+    bot.send_message(chat_id=-487736638, text=msg, parse_mode='HTML')
 
 
 @bot.message_handler(content_types=['contact'])
@@ -74,14 +115,24 @@ def contact_handler(message):
 @bot.callback_query_handler(func=lambda call: True)
 def callback_processing(call: types.CallbackQuery):
     cb_status, order_number = map(int, call.data.split())
-    order = Order.get_or_none(id=int(order_number))
+    order = Order.get_or_none(id=int(order_number))  # todo если None кидать ошибку
     order.status = cb_status
     order.save()
 
-    ans = 'Заказ принят' if cb_status == 1 else 'Заказ отклонен'
+    ans_templates = ('', 'Заказ принят', 'Заказ отклонен', 'Заказ выполнен', 'Заказ не выполнен')
+    ans = ans_templates[cb_status]
     bot.answer_callback_query(call.id, ans)
     ans = f"\n<b>{ans}</b>"
-    bot.edit_message_text(chat_id=call.message.chat.id,
-                          message_id=call.message.message_id,
-                          text=call.message.text + ans, parse_mode='HTML',
-                          reply_markup=None)
+
+    if cb_status == 1:
+        bot.edit_message_text(chat_id=call.message.chat.id,
+                              message_id=call.message.message_id,
+                              text=call.message.text + ans,
+                              parse_mode='HTML',
+                              reply_markup=gen_status_order_markup(order.id))
+    else:
+        bot.edit_message_text(chat_id=call.message.chat.id,
+                              message_id=call.message.message_id,
+                              text=call.message.text + ans,
+                              parse_mode='HTML',
+                              reply_markup=None)
