@@ -27,4 +27,4 @@ JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY')
 JWT_ALGORITHM = "HS256"
 
 WORKERS = int(os.getenv('WORKERS', 1))
-API_PREFIX = '' if not DEBUG else '/dev'
+API_PREFIX = '/dev' if DEBUG else ''
