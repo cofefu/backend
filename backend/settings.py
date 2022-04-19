@@ -7,7 +7,8 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-DEBUG = os.getenv("DEBUG", 'False').lower() in ('true', '1', 't')
+DEBUG = bool(os.getenv("DEBUG", False))
+DEV = bool(os.getenv("DEV", False))
 
 DATABASE = {
     'NAME': os.getenv('DB_NAME'),
