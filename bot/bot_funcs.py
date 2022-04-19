@@ -29,6 +29,9 @@ def send_order(order_number: int):
             message += f' + {top.topping.name}'
         message += '\n'
 
+    if order.comment:
+        message += f'<i>Комментарий:</i> {order.comment}\n'
+
     message += f'<i>Приготовить к:</i> {time.strftime("%H:%M")}\n'
     message += f'<i>Имя покупателя:</i> {order.customer.name}\n'
     message += f'<i>Телефон покупателя:</i> +7{order.customer.phone_number}\n'
