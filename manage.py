@@ -16,7 +16,7 @@ def main():
             'main:app',
             port=SERVER_PORT,
             log_level='info',
-            workers=1,
+            workers=WORKERS,
         )
 
 

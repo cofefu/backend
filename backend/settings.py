@@ -26,3 +26,5 @@ EMAIL_SERVER = 'smtp.mail.ru'
 
 JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY')
 JWT_ALGORITHM = "HS256"
+
+WORKERS = os.getenv('WORKERS', 1)
