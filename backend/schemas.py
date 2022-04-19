@@ -175,6 +175,7 @@ class OrderResponseModel(BaseModel):
                 "coffee_house": 1,
                 "time": "2022-04-12 19:59",
                 "status": "Принят",
+                "comment": "Хочу много сахара и воду без газа",
                 "products": [
                     {
                         "id": 26,
