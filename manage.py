@@ -2,7 +2,7 @@
 import argparse
 import uvicorn
 
-from backend.settings import SERVER_PORT
+from backend.settings import SERVER_PORT, WORKERS
 
 # init parser
 parser = argparse.ArgumentParser(add_help=False)
