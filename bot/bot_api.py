@@ -61,6 +61,7 @@ def send_help_info(message):
         msg += '<b>/status</b> НОМЕР_ЗАКАЗА - <i>чтобы узнать статус указанного заказа</i>\n'
     else:
         msg += '<b>/start</b> - <i>для подтверждения номера телефона</i>\n'
+        msg += '<b>/change_name</b> ТЕКСТ - <i>для изменения имени пользователя</i>\n'
     msg += '<b>/bug_report</b> ТЕКСТ - <i>для информации о различных ошибках</i>\n'
     msg += '<b>/feed_back</b> ТЕКСТ - <i>для советов, пожеланий</i>'
 
@@ -91,6 +92,23 @@ def send_bug_report(message):
     bot.send_message(chat_id=-487736638, text=msg, parse_mode='HTML')
 
 
+@bot.message_handler(commands=['change_name'])
+def change_user_name(message):
+    if customer := Customer.get_or_none(Customer.telegram_id == message.from_user.id):
+        new_name = message.text[13:].strip()
+        if not new_name:
+            bot.send_message(chat_id=message.chat.id,
+                             text='Имя не может быть пустым.\nПример команды: /change_name Иван')
+        customer.name = new_name
+        customer.save()
+
+        bot.send_message(chat_id=message.chat.id,
+                         text=f'Имя пользователя обновлено.\nНовое имя пользователя: {customer.name}')
+    else:
+        bot.send_message(chat_id=message.chat.id,
+                         text='Пользователь не найден. Пожалуйста, еще раз подтвердите номер телефона (команда /start)')
+
+
 @bot.message_handler(content_types=['contact'])
 def contact_handler(message):
     phone_number = message.contact.phone_number
@@ -99,9 +117,10 @@ def contact_handler(message):
                          text='Это НЕ ваш номер телефона.')
         return
 
-    if customer := Customer.get_or_none(phone_number=phone_number[-10:]):
+    if customer := Customer.get_or_none(Customer.phone_number == phone_number[-10:]):
         customer.confirmed = True
         customer.chat_id = message.chat.id
+        customer.telegram_id = message.from_user.id
         customer.save()
 
         bot.send_message(chat_id=message.chat.id,
