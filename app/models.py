@@ -11,6 +11,7 @@ class Customer(BaseModel):
     name = CharField(max_length=20)
     phone_number = CharField(max_length=10)
     confirmed = BooleanField(default=False)
+    telegram_id = IntegerField(null=True)
     chat_id = IntegerField(null=True)
 
     def __str__(self):

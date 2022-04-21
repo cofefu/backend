@@ -9,7 +9,7 @@ from backend.settings import BASE_DIR, DATABASE
 
 db = SqliteDatabase(os.path.join(BASE_DIR, DATABASE['NAME']), pragmas={
     'foreign_keys': 1,
-    'journal_mode': 'wal',
+    # 'journal_mode': 'wal',
     'cache_size': -1 * 64000,  # 64MB
 })
 
