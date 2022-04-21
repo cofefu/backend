@@ -77,6 +77,7 @@ class Order(BaseModel):
     )
     coffee_house = ForeignKeyField(CoffeeHouse, backref='house_orders')
     customer = ForeignKeyField(Customer, backref='customer_orders')
+    comment = CharField(max_length=200, null=True)
     time = DateTimeField()
     status = IntegerField(default=0, choices=OrderStatus)
 

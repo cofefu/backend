@@ -117,7 +117,7 @@ async def make_order(order_inf: schemas.OrderIn,
                      background_tasks: BackgroundTasks,
                      customer: Customer = Depends(get_current_active_user)):
     coffee_house: CoffeeHouse = CoffeeHouse.get(CoffeeHouse.id == order_inf.coffee_house)
-    order = Order.create(coffee_house=coffee_house, customer=customer, time=order_inf.time)
+    order = Order.create(coffee_house=coffee_house, customer=customer, time=order_inf.time, comment=order_inf.comment)
     for p in order_inf.products:
         prod: ProductVarious = ProductVarious.get(ProductVarious.id == p.id)
         order_prod = OrderedProduct.create(order=order, product=prod)

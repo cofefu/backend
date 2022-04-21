@@ -2,7 +2,11 @@ import smtplib
 from email.utils import formataddr
 from email.message import EmailMessage
 
-from backend.settings import EMAIL_USER_LOGIN, EMAIL_USER_PASSWORD, EMAIL_SERVER
+# from backend.settings import EMAIL_USER_LOGIN, EMAIL_USER_PASSWORD, EMAIL_SERVER
+
+EMAIL_USER_LOGIN = ''
+EMAIL_USER_PASSWORD = ''
+EMAIL_SERVER = ''
 
 # https://www.youtube.com/watch?v=700lW07627Y - краткое руководство
 # https://sendpulse.com/ru/blog/how-to-create-avatar-for-email - для аватарки
