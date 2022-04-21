@@ -99,6 +99,7 @@ def change_user_name(message):
         if not new_name:
             bot.send_message(chat_id=message.chat.id,
                              text='Имя не может быть пустым.\nПример команды: /change_name Иван')
+            return
         customer.name = new_name
         customer.save()
 
