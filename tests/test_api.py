@@ -1,7 +1,7 @@
 from fastapi.testclient import TestClient
 import app
 
-client = TestClient(app)
+client = TestClient(app, base_url='/api')
 
 
 def test_get_products():
@@ -30,12 +30,12 @@ def test_get_toppings():
 
 
 # def test_get_favicon_svg():
-#     responce = client.get('/')
+#     response = client.get('/')
 #     assert response.status_code == 200
 
 
 # def test_get_favicon_ico():
-#     responce = client.get('/')
+#     response = client.get('/')
 #     assert response.status_code == 200
 
 

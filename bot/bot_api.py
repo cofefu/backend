@@ -29,7 +29,8 @@ def gen_status_order_markup(order_number: int):
 
 def set_webhook():
     webhook_url = f"https://{DOMAIN}:{BOT_PORT}" + f'/bot/{BOT_TOKEN}/'
-    if (not DEBUG) and bot.get_webhook_info().url != webhook_url:
+    if not DEBUG and \
+            bot.get_webhook_info().url != webhook_url:
         bot.remove_webhook()
         bot.set_webhook(url=webhook_url)
 
