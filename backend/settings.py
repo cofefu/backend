@@ -21,6 +21,7 @@ SERVER_PORT = int(os.getenv('SERVER_PORT', 8000))
 
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 BOT_PORT = os.getenv('BOT_PORT', 443)
+FEEDBACK_CHAT = os.getenv('FEEDBACK_CHAT')
 DOMAIN = os.getenv('DOMAIN')
 
 JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY')

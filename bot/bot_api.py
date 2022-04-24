@@ -2,7 +2,7 @@ from fastapi import APIRouter
 import telebot
 
 from app.models import Order, Customer, CoffeeHouse
-from backend.settings import DOMAIN, BOT_TOKEN, BOT_PORT, DEBUG
+from backend.settings import DOMAIN, BOT_TOKEN, BOT_PORT, DEBUG, FEEDBACK_CHAT
 from bot import bot
 from telebot import types
 from bot.email_sender import send_email
@@ -89,7 +89,7 @@ def send_bug_report(message):
     if message.text.split()[0] == '/feed_back':
         msg = '<b>FEED BACK</b>\n'
     msg += message.text
-    bot.send_message(chat_id=-487736638, text=msg, parse_mode='HTML')
+    bot.send_message(chat_id=FEEDBACK_CHAT, text=msg, parse_mode='HTML')
 
 
 @bot.message_handler(commands=['change_name'])
