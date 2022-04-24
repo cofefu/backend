@@ -48,11 +48,13 @@ def ban_customer(customer: Customer, expire: datetime, forever: bool = False) ->
 
     if forever:
         ban.forever = forever
-        return ban.save()
+        ban.save()
+        return ban
 
     if ban.expire < expire:
         ban.expire = expire
-        return ban.save()
+        ban.save()
+        return ban
 
     return ban
 
