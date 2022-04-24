@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import List
+from typing import List, Optional
 
 from fastapi import HTTPException
 from pydantic import BaseModel, validator, constr, EmailStr
@@ -109,8 +109,8 @@ class CoffeeHouseResponseModel(BaseModel):
     id: int
     name: str
     placement: str
-    open_time: str
-    close_time: str
+    open_time: Optional[str]
+    close_time: Optional[str]
 
 
 class ProductsVariousResponseModel(BaseModel):
