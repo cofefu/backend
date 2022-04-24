@@ -166,6 +166,7 @@ def ban_request(message):
     customer: Customer = Customer.get_or_none(Customer.phone_number == phone_number[-10:])
     if customer is None:
         bot.send_message(chat_id=message.chat.id, text=f'Пользователь с номером телефона {phone_number} не найден')
+        return
 
     ban = ban_customer(customer, datetime.utcnow() + timedelta(days=2))
     bot.send_message(chat_id=message.chat.id,
@@ -181,8 +182,9 @@ def unban_request(message):
     customer: Customer = Customer.get_or_none(Customer.phone_number == phone_number[-10:])
     if customer is None:
         bot.send_message(chat_id=message.chat.id, text=f'Пользователь с номером телефона {phone_number} не найден')
+        return
 
-    if ban := customer.ban is not None:
+    if (ban := customer.ban) is not None:
         ban.delete_instance()
     bot.send_message(chat_id=message.chat.id,
                      text=f'Пользователь {customer.name} с номером телефона {phone_number} ' +
