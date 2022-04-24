@@ -167,7 +167,7 @@ def ban_request(message):
 
     ban = ban_customer(customer, datetime.utcnow() + timedelta(days=2))
     bot.send_message(chat_id=message.chat.id,
-                     text=f'Пользователь {customer.name} с номером телефона {customer.phone_number} ' +
+                     text=f'Пользователь {customer.name} с номером телефона {phone_number} ' +
                           f'забанен до {ban.expire.strftime("%d/%m/%Y, %H:%M")}'
                      )
 
