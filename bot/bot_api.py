@@ -170,8 +170,23 @@ def ban_request(message):
     ban = ban_customer(customer, datetime.utcnow() + timedelta(days=2))
     bot.send_message(chat_id=message.chat.id,
                      text=f'Пользователь {customer.name} с номером телефона {phone_number} ' +
-                          f'забанен до {ban.expire.strftime("%d/%m/%Y, %H:%M")}'
-                     )
+                          f'забанен до {ban.expire.strftime("%d/%m/%Y, %H:%M")}')
+
+
+@bot.message_handler(commands=['unban'], chat_types=['group'])
+def unban_request(message):
+    if not CoffeeHouse.get_or_none(CoffeeHouse.chat_id == message.chat.id):
+        return
+    phone_number = message.text.split()[1]
+    customer: Customer = Customer.get_or_none(Customer.phone_number == phone_number[-10:])
+    if customer is None:
+        bot.send_message(chat_id=message.chat.id, text=f'Пользователь с номером телефона {phone_number} не найден')
+
+    if ban := customer.ban is not None:
+        ban.delete_instance()
+    bot.send_message(chat_id=message.chat.id,
+                     text=f'Пользователь {customer.name} с номером телефона {phone_number} ' +
+                          f'разбанен')
 
 
 @bot.callback_query_handler(func=lambda call: True)
