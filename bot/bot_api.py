@@ -1,7 +1,10 @@
+from datetime import datetime, timedelta
+from typing import Optional
+
 from fastapi import APIRouter
 import telebot
 
-from app.models import Order, Customer, CoffeeHouse
+from app.models import Order, Customer, CoffeeHouse, BlackList
 from backend.settings import DOMAIN, BOT_TOKEN, BOT_PORT, DEBUG, FEEDBACK_CHAT
 from bot import bot
 from telebot import types
@@ -33,6 +36,25 @@ def set_webhook():
             bot.get_webhook_info().url != webhook_url:
         bot.remove_webhook()
         bot.set_webhook(url=webhook_url)
+
+
+def ban_customer(customer: Customer, expire: datetime, forever: bool = False) -> Optional[BlackList]:
+    if customer is None:
+        return
+
+    ban: BlackList = customer.ban
+    if ban is None:
+        return BlackList.create(customer=customer, expire=expire, forever=forever)
+
+    if forever:
+        ban.forever = forever
+        return ban.save()
+
+    if ban.expire < expire:
+        ban.expire = expire
+        return ban.save()
+
+    return ban
 
 
 @router.post(f'/{BOT_TOKEN}/', include_in_schema=False)
@@ -73,7 +95,7 @@ def send_chat_id(message):
     bot.reply_to(message, message.chat.id)
 
 
-@bot.message_handler(commands=['status'])
+@bot.message_handler(commands=['status'], chat_types=['group'])
 def get_order_status(message):
     if CoffeeHouse.get_or_none(CoffeeHouse.chat_id == message.chat.id):
         order = Order.get_or_none(Order.id == message.text.split()[1])
@@ -92,7 +114,7 @@ def send_bug_report(message):
     bot.send_message(chat_id=FEEDBACK_CHAT, text=msg, parse_mode='HTML')
 
 
-@bot.message_handler(commands=['change_name'])
+@bot.message_handler(commands=['change_name'], chat_types=['private'])
 def change_user_name(message):
     if customer := Customer.get_or_none(Customer.telegram_id == message.from_user.id):
         new_name = message.text[13:].strip()
@@ -110,7 +132,7 @@ def change_user_name(message):
                          text='Пользователь не найден. Пожалуйста, еще раз подтвердите номер телефона (команда /start)')
 
 
-@bot.message_handler(content_types=['contact'])
+@bot.message_handler(content_types=['contact'], chat_types=['private'])
 def contact_handler(message):
     phone_number = message.contact.phone_number
     if message.contact.user_id != message.from_user.id:
@@ -131,6 +153,23 @@ def contact_handler(message):
     else:
         bot.send_message(chat_id=message.chat.id,
                          text='Пользователь с таким номером телефона не найден.')
+
+
+@bot.message_handler(commands=['ban'], chat_types=['group'])
+def ban_request(message):
+    if not CoffeeHouse.get_or_none(CoffeeHouse.chat_id == message.chat.id):
+        return
+
+    phone_number = message.text.split()[1]
+    customer: Customer = Customer.get_or_none(Customer.phone_number == phone_number[-10:])
+    if customer is None:
+        bot.send_message(chat_id=message.chat.id, text=f'Пользователь с номером телефона {phone_number} не найден')
+
+    ban = ban_customer(customer, datetime.utcnow() + timedelta(days=2))
+    bot.send_message(chat_id=message.chat.id,
+                     text=f'Пользователь {customer.name} с номером телефона {customer.phone_number} ' +
+                          f'забанен до {ban.expire.strftime("%d/%m/%Y, %H:%M")}'
+                     )
 
 
 @bot.callback_query_handler(func=lambda call: True)

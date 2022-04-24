@@ -13,7 +13,7 @@ from app.models import ProductVarious, Product, Topping, CoffeeHouse, Customer, 
 from backend import schemas
 from backend.settings import JWT_SECRET_KEY, JWT_ALGORITHM
 from bot.bot_funcs import send_order, send_login_code
-from urls.dependencies import get_current_active_user, get_current_user
+from urls.dependencies import get_current_active_user, get_current_user, get_not_baned_user
 
 router = APIRouter()
 
@@ -116,7 +116,7 @@ async def get_favicon_svg():
              response_model=schemas.OrderNumberResponseModel)
 async def make_order(order_inf: schemas.OrderIn,
                      background_tasks: BackgroundTasks,
-                     customer: Customer = Depends(get_current_active_user)):
+                     customer: Customer = Depends(get_not_baned_user)):
     coffee_house: CoffeeHouse = CoffeeHouse.get(CoffeeHouse.id == order_inf.coffee_house)
     order = Order.create(coffee_house=coffee_house, customer=customer, time=order_inf.time, comment=order_inf.comment)
     for p in order_inf.products:

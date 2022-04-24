@@ -14,6 +14,10 @@ class Customer(BaseModel):
     telegram_id = IntegerField(null=True)
     chat_id = IntegerField(null=True)
 
+    @property
+    def ban(self):
+        return self.bans.get_or_none()
+
     def __str__(self):
         return f'name: {self.name}, phone_number: {self.phone_number}'
 
@@ -129,6 +133,12 @@ class LoginCode(BaseModel):
     expire = TimestampField()
 
 
+class BlackList(BaseModel):
+    customer = ForeignKeyField(Customer, unique=True, on_delete='CASCADE', backref='bans')
+    expire = TimestampField(null=True)  # если null - это бан навсегда ???
+    forever = BooleanField(default=False)
+
+
 # TODO вынести в db.migrate
 if __name__ == '__main__':
     import db
@@ -137,8 +147,8 @@ if __name__ == '__main__':
     db.db.create_tables(
         [Customer, Product, CoffeeHouse, Order, Worktime,
          ProductVarious, OrderedProduct, ToppingToProduct, Topping,
-         LoginCode, ])
+         LoginCode, BlackList, ])
     # field_db.field()
 
 __all__ = ['Customer', 'Product', 'CoffeeHouse', 'Order', 'Worktime', 'ProductVarious', 'OrderedProduct',
-           'ToppingToProduct', 'Topping', 'LoginCode', ]
+           'ToppingToProduct', 'Topping', 'LoginCode', 'BlackList', ]

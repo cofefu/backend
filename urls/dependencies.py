@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from fastapi import Depends, Header, HTTPException, status
 from jose import jwt, JWTError, ExpiredSignatureError
 
@@ -30,4 +32,14 @@ def get_current_active_user(customer: Customer = Depends(get_current_user)) -> C
     if not customer.confirmed:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail='Пользователь не подтвердил номер телефона.')
+    return customer
+
+
+def get_not_baned_user(customer: Customer = Depends(get_current_active_user)) -> Customer:
+    ban = customer.ban
+    if ban is None:
+        return customer
+    if ban.forever or datetime.utcnow() <= ban.expire:
+        raise HTTPException(status_code=status.HTTP_412_PRECONDITION_FAILED,
+                            detail='Пользователь находится в черном списке')
     return customer
