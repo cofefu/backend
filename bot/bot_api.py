@@ -9,7 +9,7 @@ from backend.settings import DOMAIN, BOT_TOKEN, BOT_PORT, DEBUG, FEEDBACK_CHAT
 from bot import bot
 from telebot import types
 
-from bot.bot_funcs import gen_order_msg_text
+from bot.bot_funcs import gen_order_msg_text, send_feedback_to_telegram, send_bugreport_to_telegram
 from bot.filters import order_callback_confirmed, order_callback_done, order_callback_ready
 from bot.keyboards import gen_send_contact_button, gen_order_done_buttons, gen_order_ready_button
 
@@ -80,11 +80,10 @@ def get_order_status(message):
 
 @bot.message_handler(commands=['bug_report', 'feed_back'])
 def send_bug_report(message):
-    msg = '<b>BUG REPORT</b>\n'
     if message.text.split()[0] == '/feed_back':
-        msg = '<b>FEED BACK</b>\n'
-    msg += message.text
-    bot.send_message(chat_id=FEEDBACK_CHAT, text=msg, parse_mode='HTML')
+        send_feedback_to_telegram(message.text[11:])
+    else:
+        send_bugreport_to_telegram(message.text[12:])
 
 
 @bot.message_handler(commands=['change_name'], chat_types=['private'])

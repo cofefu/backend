@@ -1,4 +1,6 @@
 from datetime import datetime
+
+from backend.settings import FEEDBACK_CHAT
 from bot import bot
 from app.models import *
 from bot.keyboards import gen_order_confirmed_buttons
@@ -39,3 +41,13 @@ def send_order(order_number: int):
 def send_login_code(login_code: LoginCode):
     msg = f'Код для входа: {login_code.code}'
     bot.send_message(chat_id=login_code.customer.chat_id, text=msg)
+
+
+def send_feedback_to_telegram(msg: str):
+    msg = '<b>FEED BACK</b>\n' + msg
+    bot.send_message(chat_id=FEEDBACK_CHAT, text=msg, parse_mode='HTML')
+
+
+def send_bugreport_to_telegram(msg: str):
+    msg = '<b>BUG REPORT</b>\n' + msg
+    bot.send_message(chat_id=FEEDBACK_CHAT, text=msg, parse_mode='HTML')
