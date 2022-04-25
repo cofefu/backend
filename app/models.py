@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 
 from peewee import \
     ForeignKeyField, CharField, DateTimeField, IntegerField, TimeField, \
@@ -92,6 +93,12 @@ class Order(BaseModel):
     def get_status_name(self):
         return dict(self.OrderStatus)[self.status]
 
+    def save(self, *args, **kwargs):
+        super(Order, self).save(*args, **kwargs)
+        if self.status == 4:
+            if len(self.customer.customer_orders.where(Order.status == 4)) >= 3:
+                ban_customer(self.customer, datetime.utcnow(), forever=True)
+
 
 class OrderedProduct(BaseModel):
     order = ForeignKeyField(Order, backref='ordered_products', on_delete='CASCADE')
@@ -151,4 +158,26 @@ if __name__ == '__main__':
     # field_db.field()
 
 __all__ = ['Customer', 'Product', 'CoffeeHouse', 'Order', 'Worktime', 'ProductVarious', 'OrderedProduct',
-           'ToppingToProduct', 'Topping', 'LoginCode', 'BlackList', ]
+           'ToppingToProduct', 'Topping', 'LoginCode', 'BlackList', 'ban_customer']
+
+
+# todo перенести куда-нибудь эту функцию
+def ban_customer(customer: Customer, expire: datetime, forever: bool = False) -> Optional[BlackList]:
+    if customer is None:
+        return
+
+    ban: BlackList = customer.ban
+    if ban is None:
+        return BlackList.create(customer=customer, expire=expire, forever=forever)
+
+    if forever:
+        ban.forever = forever
+        ban.save()
+        return ban
+
+    if ban.expire < expire:
+        ban.expire = expire
+        ban.save()
+        return ban
+
+    return ban
