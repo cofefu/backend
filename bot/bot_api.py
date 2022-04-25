@@ -170,7 +170,7 @@ def callback_order_confirmed_handler(call: types.CallbackQuery):
     if order is None:
         bot.answer_callback_query(call.id, 'Заказ не найден')
         return
-    order.status = 1 + is_confirmed
+    order.status = 1 if is_confirmed else 2
     order.save()
 
     ans = 'Заказ принят' if is_confirmed else 'Заказ отклонен'
@@ -193,7 +193,7 @@ def callback_order_confirmed_handler(call: types.CallbackQuery):
     if order is None:
         bot.answer_callback_query(call.id, 'Заказ не найден')
         return
-    order.status = 3 + is_done
+    order.status = 3 if is_done else 4
     order.save()
 
     ans = 'Покупатель забрал заказ' if is_done else 'Покупатель не забрал заказ'
