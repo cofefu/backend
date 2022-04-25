@@ -1,33 +1,18 @@
 from datetime import datetime, timedelta
-from typing import Optional
 
 from fastapi import APIRouter
 import telebot
+from starlette.background import BackgroundTask
 
-from app.models import Order, Customer, CoffeeHouse, BlackList
+from app.models import Order, Customer, CoffeeHouse, ban_customer
 from backend.settings import DOMAIN, BOT_TOKEN, BOT_PORT, DEBUG, FEEDBACK_CHAT
 from bot import bot
 from telebot import types
-from bot.email_sender import send_email
+
+from bot.filters import order_callback_confirmed, order_callback_done, order_callback_ready
+from bot.keyboards import gen_send_contact_button, gen_order_done_buttons
 
 router = APIRouter()
-
-
-def gen_send_contact_markup():
-    btn = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    btn.add(
-        types.KeyboardButton('Подтвердить номер телефона', request_contact=True)
-    )
-    return btn
-
-
-def gen_status_order_markup(order_number: int):
-    markup_btns = types.InlineKeyboardMarkup(row_width=2)
-    markup_btns.add(
-        types.InlineKeyboardButton('Выполнен', callback_data=f'{3} {order_number}'),
-        types.InlineKeyboardButton('Не выполнен', callback_data=f'{4} {order_number}')
-    )
-    return markup_btns
 
 
 def set_webhook():
@@ -38,25 +23,10 @@ def set_webhook():
         bot.set_webhook(url=webhook_url)
 
 
-def ban_customer(customer: Customer, expire: datetime, forever: bool = False) -> Optional[BlackList]:
-    if customer is None:
-        return
-
-    ban: BlackList = customer.ban
-    if ban is None:
-        return BlackList.create(customer=customer, expire=expire, forever=forever)
-
-    if forever:
-        ban.forever = forever
-        ban.save()
-        return ban
-
-    if ban.expire < expire:
-        ban.expire = expire
-        ban.save()
-        return ban
-
-    return ban
+def order_not_picked(order: Order):
+    customer = order.customer
+    if len(customer.customer_orders.where(Order.status == 4)) >= 3:
+        ban_customer(customer, datetime.utcnow(), forever=True)
 
 
 @router.post(f'/{BOT_TOKEN}/', include_in_schema=False)
@@ -70,7 +40,7 @@ def process_webhook(update: dict):
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    markup = gen_send_contact_markup()
+    markup = gen_send_contact_button()
     if message.chat.type == 'group':
         markup = None
     bot.send_message(message.chat.id,
@@ -191,27 +161,51 @@ def unban_request(message):
                           f'разбанен')
 
 
-@bot.callback_query_handler(func=lambda call: True)
-def callback_processing(call: types.CallbackQuery):
-    cb_status, order_number = map(int, call.data.split())
-    order = Order.get_or_none(id=int(order_number))  # todo если None кидать ошибку
-    order.status = cb_status
-    order.save()
+@bot.callback_query_handler(func=None, order_status_config=order_callback_confirmed.filter())
+def callback_order_confirmed_handler(call: types.CallbackQuery):
+    callback_data: dict = order_callback_confirmed.parse(callback_data=call.data)
+    is_confirmed, order_number = bool(callback_data['status']), int(callback_data['order_number'])
 
-    ans_templates = ('', 'Заказ принят', 'Заказ отклонен', 'Заказ выполнен', 'Заказ не выполнен')
-    ans = ans_templates[cb_status]
-    bot.answer_callback_query(call.id, ans)
-    ans = f"\n<b>{ans}</b>"
-
-    if cb_status == 1:
-        bot.edit_message_text(chat_id=call.message.chat.id,
-                              message_id=call.message.message_id,
-                              text=call.message.text + ans,
-                              parse_mode='HTML',
-                              reply_markup=gen_status_order_markup(order.id))
+    if is_confirmed:
+        bot.send_message(chat_id=call.message.chat.id, text=f'Заказ {order_number} принят')
     else:
-        bot.edit_message_text(chat_id=call.message.chat.id,
-                              message_id=call.message.message_id,
-                              text=call.message.text + ans,
-                              parse_mode='HTML',
-                              reply_markup=None)
+        bot.send_message(chat_id=call.message.chat.id, text=f'Заказ {order_number} отклонен')
+
+
+@bot.callback_query_handler(func=None, order_status_config=order_callback_done.filter())
+def callback_order_confirmed_handler(call: types.CallbackQuery):
+    callback_data: dict = order_callback_done.parse(callback_data=call.data)
+    is_done, order_number = bool(callback_data['status']), int(callback_data['order_number'])
+
+    if is_done:
+        bot.send_message(chat_id=call.message.chat.id, text=f'Заказ {order_number} выполнен')
+    else:
+        bot.send_message(chat_id=call.message.chat.id, text=f'Заказ {order_number} не выполнен')
+
+# @bot.callback_query_handler(func=lambda call: True)
+# def callback_processing(call: types.CallbackQuery):
+#     cb_status, order_number = map(int, call.data.split())
+#     order = Order.get_or_none(id=int(order_number))  # todo если None кидать ошибку
+#     order.status = cb_status
+#     order.save()
+#
+#     ans_templates = ('', 'Заказ принят', 'Заказ отклонен', 'Заказ выполнен', 'Заказ не выполнен')
+#     ans = ans_templates[cb_status]
+#     bot.answer_callback_query(call.id, ans)
+#     ans = f"\n<b>{ans}</b>"
+#
+#     if cb_status == 1:
+#         bot.edit_message_text(chat_id=call.message.chat.id,
+#                               message_id=call.message.message_id,
+#                               text=call.message.text + ans,
+#                               parse_mode='HTML',
+#                               reply_markup=gen_order_complete_buttons(order.id))
+#     else:
+#         bot.edit_message_text(chat_id=call.message.chat.id,
+#                               message_id=call.message.message_id,
+#                               text=call.message.text + ans,
+#                               parse_mode='HTML',
+#                               reply_markup=None)
+#
+#     if cb_status == 4:
+#         BackgroundTask(order_not_picked, order)

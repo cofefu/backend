@@ -1,18 +1,7 @@
 from datetime import datetime
-from telebot import types
-
-from app.models import LoginCode
 from bot import bot
 from app.models import *
-
-
-def gen_markup(order_number: int):
-    markup_btns = types.InlineKeyboardMarkup(row_width=2)
-    markup_btns.add(
-        types.InlineKeyboardButton('Принять', callback_data=f'{1} {order_number}'),
-        types.InlineKeyboardButton('Отклонить', callback_data=f'{2} {order_number}')
-    )
-    return markup_btns
+from bot.keyboards import gen_order_confirmed_buttons
 
 
 def send_order(order_number: int):
@@ -37,7 +26,7 @@ def send_order(order_number: int):
     message += f'<i>Телефон покупателя:</i> +7{order.customer.phone_number}\n'
 
     bot.send_message(chat_id=order.coffee_house.chat_id, text=message, parse_mode='HTML',
-                     reply_markup=gen_markup(order_number))
+                     reply_markup=gen_order_confirmed_buttons(order_number))
 
 
 def send_login_code(login_code: LoginCode):
