@@ -167,9 +167,9 @@ def callback_order_confirmed_handler(call: types.CallbackQuery):
     is_confirmed, order_number = bool(callback_data['status']), int(callback_data['order_number'])
 
     if is_confirmed:
-        bot.send_message(chat_id=call.message.chat.id, text=f'Заказ {order_number} принят')
+        bot.send_message(chat_id=call.message.chat.id, text=f'Заказ {order_number} {callback_data["status"]}')
     else:
-        bot.send_message(chat_id=call.message.chat.id, text=f'Заказ {order_number} отклонен')
+        bot.send_message(chat_id=call.message.chat.id, text=f'Заказ {order_number} {callback_data["status"]}')
 
 
 @bot.callback_query_handler(func=None, order_status_config=order_callback_done.filter())
