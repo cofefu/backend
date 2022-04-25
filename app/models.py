@@ -86,6 +86,7 @@ class Order(BaseModel):
     customer = ForeignKeyField(Customer, backref='customer_orders')
     comment = CharField(max_length=200, null=True)
     time = DateTimeField()
+    creation_time = DateTimeField(default=datetime.utcnow)
     status = IntegerField(default=0, choices=OrderStatus)
 
     class Meta:

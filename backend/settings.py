@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -29,3 +30,5 @@ JWT_ALGORITHM = "HS256"
 
 WORKERS = int(os.getenv('WORKERS', 1))
 API_PREFIX = '/dev' if DEV else ''
+
+ORDER_TIMEOUT = timedelta() if (DEV or DEBUG) else timedelta(minutes=2)

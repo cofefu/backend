@@ -3,8 +3,8 @@ from datetime import datetime
 from fastapi import Depends, Header, HTTPException, status
 from jose import jwt, JWTError, ExpiredSignatureError
 
-from app.models import Customer
-from backend.settings import JWT_SECRET_KEY, JWT_ALGORITHM
+from app.models import Customer, Order
+from backend.settings import JWT_SECRET_KEY, JWT_ALGORITHM, ORDER_TIMEOUT
 
 
 def decode_jwt_token(jwt_token: str = Header(...)) -> dict:
@@ -43,3 +43,13 @@ def get_not_baned_user(customer: Customer = Depends(get_current_active_user)) ->
         raise HTTPException(status_code=status.HTTP_412_PRECONDITION_FAILED,
                             detail='Пользователь находится в черном списке')
     return customer
+
+
+def timeout_is_over(customer: Customer = Depends(get_current_active_user)):
+    last_order: Order = customer.customer_orders.order_by(Order.id.desc()).get_or_none()
+    if last_order is None:
+        return
+
+    if datetime.utcnow() - last_order.creation_time <= ORDER_TIMEOUT:
+        raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
+                            detail=f'С момента последнего заказа прошло менее 2 минут')

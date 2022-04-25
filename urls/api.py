@@ -13,7 +13,7 @@ from app.models import ProductVarious, Product, Topping, CoffeeHouse, Customer, 
 from backend import schemas
 from backend.settings import JWT_SECRET_KEY, JWT_ALGORITHM
 from bot.bot_funcs import send_order, send_login_code
-from urls.dependencies import get_current_active_user, get_current_user, get_not_baned_user
+from urls.dependencies import get_current_active_user, get_current_user, get_not_baned_user, timeout_is_over
 
 router = APIRouter()
 
@@ -111,6 +111,7 @@ async def get_favicon_svg():
 
 
 @router.post('/make_order',
+             dependencies=[Depends(timeout_is_over)],
              tags=['jwt require'],
              description='Служит для создания заказа',
              response_model=schemas.OrderNumberResponseModel)
