@@ -81,8 +81,10 @@ class OrderIn(BaseModel):
 
     @validator('time')
     def time_validator(cls, order_time: datetime, values: dict):
-        order_time = timezone('Asia/Vladivostok').localize(order_time)
+        if 'coffee_house' not in values:
+            return order_time
 
+        order_time = timezone('Asia/Vladivostok').localize(order_time)
         now = datetime.now(tz=timezone('Asia/Vladivostok'))
         min_time = timedelta(minutes=5)
         max_time = timedelta(hours=5)
