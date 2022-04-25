@@ -1,21 +1,12 @@
 from datetime import datetime
-from telebot import types
 
-from app.models import LoginCode
+from backend.settings import FEEDBACK_CHAT
 from bot import bot
 from app.models import *
+from bot.keyboards import gen_order_confirmed_buttons
 
 
-def gen_markup(order_number: int):
-    markup_btns = types.InlineKeyboardMarkup(row_width=2)
-    markup_btns.add(
-        types.InlineKeyboardButton('Принять', callback_data=f'{1} {order_number}'),
-        types.InlineKeyboardButton('Отклонить', callback_data=f'{2} {order_number}')
-    )
-    return markup_btns
-
-
-def send_order(order_number: int):
+def gen_order_msg_text(order_number: int) -> str:
     order = Order.get_or_none(order_number)
     products = OrderedProduct.select().where(OrderedProduct.order == order)
     time = datetime.strptime(order.time, '%Y-%m-%d %H:%M:%S%z')
@@ -36,10 +27,27 @@ def send_order(order_number: int):
     message += f'<i>Имя покупателя:</i> {order.customer.name}\n'
     message += f'<i>Телефон покупателя:</i> +7{order.customer.phone_number}\n'
 
-    bot.send_message(chat_id=order.coffee_house.chat_id, text=message, parse_mode='HTML',
-                     reply_markup=gen_markup(order_number))
+    return message
+
+
+def send_order(order_number: int):
+    if (order := Order.get_or_none(order_number)) is not None:
+        bot.send_message(chat_id=order.coffee_house.chat_id,
+                         text=gen_order_msg_text(order_number),
+                         parse_mode='HTML',
+                         reply_markup=gen_order_confirmed_buttons(order_number))
 
 
 def send_login_code(login_code: LoginCode):
     msg = f'Код для входа: {login_code.code}'
     bot.send_message(chat_id=login_code.customer.chat_id, text=msg)
+
+
+def send_feedback_to_telegram(msg: str):
+    msg = '<b>FEED BACK</b>\n' + msg
+    bot.send_message(chat_id=FEEDBACK_CHAT, text=msg, parse_mode='HTML')
+
+
+def send_bugreport_to_telegram(msg: str):
+    msg = '<b>BUG REPORT</b>\n' + msg
+    bot.send_message(chat_id=FEEDBACK_CHAT, text=msg, parse_mode='HTML')

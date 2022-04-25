@@ -1,30 +1,19 @@
+from datetime import datetime, timedelta
+
 from fastapi import APIRouter
 import telebot
+from starlette.background import BackgroundTask
 
-from app.models import Order, Customer, CoffeeHouse
-from backend.settings import DOMAIN, BOT_TOKEN, BOT_PORT, DEBUG
+from app.models import Order, Customer, CoffeeHouse, ban_customer
+from backend.settings import DOMAIN, BOT_TOKEN, BOT_PORT, DEBUG, FEEDBACK_CHAT
 from bot import bot
 from telebot import types
-from bot.email_sender import send_email
+
+from bot.bot_funcs import gen_order_msg_text, send_feedback_to_telegram, send_bugreport_to_telegram
+from bot.filters import order_callback_confirmed, order_callback_done, order_callback_ready
+from bot.keyboards import gen_send_contact_button, gen_order_done_buttons, gen_order_ready_button
 
 router = APIRouter()
-
-
-def gen_send_contact_markup():
-    btn = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    btn.add(
-        types.KeyboardButton('Подтвердить номер телефона', request_contact=True)
-    )
-    return btn
-
-
-def gen_status_order_markup(order_number: int):
-    markup_btns = types.InlineKeyboardMarkup(row_width=2)
-    markup_btns.add(
-        types.InlineKeyboardButton('Выполнен', callback_data=f'{3} {order_number}'),
-        types.InlineKeyboardButton('Не выполнен', callback_data=f'{4} {order_number}')
-    )
-    return markup_btns
 
 
 def set_webhook():
@@ -33,6 +22,12 @@ def set_webhook():
             bot.get_webhook_info().url != webhook_url:
         bot.remove_webhook()
         bot.set_webhook(url=webhook_url)
+
+
+def order_not_picked(order: Order):
+    customer = order.customer
+    if len(customer.customer_orders.where(Order.status == 4)) >= 3:
+        ban_customer(customer, datetime.utcnow(), forever=True)
 
 
 @router.post(f'/{BOT_TOKEN}/', include_in_schema=False)
@@ -46,7 +41,7 @@ def process_webhook(update: dict):
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    markup = gen_send_contact_markup()
+    markup = gen_send_contact_button()
     if message.chat.type == 'group':
         markup = None
     bot.send_message(message.chat.id,
@@ -73,7 +68,7 @@ def send_chat_id(message):
     bot.reply_to(message, message.chat.id)
 
 
-@bot.message_handler(commands=['status'])
+@bot.message_handler(commands=['status'], chat_types=['group'])
 def get_order_status(message):
     if CoffeeHouse.get_or_none(CoffeeHouse.chat_id == message.chat.id):
         order = Order.get_or_none(Order.id == message.text.split()[1])
@@ -85,14 +80,13 @@ def get_order_status(message):
 
 @bot.message_handler(commands=['bug_report', 'feed_back'])
 def send_bug_report(message):
-    msg = '<b>BUG REPORT</b>\n'
     if message.text.split()[0] == '/feed_back':
-        msg = '<b>FEED BACK</b>\n'
-    msg += message.text
-    bot.send_message(chat_id=-487736638, text=msg, parse_mode='HTML')
+        send_feedback_to_telegram(message.text[11:])
+    else:
+        send_bugreport_to_telegram(message.text[12:])
 
 
-@bot.message_handler(commands=['change_name'])
+@bot.message_handler(commands=['change_name'], chat_types=['private'])
 def change_user_name(message):
     if customer := Customer.get_or_none(Customer.telegram_id == message.from_user.id):
         new_name = message.text[13:].strip()
@@ -110,7 +104,7 @@ def change_user_name(message):
                          text='Пользователь не найден. Пожалуйста, еще раз подтвердите номер телефона (команда /start)')
 
 
-@bot.message_handler(content_types=['contact'])
+@bot.message_handler(content_types=['contact'], chat_types=['private'])
 def contact_handler(message):
     phone_number = message.contact.phone_number
     if message.contact.user_id != message.from_user.id:
@@ -133,27 +127,105 @@ def contact_handler(message):
                          text='Пользователь с таким номером телефона не найден.')
 
 
-@bot.callback_query_handler(func=lambda call: True)
-def callback_processing(call: types.CallbackQuery):
-    cb_status, order_number = map(int, call.data.split())
-    order = Order.get_or_none(id=int(order_number))  # todo если None кидать ошибку
-    order.status = cb_status
+@bot.message_handler(commands=['ban'], chat_types=['group'])
+def ban_request(message):
+    if not CoffeeHouse.get_or_none(CoffeeHouse.chat_id == message.chat.id):
+        return
+
+    phone_number = message.text.split()[1]
+    customer: Customer = Customer.get_or_none(Customer.phone_number == phone_number[-10:])
+    if customer is None:
+        bot.send_message(chat_id=message.chat.id, text=f'Пользователь с номером телефона {phone_number} не найден')
+        return
+
+    ban = ban_customer(customer, datetime.utcnow() + timedelta(days=2))
+    bot.send_message(chat_id=message.chat.id,
+                     text=f'Пользователь {customer.name} с номером телефона {phone_number} ' +
+                          f'забанен до {ban.expire.strftime("%d/%m/%Y, %H:%M")}')
+
+
+@bot.message_handler(commands=['unban'], chat_types=['group'])
+def unban_request(message):
+    if not CoffeeHouse.get_or_none(CoffeeHouse.chat_id == message.chat.id):
+        return
+    phone_number = message.text.split()[1]
+    customer: Customer = Customer.get_or_none(Customer.phone_number == phone_number[-10:])
+    if customer is None:
+        bot.send_message(chat_id=message.chat.id, text=f'Пользователь с номером телефона {phone_number} не найден')
+        return
+
+    if (ban := customer.ban) is not None:
+        ban.delete_instance()
+    bot.send_message(chat_id=message.chat.id,
+                     text=f'Пользователь {customer.name} с номером телефона {phone_number} ' +
+                          f'разбанен')
+
+
+@bot.callback_query_handler(func=None, order_status_config=order_callback_confirmed.filter())
+def callback_order_confirmed_handler(call: types.CallbackQuery):
+    callback_data: dict = order_callback_confirmed.parse(callback_data=call.data)
+    is_confirmed, order_number = int(callback_data['status']), int(callback_data['order_number'])
+
+    order = Order.get_or_none(id=order_number)
+    if order is None:
+        bot.answer_callback_query(call.id, 'Заказ не найден')
+        return
+    order.status = 1 if is_confirmed else 2
     order.save()
 
-    ans_templates = ('', 'Заказ принят', 'Заказ отклонен', 'Заказ выполнен', 'Заказ не выполнен')
-    ans = ans_templates[cb_status]
+    ans = 'Заказ принят' if is_confirmed else 'Заказ отклонен'
     bot.answer_callback_query(call.id, ans)
     ans = f"\n<b>{ans}</b>"
 
-    if cb_status == 1:
-        bot.edit_message_text(chat_id=call.message.chat.id,
-                              message_id=call.message.message_id,
-                              text=call.message.text + ans,
-                              parse_mode='HTML',
-                              reply_markup=gen_status_order_markup(order.id))
-    else:
-        bot.edit_message_text(chat_id=call.message.chat.id,
-                              message_id=call.message.message_id,
-                              text=call.message.text + ans,
-                              parse_mode='HTML',
-                              reply_markup=None)
+    markup = gen_order_ready_button(order.id) if is_confirmed else None
+    bot.edit_message_text(chat_id=call.message.chat.id,
+                          message_id=call.message.message_id,
+                          text=gen_order_msg_text(order.id) + ans,
+                          parse_mode='HTML',
+                          reply_markup=markup)
+
+
+@bot.callback_query_handler(func=None, order_status_config=order_callback_ready.filter())
+def callback_order_ready_handler(call: types.CallbackQuery):
+    callback_data: dict = order_callback_ready.parse(callback_data=call.data)
+    order_number = int(callback_data['order_number'])
+
+    order = Order.get_or_none(id=order_number)
+    if order is None:
+        bot.answer_callback_query(call.id, 'Заказ не найден')
+        return
+    order.status = 5
+    order.save()
+
+    ans = 'Заказ готов'
+    bot.answer_callback_query(call.id, ans)
+    ans = f"\n<b>{ans}</b>"
+
+    bot.edit_message_text(chat_id=call.message.chat.id,
+                          message_id=call.message.message_id,
+                          text=gen_order_msg_text(order.id) + ans,
+                          parse_mode='HTML',
+                          reply_markup=gen_order_done_buttons(order.id))
+
+
+@bot.callback_query_handler(func=None, order_status_config=order_callback_done.filter())
+def callback_order_confirmed_handler(call: types.CallbackQuery):
+    callback_data: dict = order_callback_done.parse(callback_data=call.data)
+    is_done, order_number = int(callback_data['status']), int(callback_data['order_number'])
+
+    order = Order.get_or_none(id=order_number)
+    if order is None:
+        bot.answer_callback_query(call.id, 'Заказ не найден')
+        return
+    order.status = 3 if is_done else 4
+    order.save()
+
+    ans = 'Покупатель забрал заказ' if is_done else 'Покупатель не забрал заказ'
+    bot.answer_callback_query(call.id, ans)
+    ans = f"\n<b>{ans}</b>"
+
+    bot.edit_message_text(chat_id=call.message.chat.id,
+                          message_id=call.message.message_id,
+                          text=gen_order_msg_text(order.id) + ans,
+                          parse_mode='HTML',
+                          reply_markup=None)

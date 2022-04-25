@@ -1,7 +1,8 @@
 import random
 from typing import List
 
-from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException
+from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException, Body
+from pydantic import constr
 from starlette.responses import FileResponse
 from jose import jwt
 from datetime import datetime, timedelta
@@ -11,8 +12,8 @@ from app.models import ProductVarious, Product, Topping, CoffeeHouse, Customer, 
     ToppingToProduct, LoginCode, Worktime
 from backend import schemas
 from backend.settings import JWT_SECRET_KEY, JWT_ALGORITHM
-from bot.bot_funcs import send_order, send_login_code
-from urls.dependencies import get_current_active_user, get_current_user
+from bot.bot_funcs import send_order, send_login_code, send_feedback_to_telegram, send_bugreport_to_telegram
+from urls.dependencies import get_current_active_user, get_current_user, get_not_baned_user, timeout_is_over
 
 router = APIRouter()
 
@@ -110,12 +111,13 @@ async def get_favicon_svg():
 
 
 @router.post('/make_order',
+             dependencies=[Depends(timeout_is_over)],
              tags=['jwt require'],
              description='Служит для создания заказа',
              response_model=schemas.OrderNumberResponseModel)
 async def make_order(order_inf: schemas.OrderIn,
                      background_tasks: BackgroundTasks,
-                     customer: Customer = Depends(get_current_active_user)):
+                     customer: Customer = Depends(get_not_baned_user)):
     coffee_house: CoffeeHouse = CoffeeHouse.get(CoffeeHouse.id == order_inf.coffee_house)
     order = Order.create(coffee_house=coffee_house, customer=customer, time=order_inf.time, comment=order_inf.comment)
     for p in order_inf.products:
@@ -222,3 +224,24 @@ async def get_last_order(customer: Customer = Depends(get_current_active_user)):
     if len(order) == 0:
         return None
     return schemas.OrderResponseModel.to_dict(order[0])
+
+
+@router.post('/feedback', description='Для советов, пожеланий и т.д.')
+async def send_feedback(background_tasks: BackgroundTasks, msg: str = Body(...)):
+    background_tasks.add_task(send_feedback_to_telegram, msg)
+
+
+@router.post('/bugreport', description='Для информации о различных ошибках')
+async def send_bugreport(background_tasks: BackgroundTasks, msg: str = Body(...)):
+    background_tasks.add_task(send_bugreport_to_telegram, msg)
+
+
+@router.put('/change_name',
+            tags=['jwt require'],
+            description='Для смены имени пользователя',
+            response_model=schemas.Customer)
+async def change_customer_name(new_name: constr(max_length=20, strip_whitespace=True) = Body(...),
+                               customer: Customer = Depends(get_current_user)):
+    customer.name = new_name
+    customer.save()
+    return {"name": customer.name, "phone_number": customer.phone_number}

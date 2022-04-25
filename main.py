@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from bot import bot_api
 from bot.bot_api import set_webhook
+from bot.filters import bind_bot_filters
 from urls import api
 
 from backend.settings import API_PREFIX
@@ -42,3 +43,4 @@ app.include_router(bot_api.router, prefix='/bot')
 @app.on_event("startup")
 async def on_startup():
     set_webhook()
+    bind_bot_filters()

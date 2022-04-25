@@ -75,14 +75,16 @@ class OrderIn(BaseModel):
 
     @validator('coffee_house')
     def coffeehouse_validator(cls, coffee_house: str):
-        if CoffeeHouse.get_or_none(coffee_house) is None:
+        if CoffeeHouse.get_or_none(CoffeeHouse.id == coffee_house) is None:
             raise HTTPException(status_code=400, detail="Incorrect coffee_house id")
         return coffee_house
 
     @validator('time')
     def time_validator(cls, order_time: datetime, values: dict):
-        order_time = timezone('Asia/Vladivostok').localize(order_time)
+        if 'coffee_house' not in values:
+            return order_time
 
+        order_time = timezone('Asia/Vladivostok').localize(order_time)
         now = datetime.now(tz=timezone('Asia/Vladivostok'))
         min_time = timedelta(minutes=5)
         max_time = timedelta(hours=5)

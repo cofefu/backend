@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 
 from peewee import \
     ForeignKeyField, CharField, DateTimeField, IntegerField, TimeField, \
@@ -13,6 +14,10 @@ class Customer(BaseModel):
     confirmed = BooleanField(default=False)
     telegram_id = IntegerField(null=True)
     chat_id = IntegerField(null=True)
+
+    @property
+    def ban(self):
+        return self.bans.get_or_none()
 
     def __str__(self):
         return f'name: {self.name}, phone_number: {self.phone_number}'
@@ -71,15 +76,17 @@ class CoffeeHouse(BaseModel):
 class Order(BaseModel):
     OrderStatus = (
         (0, 'В ожидании'),
-        (1, 'Принят'),
+        (1, 'Принят в работу'),
         (2, 'Отклонен'),
-        (3, 'Выполнен'),
-        (4, 'Не выполнен')
+        (3, 'Отдан покупателю'),
+        (4, 'Не забран покупателем'),
+        (5, 'Готов')
     )
     coffee_house = ForeignKeyField(CoffeeHouse, backref='house_orders')
     customer = ForeignKeyField(Customer, backref='customer_orders')
     comment = CharField(max_length=200, null=True)
     time = DateTimeField()
+    creation_time = DateTimeField(default=datetime.utcnow)
     status = IntegerField(default=0, choices=OrderStatus)
 
     class Meta:
@@ -87,6 +94,12 @@ class Order(BaseModel):
 
     def get_status_name(self):
         return dict(self.OrderStatus)[self.status]
+
+    def save(self, *args, **kwargs):
+        super(Order, self).save(*args, **kwargs)
+        if self.status == 4:
+            if len(self.customer.customer_orders.where(Order.status == 4)) >= 3:
+                ban_customer(self.customer, datetime.utcnow(), forever=True)
 
 
 class OrderedProduct(BaseModel):
@@ -129,6 +142,12 @@ class LoginCode(BaseModel):
     expire = TimestampField()
 
 
+class BlackList(BaseModel):
+    customer = ForeignKeyField(Customer, unique=True, on_delete='CASCADE', backref='bans')
+    expire = TimestampField(null=True)  # если null - это бан навсегда ???
+    forever = BooleanField(default=False)
+
+
 # TODO вынести в db.migrate
 if __name__ == '__main__':
     import db
@@ -137,8 +156,30 @@ if __name__ == '__main__':
     db.db.create_tables(
         [Customer, Product, CoffeeHouse, Order, Worktime,
          ProductVarious, OrderedProduct, ToppingToProduct, Topping,
-         LoginCode, ])
+         LoginCode, BlackList, ])
     # field_db.field()
 
 __all__ = ['Customer', 'Product', 'CoffeeHouse', 'Order', 'Worktime', 'ProductVarious', 'OrderedProduct',
-           'ToppingToProduct', 'Topping', 'LoginCode', ]
+           'ToppingToProduct', 'Topping', 'LoginCode', 'BlackList', 'ban_customer']
+
+
+# todo перенести куда-нибудь эту функцию
+def ban_customer(customer: Customer, expire: datetime, forever: bool = False) -> Optional[BlackList]:
+    if customer is None:
+        return
+
+    ban: BlackList = customer.ban
+    if ban is None:
+        return BlackList.create(customer=customer, expire=expire, forever=forever)
+
+    if forever:
+        ban.forever = forever
+        ban.save()
+        return ban
+
+    if ban.expire < expire:
+        ban.expire = expire
+        ban.save()
+        return ban
+
+    return ban
