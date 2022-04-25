@@ -75,7 +75,7 @@ class OrderIn(BaseModel):
 
     @validator('coffee_house')
     def coffeehouse_validator(cls, coffee_house: str):
-        if CoffeeHouse.get_or_none(coffee_house) is None:
+        if CoffeeHouse.get_or_none(CoffeeHouse.id == coffee_house) is None:
             raise HTTPException(status_code=400, detail="Incorrect coffee_house id")
         return coffee_house
 
