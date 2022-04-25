@@ -166,10 +166,22 @@ def callback_order_confirmed_handler(call: types.CallbackQuery):
     callback_data: dict = order_callback_confirmed.parse(callback_data=call.data)
     is_confirmed, order_number = int(callback_data['status']), int(callback_data['order_number'])
 
-    if is_confirmed:
-        bot.send_message(chat_id=call.message.chat.id, text=f'Заказ {order_number} {callback_data["status"]}')
-    else:
-        bot.send_message(chat_id=call.message.chat.id, text=f'Заказ {order_number} {callback_data["status"]}')
+    order = Order.get_or_none(id=order_number)
+    if order is None:
+        bot.answer_callback_query(call.id, 'Заказ не найден')
+        return
+    order.status = 1 + is_confirmed
+    order.save()
+
+    ans = 'Заказ принят' if is_confirmed else 'Заказ отклонен'
+    bot.answer_callback_query(call.id, ans)
+    ans = f"\n<b>{ans}</b>"
+
+    bot.edit_message_text(chat_id=call.message.chat.id,
+                          message_id=call.message.message_id,
+                          text=call.message.text + ans,
+                          parse_mode='HTML',
+                          reply_markup=gen_order_done_buttons(order.id))
 
 
 @bot.callback_query_handler(func=None, order_status_config=order_callback_done.filter())
@@ -177,35 +189,19 @@ def callback_order_confirmed_handler(call: types.CallbackQuery):
     callback_data: dict = order_callback_done.parse(callback_data=call.data)
     is_done, order_number = int(callback_data['status']), int(callback_data['order_number'])
 
-    if is_done:
-        bot.send_message(chat_id=call.message.chat.id, text=f'Заказ {order_number} выполнен')
-    else:
-        bot.send_message(chat_id=call.message.chat.id, text=f'Заказ {order_number} не выполнен')
+    order = Order.get_or_none(id=order_number)
+    if order is None:
+        bot.answer_callback_query(call.id, 'Заказ не найден')
+        return
+    order.status = 3 + is_done
+    order.save()
 
-# @bot.callback_query_handler(func=lambda call: True)
-# def callback_processing(call: types.CallbackQuery):
-#     cb_status, order_number = map(int, call.data.split())
-#     order = Order.get_or_none(id=int(order_number))  # todo если None кидать ошибку
-#     order.status = cb_status
-#     order.save()
-#
-#     ans_templates = ('', 'Заказ принят', 'Заказ отклонен', 'Заказ выполнен', 'Заказ не выполнен')
-#     ans = ans_templates[cb_status]
-#     bot.answer_callback_query(call.id, ans)
-#     ans = f"\n<b>{ans}</b>"
-#
-#     if cb_status == 1:
-#         bot.edit_message_text(chat_id=call.message.chat.id,
-#                               message_id=call.message.message_id,
-#                               text=call.message.text + ans,
-#                               parse_mode='HTML',
-#                               reply_markup=gen_order_complete_buttons(order.id))
-#     else:
-#         bot.edit_message_text(chat_id=call.message.chat.id,
-#                               message_id=call.message.message_id,
-#                               text=call.message.text + ans,
-#                               parse_mode='HTML',
-#                               reply_markup=None)
-#
-#     if cb_status == 4:
-#         BackgroundTask(order_not_picked, order)
+    ans = 'Покупатель забрал заказ' if is_done else 'Покупатель не забрал заказ'
+    bot.answer_callback_query(call.id, ans)
+    ans = f"\n<b>{ans}</b>"
+
+    bot.edit_message_text(chat_id=call.message.chat.id,
+                          message_id=call.message.message_id,
+                          text=call.message.text + ans,
+                          parse_mode='HTML',
+                          reply_markup=None)
