@@ -11,7 +11,7 @@ from telebot import types
 
 from bot.bot_funcs import gen_order_msg_text
 from bot.filters import order_callback_confirmed, order_callback_done, order_callback_ready
-from bot.keyboards import gen_send_contact_button, gen_order_done_buttons
+from bot.keyboards import gen_send_contact_button, gen_order_done_buttons, gen_order_ready_button
 
 router = APIRouter()
 
@@ -178,12 +178,35 @@ def callback_order_confirmed_handler(call: types.CallbackQuery):
     bot.answer_callback_query(call.id, ans)
     ans = f"\n<b>{ans}</b>"
 
-    markup = gen_order_done_buttons(order.id) if is_confirmed else None
+    markup = gen_order_ready_button(order.id) if is_confirmed else None
     bot.edit_message_text(chat_id=call.message.chat.id,
                           message_id=call.message.message_id,
                           text=gen_order_msg_text(order.id) + ans,
                           parse_mode='HTML',
                           reply_markup=markup)
+
+
+@bot.callback_query_handler(func=None, order_status_config=order_callback_ready.filter())
+def callback_order_ready_handler(call: types.CallbackQuery):
+    callback_data: dict = order_callback_confirmed.parse(callback_data=call.data)
+    order_number = int(callback_data['order_number'])
+
+    order = Order.get_or_none(id=order_number)
+    if order is None:
+        bot.answer_callback_query(call.id, 'Заказ не найден')
+        return
+    order.status = 5
+    order.save()
+
+    ans = 'Заказ готов'
+    bot.answer_callback_query(call.id, ans)
+    ans = f"\n<b>{ans}</b>"
+
+    bot.edit_message_text(chat_id=call.message.chat.id,
+                          message_id=call.message.message_id,
+                          text=gen_order_msg_text(order.id) + ans,
+                          parse_mode='HTML',
+                          reply_markup=gen_order_done_buttons(order.id))
 
 
 @bot.callback_query_handler(func=None, order_status_config=order_callback_done.filter())

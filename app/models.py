@@ -76,10 +76,11 @@ class CoffeeHouse(BaseModel):
 class Order(BaseModel):
     OrderStatus = (
         (0, 'В ожидании'),
-        (1, 'Принят'),
+        (1, 'Принят в работу'),
         (2, 'Отклонен'),
-        (3, 'Выполнен'),
-        (4, 'Не выполнен')
+        (3, 'Отдан покупателю'),
+        (4, 'Не забран покупателем'),
+        (5, 'Готов')
     )
     coffee_house = ForeignKeyField(CoffeeHouse, backref='house_orders')
     customer = ForeignKeyField(Customer, backref='customer_orders')
