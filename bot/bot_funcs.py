@@ -4,7 +4,7 @@ from app.models import *
 from bot.keyboards import gen_order_confirmed_buttons
 
 
-def send_order(order_number: int):
+def gen_order_msg_text(order_number: int) -> str:
     order = Order.get_or_none(order_number)
     products = OrderedProduct.select().where(OrderedProduct.order == order)
     time = datetime.strptime(order.time, '%Y-%m-%d %H:%M:%S%z')
@@ -25,8 +25,15 @@ def send_order(order_number: int):
     message += f'<i>Имя покупателя:</i> {order.customer.name}\n'
     message += f'<i>Телефон покупателя:</i> +7{order.customer.phone_number}\n'
 
-    bot.send_message(chat_id=order.coffee_house.chat_id, text=message, parse_mode='HTML',
-                     reply_markup=gen_order_confirmed_buttons(order_number))
+    return message
+
+
+def send_order(order_number: int):
+    if (order := Order.get_or_none(order_number)) is not None:
+        bot.send_message(chat_id=order.coffee_house.chat_id,
+                         text=gen_order_msg_text(order_number),
+                         parse_mode='HTML',
+                         reply_markup=gen_order_confirmed_buttons(order_number))
 
 
 def send_login_code(login_code: LoginCode):

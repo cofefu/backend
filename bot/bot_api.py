@@ -9,6 +9,7 @@ from backend.settings import DOMAIN, BOT_TOKEN, BOT_PORT, DEBUG, FEEDBACK_CHAT
 from bot import bot
 from telebot import types
 
+from bot.bot_funcs import gen_order_msg_text
 from bot.filters import order_callback_confirmed, order_callback_done, order_callback_ready
 from bot.keyboards import gen_send_contact_button, gen_order_done_buttons
 
@@ -179,7 +180,7 @@ def callback_order_confirmed_handler(call: types.CallbackQuery):
 
     bot.edit_message_text(chat_id=call.message.chat.id,
                           message_id=call.message.message_id,
-                          text=call.message.text + ans,
+                          text=gen_order_msg_text(order.id) + ans,
                           parse_mode='HTML',
                           reply_markup=gen_order_done_buttons(order.id))
 
@@ -202,6 +203,6 @@ def callback_order_confirmed_handler(call: types.CallbackQuery):
 
     bot.edit_message_text(chat_id=call.message.chat.id,
                           message_id=call.message.message_id,
-                          text=call.message.text + ans,
+                          text=gen_order_msg_text(order.id) + ans,
                           parse_mode='HTML',
                           reply_markup=None)
