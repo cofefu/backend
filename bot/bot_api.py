@@ -188,7 +188,7 @@ def callback_order_confirmed_handler(call: types.CallbackQuery):
 
 @bot.callback_query_handler(func=None, order_status_config=order_callback_ready.filter())
 def callback_order_ready_handler(call: types.CallbackQuery):
-    callback_data: dict = order_callback_confirmed.parse(callback_data=call.data)
+    callback_data: dict = order_callback_ready.parse(callback_data=call.data)
     order_number = int(callback_data['order_number'])
 
     order = Order.get_or_none(id=order_number)
