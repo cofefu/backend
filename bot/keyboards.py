@@ -28,7 +28,7 @@ def gen_order_confirmed_buttons(order_number: int) -> types.InlineKeyboardMarkup
     markup_btns = types.InlineKeyboardMarkup(row_width=2)
     markup_btns.add(
         types.InlineKeyboardButton('Принять',
-                                   callback_data=order_callback_confirmed.new(status=True,
+                                   callback_data=order_callback_confirmed.new(status=int(True),
                                                                               order_number=order_number)),
         types.InlineKeyboardButton('Отклонить',
                                    callback_data=order_callback_confirmed.new(status=int(False),

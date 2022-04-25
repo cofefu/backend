@@ -164,7 +164,7 @@ def unban_request(message):
 @bot.callback_query_handler(func=None, order_status_config=order_callback_confirmed.filter())
 def callback_order_confirmed_handler(call: types.CallbackQuery):
     callback_data: dict = order_callback_confirmed.parse(callback_data=call.data)
-    is_confirmed, order_number = bool(callback_data['status']), int(callback_data['order_number'])
+    is_confirmed, order_number = int(callback_data['status']), int(callback_data['order_number'])
 
     if is_confirmed:
         bot.send_message(chat_id=call.message.chat.id, text=f'Заказ {order_number} {callback_data["status"]}')
@@ -175,7 +175,7 @@ def callback_order_confirmed_handler(call: types.CallbackQuery):
 @bot.callback_query_handler(func=None, order_status_config=order_callback_done.filter())
 def callback_order_confirmed_handler(call: types.CallbackQuery):
     callback_data: dict = order_callback_done.parse(callback_data=call.data)
-    is_done, order_number = bool(callback_data['status']), int(callback_data['order_number'])
+    is_done, order_number = int(callback_data['status']), int(callback_data['order_number'])
 
     if is_done:
         bot.send_message(chat_id=call.message.chat.id, text=f'Заказ {order_number} выполнен')
