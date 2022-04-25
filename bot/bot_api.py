@@ -178,11 +178,12 @@ def callback_order_confirmed_handler(call: types.CallbackQuery):
     bot.answer_callback_query(call.id, ans)
     ans = f"\n<b>{ans}</b>"
 
+    markup = gen_order_done_buttons(order.id) if is_confirmed else None
     bot.edit_message_text(chat_id=call.message.chat.id,
                           message_id=call.message.message_id,
                           text=gen_order_msg_text(order.id) + ans,
                           parse_mode='HTML',
-                          reply_markup=gen_order_done_buttons(order.id))
+                          reply_markup=markup)
 
 
 @bot.callback_query_handler(func=None, order_status_config=order_callback_done.filter())
