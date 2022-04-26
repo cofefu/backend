@@ -26,7 +26,7 @@ class Customer(BaseModel):
         try:
             int(number)
         except ValueError:
-            raise HTTPException(status_code=400, detail=f"PhoneNumber not a number")
+            raise HTTPException(status_code=400, detail=f"Номер телефона не является числом")
         return number
 
 
@@ -37,14 +37,14 @@ class Product(BaseModel):
     @validator('id')
     def product_validator(cls, prod: int):
         if ProductVarious.get_or_none(ProductVarious.id == prod) is None:
-            raise HTTPException(status_code=400, detail=f"Incorrect product id: {prod}")
+            raise HTTPException(status_code=400, detail=f"Несуществующий идентификатор продукта: {prod}")
         return prod
 
     @validator('toppings')
     def toppings_validator(cls, toppings: List[int]):
         for top in toppings:
             if Topping.get_or_none(Topping.id == top) is None:
-                raise HTTPException(status_code=400, detail=f'Incorrect topping id: {top}')
+                raise HTTPException(status_code=400, detail=f'Несуществующий идентификатор топинга: {top}')
         return toppings
 
 
@@ -76,7 +76,7 @@ class OrderIn(BaseModel):
     @validator('coffee_house')
     def coffeehouse_validator(cls, coffee_house: str):
         if CoffeeHouse.get_or_none(CoffeeHouse.id == coffee_house) is None:
-            raise HTTPException(status_code=400, detail="Incorrect coffee_house id")
+            raise HTTPException(status_code=400, detail=f"Несуществующий идентификатор кофейни: {coffee_house}")
         return coffee_house
 
     @validator('time')
@@ -86,23 +86,23 @@ class OrderIn(BaseModel):
 
         order_time = timezone('Asia/Vladivostok').localize(order_time)
         now = datetime.now(tz=timezone('Asia/Vladivostok'))
-        min_time = timedelta(minutes=5)
+        min_time = timedelta(minutes=4, seconds=50)
         max_time = timedelta(hours=5)
         if not (now < order_time and min_time <= order_time - now <= max_time):
             raise HTTPException(status_code=400,
-                                detail="Incorrect order time. The allowed time is from 5 minutes to 5 hours")
+                                detail="Неправильное время заказа. Минимальное время приготовления заказа - 5 минут")
 
         weekday = datetime.now(tz=timezone('Asia/Vladivostok')).weekday()
         worktime = Worktime.get_or_none(
             (Worktime.coffee_house == values['coffee_house']) &
             (Worktime.day_of_week == weekday))
         if worktime is None:
-            raise HTTPException(status_code=400, detail="The coffee house is closed")
+            raise HTTPException(status_code=400, detail="Кофейня закрыта")
 
         open_time = datetime.strptime(worktime.open_time, '%H:%M:%S').time()
         close_time = datetime.strptime(worktime.close_time, '%H:%M:%S').time()
         if not open_time <= order_time.time() <= close_time:
-            raise HTTPException(status_code=400, detail="The coffee house is closed")
+            raise HTTPException(status_code=400, detail="Кофейня закрыта")
 
         return order_time
 

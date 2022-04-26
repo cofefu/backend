@@ -81,7 +81,7 @@ async def get_order_status(number: int, customer: Customer = Depends(get_current
             response_model=List[schemas.ProductsVariousResponseModel])
 async def get_products_various(prod_id: int):
     if Product.get_or_none(prod_id) is None:
-        raise HTTPException(status_code=400, detail='Invalid product id')
+        raise HTTPException(status_code=400, detail='Несуществующий идентификатор продукта')
 
     prods = ProductVarious.select().where(ProductVarious.product == prod_id)
     return [p.data(hide=['product']) for p in prods]
@@ -240,8 +240,10 @@ async def send_bugreport(background_tasks: BackgroundTasks, msg: str = Body(...)
             tags=['jwt require'],
             description='Для смены имени пользователя',
             response_model=schemas.Customer)
-async def change_customer_name(new_name: constr(max_length=20, strip_whitespace=True) = Body(...),
+async def change_customer_name(new_name: constr(strip_whitespace=True) = Body(...),
                                customer: Customer = Depends(get_current_user)):
+    if len(new_name) > 20:
+        raise HTTPException(status_code=422, detail='Длина имени не может превышать 20 символов')
     customer.name = new_name
     customer.save()
     return {"name": customer.name, "phone_number": customer.phone_number}
