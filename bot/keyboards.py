@@ -66,9 +66,9 @@ def gen_bad_mix_button(order_number: int) -> InlineKeyboardMarkup:
     markup_btns = InlineKeyboardMarkup(row_width=1)
     for prod in Order.get_by_id(order_number).ordered_products:
         markup_btns.add(InlineKeyboardButton(prod.product.product.name,
-                                             callback_data=special_problem(order_number,
-                                                                           prod.product.product.id,
-                                                                           CancelReasons.bad_mix)))
+                                             callback_data=special_problem.new(order_number,
+                                                                               prod.product.product.id,
+                                                                               CancelReasons.bad_mix)))
     return markup_btns
 
 
@@ -76,9 +76,9 @@ def gen_no_product_button(order_number: int) -> InlineKeyboardMarkup:
     markup_btns = InlineKeyboardMarkup(row_width=1)
     for prod in Order.get_by_id(order_number).ordered_products:
         markup_btns.add(InlineKeyboardButton(prod.product.product.name,
-                                             callback_data=special_problem(order_number,
-                                                                           prod.product.product.id,
-                                                                           CancelReasons.no_product)))
+                                             callback_data=special_problem.new(order_number,
+                                                                               prod.product.product.id,
+                                                                               CancelReasons.no_product)))
     return markup_btns
 
 
@@ -86,9 +86,9 @@ def gen_no_topping_button(order_number: int) -> InlineKeyboardMarkup:
     markup_btns = InlineKeyboardMarkup(row_width=1)
     for prod in Order.get_by_id(order_number).ordered_products:
         for top in prod.toppings:
-            markup_btns.add(InlineKeyboardButton(prod.product.product.name,
-                                                 callback_data=special_problem(order_number,
-                                                                               top.topping.id,
-                                                                               CancelReasons.no_topping)))
+            markup_btns.add(InlineKeyboardButton(top.topping.name,
+                                                 callback_data=special_problem.new(order_number,
+                                                                                   top.topping.id,
+                                                                                   CancelReasons.no_topping)))
 
     return markup_btns
