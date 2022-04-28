@@ -46,9 +46,8 @@ def gen_order_ready_button(order_number: int) -> InlineKeyboardMarkup:
 
 
 def gen_order_cancel_reasons_buttons(order_number: int) -> InlineKeyboardMarkup:
-    markup_btns = InlineKeyboardMarkup()
+    markup_btns = InlineKeyboardMarkup(row_width=1)
     markup_btns.add(
-        InlineKeyboardButton('Причины отмены:'),
         InlineKeyboardButton('Напиток и топинги не совместимы',
                              callback_data=order_cancel_reason.new(order_number, reason=CancelReasons.bad_mix)),
         InlineKeyboardButton('Нет напитка',
@@ -64,9 +63,7 @@ def gen_order_cancel_reasons_buttons(order_number: int) -> InlineKeyboardMarkup:
 
 
 def gen_bad_mix_button(order_number: int) -> InlineKeyboardMarkup:
-    markup_btns = InlineKeyboardMarkup()
-    markup_btns.add(InlineKeyboardButton('Выберите проблемный напиток:'))
-
+    markup_btns = InlineKeyboardMarkup(row_width=1)
     for prod in Order.get_by_id(order_number).ordered_products:
         markup_btns.add(InlineKeyboardButton(prod.product.product.name,
                                              callback_data=special_problem(order_number,
@@ -76,9 +73,7 @@ def gen_bad_mix_button(order_number: int) -> InlineKeyboardMarkup:
 
 
 def gen_no_product_button(order_number: int) -> InlineKeyboardMarkup:
-    markup_btns = InlineKeyboardMarkup()
-    markup_btns.add(InlineKeyboardButton('Выберите проблемный напиток:'))
-
+    markup_btns = InlineKeyboardMarkup(row_width=1)
     for prod in Order.get_by_id(order_number).ordered_products:
         markup_btns.add(InlineKeyboardButton(prod.product.product.name,
                                              callback_data=special_problem(order_number,
@@ -88,9 +83,7 @@ def gen_no_product_button(order_number: int) -> InlineKeyboardMarkup:
 
 
 def gen_no_topping_button(order_number: int) -> InlineKeyboardMarkup:
-    markup_btns = InlineKeyboardMarkup()
-    markup_btns.add(InlineKeyboardButton('Выберите проблемный топинг:'))
-
+    markup_btns = InlineKeyboardMarkup(row_width=1)
     for prod in Order.get_by_id(order_number).ordered_products:
         for top in prod.toppings:
             markup_btns.add(InlineKeyboardButton(prod.product.product.name,
