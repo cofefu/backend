@@ -288,13 +288,13 @@ def callback_order_bad_mix(call: types.CallbackQuery):
 
     text = f'Заказ отклонен'
     if reason == CancelReasons.bad_mix:
-        text = f'Заказ отклонен т.к. нельзя сочетать {Product.get_by_id(id_).name} с выбранными топингами'
+        text = f'Заказ отклонен т.к. нельзя сочетать "{Product.get_by_id(id_).name}" с выбранными топингами'
     elif reason == CancelReasons.no_product:
-        text = f'Заказ отклонен т.к. напиток {Product.get_by_id(id_).name} временно отсутствует'
+        text = f'Заказ отклонен т.к. напиток "{Product.get_by_id(id_).name}" временно отсутствует'
     elif reason == CancelReasons.no_topping:
-        text = f'Заказ отклонен т.к топинг {Topping.get_by_id(id_).name} временно отсутствует'
+        text = f'Заказ отклонен т.к топинг "{Topping.get_by_id(id_).name}" временно отсутствует'
 
-    OrderCancelReason.create(order=order, text=text)
+    OrderCancelReason.create(order=order, reason=text)
     bot.edit_message_text(chat_id=call.message.chat.id,
                           message_id=call.message.message_id,
                           text=gen_order_msg_text(order.id) + f'\n<b>{text}</b>',
