@@ -93,6 +93,8 @@ class Order(BaseModel):
         table_name = 'orders'
 
     def get_status_name(self):
+        if self.status == 2:
+            return 'Отклонен' if (reason := self.cancel_reason.get_or_none()) is None else reason.reason
         return dict(self.OrderStatus)[self.status]
 
     def save(self, *args, **kwargs):
@@ -148,6 +150,11 @@ class BlackList(BaseModel):
     forever = BooleanField(default=False)
 
 
+class OrderCancelReason(BaseModel):
+    order = ForeignKeyField(Order, unique=True, on_delete='CASCADE', backref='cancel_reason')
+    reason = CharField(max_length=150)
+
+
 # TODO вынести в db.migrate
 if __name__ == '__main__':
     import db
@@ -156,11 +163,11 @@ if __name__ == '__main__':
     db.db.create_tables(
         [Customer, Product, CoffeeHouse, Order, Worktime,
          ProductVarious, OrderedProduct, ToppingToProduct, Topping,
-         LoginCode, BlackList, ])
+         LoginCode, BlackList, OrderCancelReason])
     # field_db.field()
 
 __all__ = ['Customer', 'Product', 'CoffeeHouse', 'Order', 'Worktime', 'ProductVarious', 'OrderedProduct',
-           'ToppingToProduct', 'Topping', 'LoginCode', 'BlackList', 'ban_customer']
+           'ToppingToProduct', 'Topping', 'LoginCode', 'BlackList', 'ban_customer', 'OrderCancelReason']
 
 
 # todo перенести куда-нибудь эту функцию

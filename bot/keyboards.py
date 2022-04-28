@@ -1,46 +1,101 @@
 from telebot import types
+from telebot.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 
-from bot.filters import order_callback_confirmed, order_callback_done, order_callback_ready
+from app.models import Order
+from bot.filters import order_callback_confirmed, order_callback_done, order_callback_ready, order_cancel_reason, \
+    CancelReasons, special_problem
 
 
-def gen_send_contact_button() -> types.ReplyKeyboardMarkup:
-    btn = types.ReplyKeyboardMarkup(resize_keyboard=True)
+def gen_send_contact_button() -> ReplyKeyboardMarkup:
+    btn = ReplyKeyboardMarkup(resize_keyboard=True)
     btn.add(
-        types.KeyboardButton('Подтвердить номер телефона', request_contact=True)
+        KeyboardButton('Подтвердить номер телефона', request_contact=True)
     )
     return btn
 
 
-def gen_order_done_buttons(order_number: int) -> types.InlineKeyboardMarkup:
-    markup_btns = types.InlineKeyboardMarkup(row_width=2)
+def gen_order_done_buttons(order_number: int) -> InlineKeyboardMarkup:
+    markup_btns = InlineKeyboardMarkup(row_width=2)
     markup_btns.add(
-        types.InlineKeyboardButton('Выполнен',
-                                   callback_data=order_callback_done.new(status=int(True),
-                                                                         order_number=order_number)),
-        types.InlineKeyboardButton('Не выполнен',
-                                   callback_data=order_callback_done.new(status=int(False),
-                                                                         order_number=order_number))
+        InlineKeyboardButton('Выполнен',
+                             callback_data=order_callback_done.new(order_number, status=int(True))),
+        InlineKeyboardButton('Не выполнен',
+                             callback_data=order_callback_done.new(order_number, status=int(False)))
     )
     return markup_btns
 
 
-def gen_order_confirmed_buttons(order_number: int) -> types.InlineKeyboardMarkup:
-    markup_btns = types.InlineKeyboardMarkup(row_width=2)
+def gen_order_confirmed_buttons(order_number: int) -> InlineKeyboardMarkup:
+    markup_btns = InlineKeyboardMarkup(row_width=2)
     markup_btns.add(
-        types.InlineKeyboardButton('Принять',
-                                   callback_data=order_callback_confirmed.new(status=int(True),
-                                                                              order_number=order_number)),
-        types.InlineKeyboardButton('Отклонить',
-                                   callback_data=order_callback_confirmed.new(status=int(False),
-                                                                              order_number=order_number))
+        InlineKeyboardButton('Принять',
+                             callback_data=order_callback_confirmed.new(order_number, status=int(True))),
+        InlineKeyboardButton('Отклонить',
+                             callback_data=order_callback_confirmed.new(order_number, status=int(False)))
     )
     return markup_btns
 
 
-def gen_order_ready_button(order_number: int) -> types.InlineKeyboardMarkup:
-    markup_btn = types.InlineKeyboardMarkup()
+def gen_order_ready_button(order_number: int) -> InlineKeyboardMarkup:
+    markup_btn = InlineKeyboardMarkup()
     markup_btn.add(
-        types.InlineKeyboardButton('Готов',
-                                   callback_data=order_callback_ready.new(order_number=order_number)),
+        InlineKeyboardButton('Готов',
+                             callback_data=order_callback_ready.new(order_number)),
     )
     return markup_btn
+
+
+def gen_order_cancel_reasons_buttons(order_number: int) -> InlineKeyboardMarkup:
+    markup_btns = InlineKeyboardMarkup()
+    markup_btns.add(
+        InlineKeyboardButton('Причины отмены:'),
+        InlineKeyboardButton('Напиток и топинги не совместимы',
+                             callback_data=order_cancel_reason.new(order_number, reason=CancelReasons.bad_mix)),
+        InlineKeyboardButton('Нет напитка',
+                             callback_data=order_cancel_reason.new(order_number, reason=CancelReasons.no_product)),
+        InlineKeyboardButton('Нет топинга',
+                             callback_data=order_cancel_reason.new(order_number, reason=CancelReasons.no_topping)),
+        InlineKeyboardButton('Невозможно выполнить комментарий',
+                             callback_data=order_cancel_reason.new(order_number, reason=CancelReasons.bad_comment)),
+        InlineKeyboardButton('Не успеем приготовить',
+                             callback_data=order_cancel_reason.new(order_number, reason=CancelReasons.zapara))
+    )
+    return markup_btns
+
+
+def gen_bad_mix_button(order_number: int) -> InlineKeyboardMarkup:
+    markup_btns = InlineKeyboardMarkup()
+    markup_btns.add(InlineKeyboardButton('Выберите проблемный напиток:'))
+
+    for prod in Order.get_by_id(order_number).ordered_products:
+        markup_btns.add(InlineKeyboardButton(prod.product.product.name,
+                                             callback_data=special_problem(order_number,
+                                                                           prod.product.product.id,
+                                                                           CancelReasons.bad_mix)))
+    return markup_btns
+
+
+def gen_no_product_button(order_number: int) -> InlineKeyboardMarkup:
+    markup_btns = InlineKeyboardMarkup()
+    markup_btns.add(InlineKeyboardButton('Выберите проблемный напиток:'))
+
+    for prod in Order.get_by_id(order_number).ordered_products:
+        markup_btns.add(InlineKeyboardButton(prod.product.product.name,
+                                             callback_data=special_problem(order_number,
+                                                                           prod.product.product.id,
+                                                                           CancelReasons.no_product)))
+    return markup_btns
+
+
+def gen_no_topping_button(order_number: int) -> InlineKeyboardMarkup:
+    markup_btns = InlineKeyboardMarkup()
+    markup_btns.add(InlineKeyboardButton('Выберите проблемный топинг:'))
+
+    for prod in Order.get_by_id(order_number).ordered_products:
+        for top in prod.toppings:
+            markup_btns.add(InlineKeyboardButton(prod.product.product.name,
+                                                 callback_data=special_problem(order_number,
+                                                                               top.topping.id,
+                                                                               CancelReasons.no_topping)))
+
+    return markup_btns

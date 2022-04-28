@@ -4,14 +4,16 @@ from fastapi import APIRouter
 import telebot
 from starlette.background import BackgroundTask
 
-from app.models import Order, Customer, CoffeeHouse, ban_customer
+from app.models import Order, Customer, CoffeeHouse, ban_customer, Product, OrderCancelReason, Topping
 from backend.settings import DOMAIN, BOT_TOKEN, BOT_PORT, DEBUG, FEEDBACK_CHAT
 from bot import bot
 from telebot import types
 
 from bot.bot_funcs import gen_order_msg_text, send_feedback_to_telegram, send_bugreport_to_telegram
-from bot.filters import order_callback_confirmed, order_callback_done, order_callback_ready
-from bot.keyboards import gen_send_contact_button, gen_order_done_buttons, gen_order_ready_button
+from bot.filters import order_callback_confirmed, order_callback_done, order_callback_ready, order_cancel_reason, \
+    CancelReasons, special_problem
+from bot.keyboards import gen_send_contact_button, gen_order_done_buttons, gen_order_ready_button, \
+    gen_order_cancel_reasons_buttons, gen_bad_mix_button, gen_no_product_button, gen_no_topping_button
 
 router = APIRouter()
 
@@ -177,7 +179,7 @@ def callback_order_confirmed_handler(call: types.CallbackQuery):
     bot.answer_callback_query(call.id, ans)
     ans = f"\n<b>{ans}</b>"
 
-    markup = gen_order_ready_button(order.id) if is_confirmed else None
+    markup = gen_order_ready_button(order.id) if is_confirmed else gen_order_cancel_reasons_buttons(order.id)
     bot.edit_message_text(chat_id=call.message.chat.id,
                           message_id=call.message.message_id,
                           text=gen_order_msg_text(order.id) + ans,
@@ -227,5 +229,74 @@ def callback_order_confirmed_handler(call: types.CallbackQuery):
     bot.edit_message_text(chat_id=call.message.chat.id,
                           message_id=call.message.message_id,
                           text=gen_order_msg_text(order.id) + ans,
+                          parse_mode='HTML',
+                          reply_markup=None)
+
+
+@bot.callback_query_handler(func=None, order_cancel_config=order_cancel_reason.filter())
+def callback_order_cancel_reasons(call: types.CallbackQuery):
+    callback_data: dict = order_callback_done.parse(callback_data=call.data)
+    order_number, reason = int(callback_data['order_number']), int(callback_data['reason'])
+    order = Order.get_or_none(id=order_number)
+    if order is None:
+        bot.answer_callback_query(call.id, 'Заказ не найден')
+        return
+
+    if reason == CancelReasons.bad_mix:
+        bot.edit_message_reply_markup(chat_id=call.message.chat.id,
+                                      message_id=call.message.message_id,
+                                      reply_markup=gen_bad_mix_button(order_number))
+    elif reason == CancelReasons.no_product:
+        bot.edit_message_reply_markup(chat_id=call.message.chat.id,
+                                      message_id=call.message.message_id,
+                                      reply_markup=gen_no_product_button(order_number))
+    elif reason == CancelReasons.no_topping:
+        bot.edit_message_reply_markup(chat_id=call.message.chat.id,
+                                      message_id=call.message.message_id,
+                                      reply_markup=gen_no_topping_button(order_number))
+    elif reason == CancelReasons.bad_comment:
+        msg = gen_order_msg_text(order_number) + '\n<b>Заказ отклонен т.к. комментарий невыполним</b>'
+        bot.edit_message_text(chat_id=call.message.chat.id,
+                              message_id=call.message.message_id,
+                              text=msg,
+                              parse_mode='HTML',
+                              reply_markup=None)
+        # 'Заказ отменен т.к. невозможно выполнить пожелания покупателя'
+    elif reason == CancelReasons.zapara:
+        msg = gen_order_msg_text(order_number) + '\n<b>Заказ отклонен т.к мы не успеем приготовить его вовремя</b>'
+        bot.edit_message_text(chat_id=call.message.chat.id,
+                              message_id=call.message.message_id,
+                              text=msg,
+                              parse_mode='HTML',
+                              reply_markup=None)
+    else:
+        bot.edit_message_reply_markup(chat_id=call.message.chat.id,
+                                      message_id=call.message.message_id,
+                                      reply_markup=None)
+
+
+@bot.callback_query_handler(func=None, order_cancel_config=special_problem.filter())
+def callback_order_bad_mix(call: types.CallbackQuery):
+    cb_data: dict = order_callback_done.parse(callback_data=call.data)
+    id_ = int(cb_data['id'])
+    order_number = int(cb_data['order_number'])
+    reason = int(cb_data['reason'])
+    order = Order.get_or_none(id=order_number)
+    if order is None:
+        bot.answer_callback_query(call.id, 'Заказ не найден')
+        return
+
+    text = f'Заказ отклонен'
+    if reason == CancelReasons.bad_mix:
+        text = f'Заказ отклонен т.к. нельзя сочетать {Product.get_by_id(id_).name} с выбранными топингами'
+    elif reason == CancelReasons.no_product:
+        text = f'Заказ отклонен т.к. напиток {Product.get_by_id(id_).name} временно отсутствует'
+    elif reason == CancelReasons.no_topping:
+        text = f'Заказ отклонен т.к топинг {Topping.get_by_id(id_).name} временно отсутствует'
+
+    OrderCancelReason.create(order=order, text=text)
+    bot.edit_message_text(chat_id=call.message.chat.id,
+                          message_id=call.message.message_id,
+                          text=gen_order_msg_text(order.id) + f'\n<b>{text}</b>',
                           parse_mode='HTML',
                           reply_markup=None)
