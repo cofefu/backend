@@ -175,7 +175,7 @@ def callback_order_confirmed_handler(call: types.CallbackQuery):
     order.status = 1 if is_confirmed else 2
     order.save()
 
-    ans = 'Заказ принят' if is_confirmed else 'Заказ отклонен'
+    ans = 'Заказ принят' if is_confirmed else 'Выберете причины отмены заказа:'
     bot.answer_callback_query(call.id, ans)
     ans = f"\n<b>{ans}</b>"
 
@@ -235,7 +235,7 @@ def callback_order_confirmed_handler(call: types.CallbackQuery):
 
 @bot.callback_query_handler(func=None, order_cancel_config=order_cancel_reason.filter())
 def callback_order_cancel_reasons(call: types.CallbackQuery):
-    callback_data: dict = order_callback_done.parse(callback_data=call.data)
+    callback_data: dict = order_cancel_reason.parse(callback_data=call.data)
     order_number, reason = int(callback_data['order_number']), int(callback_data['reason'])
     order = Order.get_or_none(id=order_number)
     if order is None:
@@ -277,7 +277,7 @@ def callback_order_cancel_reasons(call: types.CallbackQuery):
 
 @bot.callback_query_handler(func=None, order_cancel_config=special_problem.filter())
 def callback_order_bad_mix(call: types.CallbackQuery):
-    cb_data: dict = order_callback_done.parse(callback_data=call.data)
+    cb_data: dict = special_problem.parse(callback_data=call.data)
     id_ = int(cb_data['id'])
     order_number = int(cb_data['order_number'])
     reason = int(cb_data['reason'])
