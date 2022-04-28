@@ -19,7 +19,7 @@ special_problem = CallbackData('order_number', 'id', 'reason', prefix='cancel_pr
 # reason_no_topping = CallbackData('order_number', 'topping_id', prefix='no_topping')
 
 
-class CancelReasons(Enum):
+class CancelReasons:
     bad_mix = 0
     no_product = 1
     no_topping = 2
