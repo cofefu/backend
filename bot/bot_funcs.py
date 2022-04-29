@@ -54,7 +54,7 @@ def send_bugreport_to_telegram(msg: str):
 
 
 def notify_order_change(order: Order):
-    text = f'Заказ №{order.id} <b>{order.get_status_name()}</b>\n'
+    text = f'Заказ №{order.id} <b>{order.get_status_name()}</b>.\n'
     text += f'Кофейня {order.coffee_house.name} в {order.coffee_house.placement}'
 
-    bot.send_message(chat_id=Order.customer.chat_id, text=text, parse_mode='HTML')
+    bot.send_message(chat_id=order.customer.chat_id, text=text, parse_mode='HTML')
