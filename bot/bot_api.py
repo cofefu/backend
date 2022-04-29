@@ -2,7 +2,6 @@ from datetime import datetime, timedelta
 
 from fastapi import APIRouter
 import telebot
-from starlette.background import BackgroundTask
 
 from app.models import Order, Customer, CoffeeHouse, ban_customer, Product, OrderCancelReason, Topping
 from backend.settings import DOMAIN, BOT_TOKEN, BOT_PORT, DEBUG, FEEDBACK_CHAT
@@ -180,7 +179,7 @@ def callback_order_confirmed_handler(call: types.CallbackQuery):
     ans = f"\n<b>{ans}</b>"
 
     if is_confirmed:
-        BackgroundTask(notify_order_change, order)
+        notify_order_change(order)
     markup = gen_order_ready_button(order.id) if is_confirmed else gen_order_cancel_reasons_buttons(order.id)
     bot.edit_message_text(chat_id=call.message.chat.id,
                           message_id=call.message.message_id,
@@ -205,7 +204,7 @@ def callback_order_ready_handler(call: types.CallbackQuery):
     bot.answer_callback_query(call.id, ans)
     ans = f"\n<b>{ans}</b>"
 
-    BackgroundTask(notify_order_change, order)
+    notify_order_change(order)
     bot.edit_message_text(chat_id=call.message.chat.id,
                           message_id=call.message.message_id,
                           text=gen_order_msg_text(order.id) + ans,
@@ -260,7 +259,7 @@ def callback_order_cancel_reasons(call: types.CallbackQuery):
     elif reason == CancelReasons.bad_comment:
         msg = gen_order_msg_text(order_number) + '\n<b>Заказ отклонен т.к. комментарий невыполним</b>'
         OrderCancelReason.create(order=order, reason=msg)
-        BackgroundTask(notify_order_change, order)
+        notify_order_change(order)
         bot.edit_message_text(chat_id=call.message.chat.id,
                               message_id=call.message.message_id,
                               text=msg,
@@ -270,7 +269,7 @@ def callback_order_cancel_reasons(call: types.CallbackQuery):
     elif reason == CancelReasons.zapara:
         msg = gen_order_msg_text(order_number) + '\n<b>Заказ отклонен т.к мы не успеем приготовить его вовремя</b>'
         OrderCancelReason.create(order=order, reason=msg)
-        BackgroundTask(notify_order_change, order)
+        notify_order_change(order)
         bot.edit_message_text(chat_id=call.message.chat.id,
                               message_id=call.message.message_id,
                               text=msg,
@@ -302,7 +301,7 @@ def callback_order_bad_mix(call: types.CallbackQuery):
         text = f'Заказ отклонен т.к топинг "{Topping.get_by_id(id_).name}" временно отсутствует'
 
     OrderCancelReason.create(order=order, reason=text)
-    BackgroundTask(notify_order_change, order)
+    notify_order_change(order)
     bot.edit_message_text(chat_id=call.message.chat.id,
                           message_id=call.message.message_id,
                           text=gen_order_msg_text(order.id) + f'\n<b>{text}</b>',
