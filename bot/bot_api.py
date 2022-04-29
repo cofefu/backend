@@ -269,7 +269,7 @@ def callback_order_cancel_reasons(call: types.CallbackQuery):
         # 'Заказ отменен т.к. невозможно выполнить пожелания покупателя'
     elif reason == CancelReasons.zapara:
         ans = 'Заказ отклонен т.к мы не успеем приготовить его вовремя'
-        msg = gen_order_msg_text(order_number) + f'\n<b>ans</b>'
+        msg = gen_order_msg_text(order_number) + f'\n<b>{ans}</b>'
         OrderCancelReason.create(order=order, reason=ans)
         notify_order_change(order)
         bot.edit_message_text(chat_id=call.message.chat.id,
