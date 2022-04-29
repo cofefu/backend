@@ -257,8 +257,9 @@ def callback_order_cancel_reasons(call: types.CallbackQuery):
                                       message_id=call.message.message_id,
                                       reply_markup=gen_no_topping_button(order_number))
     elif reason == CancelReasons.bad_comment:
-        msg = gen_order_msg_text(order_number) + '\n<b>Заказ отклонен т.к. комментарий невыполним</b>'
-        OrderCancelReason.create(order=order, reason=msg)
+        ans = 'Заказ отклонен т.к. комментарий невыполним'
+        msg = gen_order_msg_text(order_number) + f'\n<b>{ans}</b>'
+        OrderCancelReason.create(order=order, reason=ans)
         notify_order_change(order)
         bot.edit_message_text(chat_id=call.message.chat.id,
                               message_id=call.message.message_id,
@@ -267,8 +268,9 @@ def callback_order_cancel_reasons(call: types.CallbackQuery):
                               reply_markup=None)
         # 'Заказ отменен т.к. невозможно выполнить пожелания покупателя'
     elif reason == CancelReasons.zapara:
-        msg = gen_order_msg_text(order_number) + '\n<b>Заказ отклонен т.к мы не успеем приготовить его вовремя</b>'
-        OrderCancelReason.create(order=order, reason=msg)
+        ans = 'Заказ отклонен т.к мы не успеем приготовить его вовремя'
+        msg = gen_order_msg_text(order_number) + f'\n<b>ans</b>'
+        OrderCancelReason.create(order=order, reason=ans)
         notify_order_change(order)
         bot.edit_message_text(chat_id=call.message.chat.id,
                               message_id=call.message.message_id,
