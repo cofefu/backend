@@ -51,3 +51,10 @@ def send_feedback_to_telegram(msg: str):
 def send_bugreport_to_telegram(msg: str):
     msg = '<b>BUG REPORT</b>\n' + msg
     bot.send_message(chat_id=FEEDBACK_CHAT, text=msg, parse_mode='HTML')
+
+
+def notify_order_change(order: Order):
+    text = f'Заказ №{order.id} <b>{order.get_status_name()}</b>\n'
+    text += f'Кофейня {order.coffee_house.name} в {order.coffee_house.placement}'
+
+    bot.send_message(chat_id=Order.customer.chat_id, text=text, parse_mode='HTML')
