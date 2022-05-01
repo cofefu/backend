@@ -21,7 +21,7 @@ def get_order_status(message):
             bot.send_message(chat_id=message.chat.id, text=f'Заказ с номером {message.text} не найден')
 
 
-@bot.message_handler(commands=['open_cafe', 'close_cafe'])
+@bot.message_handler(commands=['open_cafe', 'close_cafe'], chat_types=['group'])
 def open_or_close_cafe(message):
     house: CoffeeHouse = CoffeeHouse.get_or_none(CoffeeHouse.chat_id == message.chat.id)
     if house is None:
