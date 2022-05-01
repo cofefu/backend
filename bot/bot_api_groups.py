@@ -21,6 +21,21 @@ def get_order_status(message):
             bot.send_message(chat_id=message.chat.id, text=f'Заказ с номером {message.text} не найден')
 
 
+@bot.message_handler(commands=['open_cafe', 'close_cafe'])
+def open_or_close_cafe(message):
+    house: CoffeeHouse = CoffeeHouse.get_or_none(CoffeeHouse.chat_id == message.chat.id)
+    if house is None:
+        bot.send_message(chat_id=message.chat.id, text='Кофейня не найдена.')
+        return
+
+    command = message.text.split()[0]
+    house.is_open = (command == '/open_cafe')
+    house.save()
+
+    status = 'Открыта' if house.is_open else 'Закрыта'
+    bot.send_message(chat_id=message.chat.id, text=f'Кофейня {house.name} в {house.placement}\n{status}')
+
+
 @bot.message_handler(commands=['ban'], chat_types=['group'])
 def ban_request(message):
     if not CoffeeHouse.get_or_none(CoffeeHouse.chat_id == message.chat.id):
