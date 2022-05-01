@@ -11,7 +11,7 @@ from app.models import Order, Customer, CoffeeHouse, ban_customer, Product, Orde
 from datetime import datetime, timedelta
 
 
-@bot.message_handler(commands=['status'], chat_types=['group'])
+@bot.message_handler(commands=['status'], chat_types=['group', 'supergroup'])
 def get_order_status(message):
     if CoffeeHouse.get_or_none(CoffeeHouse.chat_id == message.chat.id):
         order = Order.get_or_none(Order.id == message.text.split()[1])
@@ -21,7 +21,7 @@ def get_order_status(message):
             bot.send_message(chat_id=message.chat.id, text=f'Заказ с номером {message.text} не найден')
 
 
-@bot.message_handler(commands=['open_cafe', 'close_cafe'], chat_types=['group'])
+@bot.message_handler(commands=['open_cafe', 'close_cafe'], chat_types=['group', 'supergroup'])
 def open_or_close_cafe(message):
     house: CoffeeHouse = CoffeeHouse.get_or_none(CoffeeHouse.chat_id == message.chat.id)
     if house is None:
@@ -36,7 +36,7 @@ def open_or_close_cafe(message):
     bot.send_message(chat_id=message.chat.id, text=f'Кофейня {house.name} в {house.placement}\n{status}')
 
 
-@bot.message_handler(commands=['ban'], chat_types=['group'])
+@bot.message_handler(commands=['ban'], chat_types=['group', 'supergroup'])
 def ban_request(message):
     if not CoffeeHouse.get_or_none(CoffeeHouse.chat_id == message.chat.id):
         return
@@ -53,7 +53,7 @@ def ban_request(message):
                           f'забанен до {ban.expire.strftime("%d/%m/%Y, %H:%M")}')
 
 
-@bot.message_handler(commands=['unban'], chat_types=['group'])
+@bot.message_handler(commands=['unban'], chat_types=['group', 'supergroup'])
 def unban_request(message):
     if not CoffeeHouse.get_or_none(CoffeeHouse.chat_id == message.chat.id):
         return
