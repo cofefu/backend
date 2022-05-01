@@ -83,6 +83,7 @@ class OrderIn(BaseModel):
     def time_validator(cls, order_time: datetime, values: dict):
         if 'coffee_house' not in values:
             return order_time
+        house = CoffeeHouse.get_or_none(id=values['coffee_house'])
 
         order_time = timezone('Asia/Vladivostok').localize(order_time)
         now = datetime.now(tz=timezone('Asia/Vladivostok'))
@@ -94,9 +95,9 @@ class OrderIn(BaseModel):
 
         weekday = datetime.now(tz=timezone('Asia/Vladivostok')).weekday()
         worktime = Worktime.get_or_none(
-            (Worktime.coffee_house == values['coffee_house']) &
+            (Worktime.coffee_house == house) &
             (Worktime.day_of_week == weekday))
-        if worktime is None:
+        if worktime is None or (not house.is_open):
             raise HTTPException(status_code=400, detail="Кофейня закрыта")
 
         open_time = datetime.strptime(worktime.open_time, '%H:%M:%S').time()

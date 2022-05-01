@@ -54,10 +54,10 @@ async def get_coffeehouses():
         worktime = Worktime.get_or_none(
             (Worktime.coffee_house == house) &
             (Worktime.day_of_week == weekday))
-        if worktime is not None:
-            house_data.update(worktime.data(hide=['id', 'day_of_week', 'coffee_house']))
-        else:
+        if worktime is None or (not house.is_open):
             house_data.update({'open_time': None, 'close_time': None})
+        else:
+            house_data.update(worktime.data(hide=['id', 'day_of_week', 'coffee_house']))
         response.append(house_data)
     return response
 
