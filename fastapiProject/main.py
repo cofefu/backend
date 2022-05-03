@@ -33,7 +33,7 @@ app.add_middleware(
 )
 
 for app_ in APPS:
-    a = importlib.import_module('%s.urls' % app_)
+    a = importlib.import_module(f'{app_}.urls')
     router = getattr(a, 'router')
     if router is None:
         raise ImportError(f'The {app_} application does not contain "router"')
