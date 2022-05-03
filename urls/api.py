@@ -159,7 +159,7 @@ async def create_login_code(customer_data: schemas.Customer, background_tasks: B
         raise HTTPException(status_code=400,
                             detail='Пользователя с таким номером телефона не существует.')
     if not customer.confirmed:
-        raise HTTPException(status_code=401, detail='Пользователь не подтвердил номер телефона.')
+        raise HTTPException(status_code=401, detail='Номер телефона не подтвержден.')
 
     code = random.randint(100000, 999999)
     while LoginCode.get_or_none(code=code):
