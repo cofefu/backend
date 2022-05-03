@@ -78,7 +78,7 @@ def send_bug_report(message):
         send_bugreport_to_telegram(message.text[12:])
 
 
-@router.on_startup()
+@router.on_event('startup')
 async def on_startup():
     set_webhook()
     bind_bot_filters()
