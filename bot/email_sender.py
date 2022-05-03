@@ -2,7 +2,7 @@ import smtplib
 from email.utils import formataddr
 from email.message import EmailMessage
 
-# from backend.settings import EMAIL_USER_LOGIN, EMAIL_USER_PASSWORD, EMAIL_SERVER
+# from fastapiProject.settings import EMAIL_USER_LOGIN, EMAIL_USER_PASSWORD, EMAIL_SERVER
 
 EMAIL_USER_LOGIN = ''
 EMAIL_USER_PASSWORD = ''

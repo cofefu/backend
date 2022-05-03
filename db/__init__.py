@@ -3,7 +3,7 @@ import os
 
 from peewee import Model, SqliteDatabase
 
-from backend.settings import BASE_DIR, DATABASE
+from fastapiProject.settings import BASE_DIR, DATABASE
 
 # TODO creation of various databases
 

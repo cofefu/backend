@@ -4,7 +4,7 @@ from fastapi import APIRouter
 import telebot
 
 from app.models import Order, ban_customer
-from backend.settings import DOMAIN, BOT_TOKEN, BOT_PORT, DEBUG
+from fastapiProject.settings import DOMAIN, BOT_TOKEN, BOT_PORT, DEBUG
 
 from bot.bot_funcs import send_feedback_to_telegram, send_bugreport_to_telegram
 from bot.keyboards import gen_send_contact_button
