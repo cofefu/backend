@@ -212,7 +212,7 @@ async def get_my_order_history(customer: Customer = Depends(get_current_active_u
             description='Возвращает информацию о текущем пользователе',
             response_model=schemas.Customer)
 async def get_me(customer: Customer = Depends(get_current_user)):
-    return {"name": customer.name, "phone_number": customer.phone_number}
+    return customer.data()
 
 
 @router.get('/last_order',
@@ -246,4 +246,4 @@ async def change_customer_name(new_name: constr(strip_whitespace=True) = Body(..
         raise HTTPException(status_code=422, detail='Длина имени не может превышать 20 символов')
     customer.name = new_name
     customer.save()
-    return {"name": customer.name, "phone_number": customer.phone_number}
+    return customer.data()
