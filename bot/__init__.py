@@ -1,7 +1,7 @@
 import logging
 import telebot
 
-from backend.settings import BOT_TOKEN
+from fastapiProject.settings import BOT_TOKEN
 
 logger = telebot.logger
 telebot.logger.setLevel(logging.INFO)

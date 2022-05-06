@@ -1,12 +1,9 @@
+import importlib
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from bot import bot_api
-from bot.bot_api import set_webhook
-from bot.filters import bind_bot_filters
-from urls import api
-
-from backend.settings import API_PREFIX
+from fastapiProject.settings import API_PREFIX, APPS
 
 tags_metadata = [
     {
@@ -24,8 +21,7 @@ app = FastAPI(
     docs_url='/api/docs',
     redoc_url='/api/redoc',
     openapi_prefix=API_PREFIX,
-    openapi_url='/api/openapi.json'
-
+    openapi_url='/api/openapi.json',
 )
 
 app.add_middleware(
@@ -36,11 +32,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(api.router, prefix='/api')
-app.include_router(bot_api.router, prefix='/bot')
-
-
-@app.on_event("startup")
-async def on_startup():
-    set_webhook()
-    bind_bot_filters()
+for app_ in APPS:
+    a = importlib.import_module(f'{app_}.urls')
+    router = getattr(a, 'router')
+    if router is None:
+        raise ImportError(f'The {app_} application does not contain "router"')
+    app.include_router(router)

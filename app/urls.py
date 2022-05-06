@@ -10,12 +10,12 @@ from pytz import timezone
 
 from app.models import ProductVarious, Product, Topping, CoffeeHouse, Customer, Order, OrderedProduct, \
     ToppingToProduct, LoginCode, Worktime
-from backend import schemas
-from backend.settings import JWT_SECRET_KEY, JWT_ALGORITHM
+from fastapiProject import schemas
+from fastapiProject.settings import JWT_SECRET_KEY, JWT_ALGORITHM
 from bot.bot_funcs import send_order, send_login_code, send_feedback_to_telegram, send_bugreport_to_telegram
-from urls.dependencies import get_current_active_user, get_current_user, get_not_baned_user, timeout_is_over
+from app.dependencies import get_current_active_user, get_current_user, get_not_baned_user, timeout_is_over
 
-router = APIRouter()
+router = APIRouter(prefix='/api')
 
 
 def create_token(customer: Customer) -> str:
@@ -159,7 +159,7 @@ async def create_login_code(customer_data: schemas.Customer, background_tasks: B
         raise HTTPException(status_code=400,
                             detail='Пользователя с таким номером телефона не существует.')
     if not customer.confirmed:
-        raise HTTPException(status_code=401, detail='Пользователь не подтвердил номер телефона.')
+        raise HTTPException(status_code=401, detail='Номер телефона не подтвержден.')
 
     code = random.randint(100000, 999999)
     while LoginCode.get_or_none(code=code):
@@ -212,7 +212,7 @@ async def get_my_order_history(customer: Customer = Depends(get_current_active_u
             description='Возвращает информацию о текущем пользователе',
             response_model=schemas.Customer)
 async def get_me(customer: Customer = Depends(get_current_user)):
-    return {"name": customer.name, "phone_number": customer.phone_number}
+    return customer.data()
 
 
 @router.get('/last_order',
@@ -246,4 +246,4 @@ async def change_customer_name(new_name: constr(strip_whitespace=True) = Body(..
         raise HTTPException(status_code=422, detail='Длина имени не может превышать 20 символов')
     customer.name = new_name
     customer.save()
-    return {"name": customer.name, "phone_number": customer.phone_number}
+    return customer.data()

@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from backend.settings import FEEDBACK_CHAT
+from fastapiProject.settings import FEEDBACK_CHAT
 from bot import bot
 from app.models import *
 from bot.keyboards import gen_order_confirmed_buttons

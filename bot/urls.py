@@ -4,17 +4,18 @@ from fastapi import APIRouter
 import telebot
 
 from app.models import Order, ban_customer
-from backend.settings import DOMAIN, BOT_TOKEN, BOT_PORT, DEBUG
+from bot.filters import bind_bot_filters
+from fastapiProject.settings import DOMAIN, BOT_TOKEN, BOT_PORT, DEBUG
 
 from bot.bot_funcs import send_feedback_to_telegram, send_bugreport_to_telegram
 from bot.keyboards import gen_send_contact_button
 
-import bot.bot_api_private
-import bot.bot_api_groups
+import bot.urls_private
+import bot.urls_groups
 
 from bot import bot
 
-router = APIRouter()
+router = APIRouter(prefix='/bot')
 
 
 def set_webhook():
@@ -75,3 +76,9 @@ def send_bug_report(message):
         send_feedback_to_telegram(message.text[11:])
     else:
         send_bugreport_to_telegram(message.text[12:])
+
+
+@router.on_event('startup')
+async def on_startup():
+    set_webhook()
+    bind_bot_filters()

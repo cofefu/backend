@@ -4,7 +4,7 @@ from fastapi import Depends, Header, HTTPException, status
 from jose import jwt, JWTError, ExpiredSignatureError
 
 from app.models import Customer, Order
-from backend.settings import JWT_SECRET_KEY, JWT_ALGORITHM, ORDER_TIMEOUT
+from fastapiProject.settings import JWT_SECRET_KEY, JWT_ALGORITHM, ORDER_TIMEOUT
 
 
 def decode_jwt_token(jwt_token: str = Header(...)) -> dict:
@@ -31,7 +31,7 @@ def get_current_user(data: dict = Depends(decode_jwt_token)) -> Customer:
 def get_current_active_user(customer: Customer = Depends(get_current_user)) -> Customer:
     if not customer.confirmed:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                            detail='Пользователь не подтвердил номер телефона.')
+                            detail='Номер телефона не подтвержден.')
     return customer
 
 
@@ -41,7 +41,7 @@ def get_not_baned_user(customer: Customer = Depends(get_current_active_user)) ->
         return customer
     if ban.forever or datetime.utcnow() <= ban.expire:
         raise HTTPException(status_code=status.HTTP_412_PRECONDITION_FAILED,
-                            detail='Пользователь находится в черном списке')
+                            detail='Данный пользователь находится в черном списке')
     return customer
 
 

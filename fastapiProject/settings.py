@@ -8,6 +8,11 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+APPS = (
+    'app',
+    'bot',
+)
+
 DEBUG = bool(os.getenv("DEBUG", False))
 DEV = bool(os.getenv("DEV", False))
 
