@@ -247,3 +247,10 @@ async def change_customer_name(new_name: constr(strip_whitespace=True) = Body(..
     customer.name = new_name
     customer.save()
     return customer.data()
+
+
+@router.get('/is_confirmed',
+            tags=['jwt require'],
+            description='Узнать подтвержден ли номер телефона')
+async def get_user_is_confirmed(customer: Customer = Depends(get_current_user)):
+    return bool(customer.confirmed)
