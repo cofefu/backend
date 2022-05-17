@@ -11,12 +11,6 @@ from app.models import Order, Customer, CoffeeHouse, ban_customer, Product, Orde
 from datetime import datetime, timedelta
 
 
-@bot.message_handler(commands=['bug_report'], chat_types=['group', 'supergroup'])
-def handler_bug_report_back(message):
-    if coffee_house := CoffeeHouse.get_or_none(CoffeeHouse.chat_id == message.chat.id):
-        send_bugreport_to_telegram(message.text[12:], coffee_house=coffee_house)
-
-
 @bot.message_handler(commands=['status'], chat_types=['group', 'supergroup'])
 def get_order_status(message):
     if CoffeeHouse.get_or_none(CoffeeHouse.chat_id == message.chat.id):

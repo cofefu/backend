@@ -70,11 +70,6 @@ def send_chat_id(message):
     bot.reply_to(message, message.chat.id)
 
 
-@bot.message_handler(commands=['bug_report', 'feed_back'])
-def handler_feed_back(message):
-    send_feedback_to_telegram(message.text[11:])
-
-
 @router.on_event('startup')
 async def on_startup():
     set_webhook()

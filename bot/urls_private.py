@@ -50,3 +50,11 @@ def contact_handler(message):
 def handler_bug_report_back(message):
     customer: Customer = Customer.get_or_none(Customer.telegram_id == message.from_user.id)
     send_bugreport_to_telegram(message.text[12:], customer=customer)
+
+
+@bot.message_handler(commands=['feed_back'], chat_types=['private'])
+def handler_feed_back(message):
+    send_feedback_to_telegram(message.text[11:])
+
+    bot.clear_step_handler()
+    bot.register_next_step_handler_by_chat_id()

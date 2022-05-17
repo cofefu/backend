@@ -48,12 +48,12 @@ def send_feedback_to_telegram(msg: str):
     bot.send_message(chat_id=FEEDBACK_CHAT, text=msg, parse_mode='HTML')
 
 
-def send_bugreport_to_telegram(msg: str, customer: Customer = None, coffee_house: CoffeeHouse = None):
+def send_bugreport_to_telegram(msg: str, customer: Customer = None):
     msg_text = '<b>BUG REPORT</b>\n' + msg
     if customer:
         msg_text += f'\n<b>Номер телефона:</b> {customer.phone_number}'
-    if coffee_house:
-        msg_text += f'\n<b>Сообщение из кофейни {coffee_house.name} в {coffee_house.placement}</b>'
+    else:
+        msg_text += f'\n<b>Пользователь не зарегистрирован</b>'
     bot.send_message(chat_id=FEEDBACK_CHAT, text=msg_text, parse_mode='HTML')
 
 
