@@ -5,7 +5,7 @@ from app.models import Customer
 from bot.bot_funcs import send_bugreport_to_telegram, send_feedback_to_telegram
 
 
-def change_user_name_state(message: types.Message, customer: Customer):
+def change_user_name_state(message: types.Message, customer: Customer = None):
     new_name = message.text.strip()
     if not new_name:
         bot.send_message(chat_id=message.chat.id, text='Имя не может быть пустым.')
@@ -22,13 +22,21 @@ def change_user_name_state(message: types.Message, customer: Customer):
                      text=f'Имя пользователя обновлено.\nНовое имя пользователя: {customer.name}')
 
 
-def bug_report_state(message):
-    customer: Customer = Customer.get_or_none(Customer.telegram_id == message.from_user.id)
+def bug_report_state(message: types.Message, customer: Customer):
     send_bugreport_to_telegram(message.text.strip(), customer=customer)
 
 
 def feed_back_state(message: types.Message):
     send_feedback_to_telegram(message.text.strip())
+
+
+def send_contact_state(message: types.Message):
+    if message.text.lower() == 'да':
+        customer: Customer = Customer.get_or_none(Customer.telegram_id == message.from_user.id)
+        bot.register_next_step_handler_by_chat_id(message.chat.id, bug_report_state, customer)
+    else:
+        bot.register_next_step_handler_by_chat_id(message.chat.id, bug_report_state)
+    bot.send_message(message.chat.id, text='Введите ваше сообщение:', reply_markup=types.ReplyKeyboardRemove())
 
 
 @bot.message_handler(commands=['change_name'], chat_types=['private'])
@@ -65,9 +73,18 @@ def contact_handler(message):
 
 
 @bot.message_handler(commands=['bug_report'], chat_types=['private'])
-def handler_bug_report_command(message):
-    bot.send_message(chat_id=message.chat.id, text='Введите ваше сообщение:')
-    bot.register_next_step_handler_by_chat_id(message.chat.id, bug_report_state)
+def handler_bug_report_command(message: types.Message):
+    if Customer.get_or_none(Customer.telegram_id == message.from_user.id):
+        markup = types.ReplyKeyboardMarkup(row_width=2)
+        markup.add(types.KeyboardButton('Да'))
+        markup.add(types.KeyboardButton('Нет'))
+        bot.send_message(chat_id=message.chat.id,
+                         reply_markup=markup,
+                         text='Отправить контактные данные для обратной связи?')
+        bot.register_next_step_handler_by_chat_id(message.chat.id, bug_report_state)
+    else:
+        bot.send_message(chat_id=message.chat.id, text='Введите ваше сообщение:')
+        bot.register_next_step_handler_by_chat_id(message.chat.id, send_contact_state)
 
 
 @bot.message_handler(commands=['feed_back'], chat_types=['private'])
