@@ -1,5 +1,5 @@
 from bot import bot
-from bot.bot_funcs import gen_order_msg_text, notify_order_change
+from bot.bot_funcs import gen_order_msg_text, notify_order_change, send_bugreport_to_telegram
 from bot.filters import order_callback_confirmed, order_callback_done, order_callback_ready, order_cancel_reason, \
     CancelReasons, special_problem
 from bot.keyboards import gen_order_done_buttons, gen_order_ready_button, \
@@ -9,6 +9,12 @@ from telebot import types
 from app.models import Order, Customer, CoffeeHouse, ban_customer, Product, OrderCancelReason, Topping
 
 from datetime import datetime, timedelta
+
+
+@bot.message_handler(commands=['bug_report'], chat_types=['group', 'supergroup'])
+def handler_bug_report_back(message):
+    if coffee_house := CoffeeHouse.get_or_none(CoffeeHouse.chat_id == message.chat.id):
+        send_bugreport_to_telegram(message.text[12:], coffee_house=coffee_house)
 
 
 @bot.message_handler(commands=['status'], chat_types=['group', 'supergroup'])

@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from fastapi import APIRouter
 import telebot
 
-from app.models import Order, ban_customer
+from app.models import Order, ban_customer, Customer
 from bot.filters import bind_bot_filters
 from fastapiProject.settings import DOMAIN, BOT_TOKEN, BOT_PORT, DEBUG
 
@@ -71,11 +71,8 @@ def send_chat_id(message):
 
 
 @bot.message_handler(commands=['bug_report', 'feed_back'])
-def send_bug_report(message):
-    if message.text.split()[0] == '/feed_back':
-        send_feedback_to_telegram(message.text[11:])
-    else:
-        send_bugreport_to_telegram(message.text[12:])
+def handler_feed_back(message):
+    send_feedback_to_telegram(message.text[11:])
 
 
 @router.on_event('startup')
