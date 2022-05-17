@@ -46,9 +46,7 @@ def send_welcome(message):
     markup = gen_send_contact_button()
     if message.chat.type == 'group':
         markup = None
-    bot.send_message(message.chat.id,
-                     f"Hello, i'm cofefu webhook bot.",
-                     reply_markup=markup)
+    bot.send_message(message.chat.id, f"Привет! Я бот cofefu.", reply_markup=markup)
 
 
 @bot.message_handler(commands=['help'])
