@@ -2,22 +2,31 @@ from bot import bot
 from telebot import types
 
 from app.models import Customer
-from bot.bot_funcs import send_bugreport_to_telegram
+from bot.bot_funcs import send_bugreport_to_telegram, send_feedback_to_telegram
+
+
+def change_user_name(message, customer: Customer):
+    new_name = message.text.strip()
+    if not new_name:
+        bot.send_message(chat_id=message.chat.id, text='Имя не может быть пустым.')
+        bot.register_next_step_handler_by_chat_id(message.chat.id, change_user_name, customer)
+        return
+    if len(new_name) > 20:
+        bot.send_message(chat_id=message.chat.id, text='Длина имени не должна превышать 20 символов.')
+        bot.register_next_step_handler_by_chat_id(message.chat.id, change_user_name, customer)
+        return
+
+    customer.name = new_name
+    customer.save()
+    bot.send_message(chat_id=message.chat.id,
+                     text=f'Имя пользователя обновлено.\nНовое имя пользователя: {customer.name}')
 
 
 @bot.message_handler(commands=['change_name'], chat_types=['private'])
-def change_user_name(message):
+def handle_change_name_command(message):
     if customer := Customer.get_or_none(Customer.telegram_id == message.from_user.id):
-        new_name = message.text[13:].strip()
-        if not new_name:
-            bot.send_message(chat_id=message.chat.id,
-                             text='Имя не может быть пустым.\nПример команды: /change_name Иван')
-            return
-        customer.name = new_name
-        customer.save()
-
-        bot.send_message(chat_id=message.chat.id,
-                         text=f'Имя пользователя обновлено.\nНовое имя пользователя: {customer.name}')
+        bot.send_message(message.chat.id, text='Введите новое имя (не более 20 символов):')
+        bot.register_next_step_handler_by_chat_id(message.chat.id, change_user_name, customer)
     else:
         bot.send_message(chat_id=message.chat.id,
                          text='Пользователь не найден. Пожалуйста, еще раз подтвердите номер телефона (команда /start)')
