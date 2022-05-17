@@ -81,10 +81,10 @@ def handler_bug_report_command(message: types.Message):
         bot.send_message(chat_id=message.chat.id,
                          reply_markup=markup,
                          text='Отправить контактные данные для обратной связи?')
-        bot.register_next_step_handler_by_chat_id(message.chat.id, bug_report_state)
+        bot.register_next_step_handler_by_chat_id(message.chat.id, send_contact_state)
     else:
         bot.send_message(chat_id=message.chat.id, text='Введите ваше сообщение:')
-        bot.register_next_step_handler_by_chat_id(message.chat.id, send_contact_state)
+        bot.register_next_step_handler_by_chat_id(message.chat.id, bug_report_state)
 
 
 @bot.message_handler(commands=['feed_back'], chat_types=['private'])
