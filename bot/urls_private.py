@@ -5,7 +5,7 @@ from app.models import Customer
 from bot.bot_funcs import send_bugreport_to_telegram, send_feedback_to_telegram
 
 
-def change_user_name_state(message: types.Message, customer: Customer = None):
+def change_user_name_state(message: types.Message, customer: Customer):
     new_name = message.text.strip()
     if not new_name:
         bot.send_message(chat_id=message.chat.id, text='Имя не может быть пустым.')
@@ -22,7 +22,7 @@ def change_user_name_state(message: types.Message, customer: Customer = None):
                      text=f'Имя пользователя обновлено.\nНовое имя пользователя: {customer.name}')
 
 
-def bug_report_state(message: types.Message, customer: Customer):
+def bug_report_state(message: types.Message, customer: Customer = None):
     send_bugreport_to_telegram(message.text.strip(), customer=customer)
 
 
