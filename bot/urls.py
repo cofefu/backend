@@ -49,20 +49,6 @@ def send_welcome(message):
     bot.send_message(message.chat.id, f"Привет! Я бот cofefu.", reply_markup=markup)
 
 
-@bot.message_handler(commands=['help'])
-def send_help_info(message):
-    msg = 'Команды:\n'
-    if message.chat.type == 'group':
-        msg += '<b>/status</b> НОМЕР_ЗАКАЗА - <i>чтобы узнать статус указанного заказа</i>\n'
-    else:
-        msg += '<b>/start</b> - <i>для подтверждения номера телефона</i>\n'
-        msg += '<b>/change_name</b> ТЕКСТ - <i>для изменения имени пользователя</i>\n'
-    msg += '<b>/bug_report</b> ТЕКСТ - <i>для информации о различных ошибках</i>\n'
-    msg += '<b>/feed_back</b> ТЕКСТ - <i>для советов, пожеланий</i>'
-
-    bot.send_message(chat_id=message.chat.id, text=msg, parse_mode='HTML')
-
-
 @bot.message_handler(commands=['chat_id'])
 def send_chat_id(message):
     bot.reply_to(message, message.chat.id)

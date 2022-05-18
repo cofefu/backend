@@ -39,6 +39,17 @@ def send_contact_state(message: types.Message):
     bot.send_message(message.chat.id, text='Введите ваше сообщение:', reply_markup=types.ReplyKeyboardRemove())
 
 
+@bot.message_handler(commands=['help'], chat_types=['private'])
+def send_help_info(message):
+    msg = 'Команды:\n'
+    msg += '<b>/start</b> - <i>для подтверждения номера телефона</i>\n'
+    msg += '<b>/change_name</b> - <i>для изменения имени пользователя</i>\n'
+    msg += '<b>/bug_report</b> - <i>для информации о различных ошибках</i>\n'
+    msg += '<b>/feed_back</b> - <i>для советов, пожеланий ;)</i>'
+
+    bot.send_message(chat_id=message.chat.id, text=msg, parse_mode='HTML')
+
+
 @bot.message_handler(commands=['change_name'], chat_types=['private'])
 def handle_change_name_command(message):
     if customer := Customer.get_or_none(Customer.telegram_id == message.from_user.id):

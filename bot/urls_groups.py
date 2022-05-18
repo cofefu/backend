@@ -11,6 +11,17 @@ from app.models import Order, Customer, CoffeeHouse, ban_customer, Product, Orde
 from datetime import datetime, timedelta
 
 
+@bot.message_handler(commands=['help'], chat_types=['group', 'supergroup'])
+def send_help_info(message):
+    msg = 'Команды:\n'
+    msg += '<b>/open_cafe</b> - <i>чтобы открыть кафе в особых случаях</i>\n'
+    msg += '<b>/close_cafe</b> - <i>чтобы закрыть кафе в особых случаях</i>\n'
+    msg += '<b>/ban</b> НОМЕР_ТЕЛЕФОНА - <i>чтобы забанить пользователя на 2 дня</i>\n'
+    msg += '<b>/unban</b> НОМЕР_ТЕЛЕФОНА - <i>чтобы разбанить пользователя</i>\n'
+
+    bot.send_message(chat_id=message.chat.id, text=msg, parse_mode='HTML')
+
+
 @bot.message_handler(commands=['status'], chat_types=['group', 'supergroup'])
 def get_order_status(message):
     if CoffeeHouse.get_or_none(CoffeeHouse.chat_id == message.chat.id):
