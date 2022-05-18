@@ -3,7 +3,7 @@ import importlib
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from fastapiProject.settings import API_PREFIX, APPS
+from fastapiProject.settings import API_PREFIX, APPS, ALLOW_ORIGINS
 
 tags_metadata = [
     {
@@ -26,9 +26,9 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOW_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT"],
     allow_headers=["*"],
 )
 
