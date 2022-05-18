@@ -24,6 +24,9 @@ DATABASE = {
 
 SERVER_HOST = os.getenv('SERVER_HOST', 'localhost')
 SERVER_PORT = int(os.getenv('SERVER_PORT', 8000))
+ALLOW_ORIGINS = [
+    'https://cofefu.ru'
+] if not (DEV or DEBUG) else ['*']
 
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 BOT_PORT = os.getenv('BOT_PORT', 443)

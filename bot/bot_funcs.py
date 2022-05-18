@@ -48,9 +48,11 @@ def send_feedback_to_telegram(msg: str):
     bot.send_message(chat_id=FEEDBACK_CHAT, text=msg, parse_mode='HTML')
 
 
-def send_bugreport_to_telegram(msg: str):
-    msg = '<b>BUG REPORT</b>\n' + msg
-    bot.send_message(chat_id=FEEDBACK_CHAT, text=msg, parse_mode='HTML')
+def send_bugreport_to_telegram(msg: str, customer: Customer = None):
+    msg_text = '<b>BUG REPORT</b>\n' + msg
+    if customer:
+        msg_text += f'\n<b>Номер телефона: +7{customer.phone_number}</b>'
+    bot.send_message(chat_id=FEEDBACK_CHAT, text=msg_text, parse_mode='HTML')
 
 
 def notify_order_change(order: Order):

@@ -2,21 +2,59 @@ from bot import bot
 from telebot import types
 
 from app.models import Customer
+from bot.bot_funcs import send_bugreport_to_telegram, send_feedback_to_telegram
+
+
+def change_user_name_state(message: types.Message, customer: Customer):
+    new_name = message.text.strip()
+    if not new_name:
+        bot.send_message(chat_id=message.chat.id, text='Имя не может быть пустым.')
+        bot.register_next_step_handler_by_chat_id(message.chat.id, change_user_name_state, customer)
+        return
+    if len(new_name) > 20:
+        bot.send_message(chat_id=message.chat.id, text='Длина имени не должна превышать 20 символов.')
+        bot.register_next_step_handler_by_chat_id(message.chat.id, change_user_name_state, customer)
+        return
+
+    customer.name = new_name
+    customer.save()
+    bot.send_message(chat_id=message.chat.id,
+                     text=f'Имя пользователя обновлено.\nНовое имя пользователя: {customer.name}')
+
+
+def bug_report_state(message: types.Message, customer: Customer = None):
+    send_bugreport_to_telegram(message.text.strip(), customer=customer)
+
+
+def feed_back_state(message: types.Message):
+    send_feedback_to_telegram(message.text.strip())
+
+
+def send_contact_state(message: types.Message):
+    if message.text.lower() == 'да':
+        customer: Customer = Customer.get_or_none(Customer.telegram_id == message.from_user.id)
+        bot.register_next_step_handler_by_chat_id(message.chat.id, bug_report_state, customer)
+    else:
+        bot.register_next_step_handler_by_chat_id(message.chat.id, bug_report_state)
+    bot.send_message(message.chat.id, text='Введите ваше сообщение:', reply_markup=types.ReplyKeyboardRemove())
+
+
+@bot.message_handler(commands=['help'], chat_types=['private'])
+def send_help_info(message):
+    msg = 'Команды:\n'
+    msg += '<b>/start</b> - <i>для подтверждения номера телефона</i>\n'
+    msg += '<b>/change_name</b> - <i>для изменения имени пользователя</i>\n'
+    msg += '<b>/bug_report</b> - <i>для информации о различных ошибках</i>\n'
+    msg += '<b>/feed_back</b> - <i>для советов, пожеланий ;)</i>'
+
+    bot.send_message(chat_id=message.chat.id, text=msg, parse_mode='HTML')
 
 
 @bot.message_handler(commands=['change_name'], chat_types=['private'])
-def change_user_name(message):
+def handle_change_name_command(message):
     if customer := Customer.get_or_none(Customer.telegram_id == message.from_user.id):
-        new_name = message.text[13:].strip()
-        if not new_name:
-            bot.send_message(chat_id=message.chat.id,
-                             text='Имя не может быть пустым.\nПример команды: /change_name Иван')
-            return
-        customer.name = new_name
-        customer.save()
-
-        bot.send_message(chat_id=message.chat.id,
-                         text=f'Имя пользователя обновлено.\nНовое имя пользователя: {customer.name}')
+        bot.send_message(message.chat.id, text='Введите новое имя (не более 20 символов):')
+        bot.register_next_step_handler_by_chat_id(message.chat.id, change_user_name_state, customer)
     else:
         bot.send_message(chat_id=message.chat.id,
                          text='Пользователь не найден. Пожалуйста, еще раз подтвердите номер телефона (команда /start)')
@@ -43,3 +81,24 @@ def contact_handler(message):
     else:
         bot.send_message(chat_id=message.chat.id,
                          text='Пользователь с таким номером телефона не найден.')
+
+
+@bot.message_handler(commands=['bug_report'], chat_types=['private'])
+def handler_bug_report_command(message: types.Message):
+    if Customer.get_or_none(Customer.telegram_id == message.from_user.id):
+        markup = types.ReplyKeyboardMarkup(row_width=2)
+        markup.add(types.KeyboardButton('Да'))
+        markup.add(types.KeyboardButton('Нет'))
+        bot.send_message(chat_id=message.chat.id,
+                         reply_markup=markup,
+                         text='Отправить контактные данные для обратной связи?')
+        bot.register_next_step_handler_by_chat_id(message.chat.id, send_contact_state)
+    else:
+        bot.send_message(chat_id=message.chat.id, text='Введите ваше сообщение:')
+        bot.register_next_step_handler_by_chat_id(message.chat.id, bug_report_state)
+
+
+@bot.message_handler(commands=['feed_back'], chat_types=['private'])
+def handler_feed_back_command(message):
+    bot.send_message(chat_id=message.chat.id, text='Введите ваше сообщение:')
+    bot.register_next_step_handler_by_chat_id(message.chat.id, feed_back_state)

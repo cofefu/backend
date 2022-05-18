@@ -1,5 +1,5 @@
 from bot import bot
-from bot.bot_funcs import gen_order_msg_text, notify_order_change
+from bot.bot_funcs import gen_order_msg_text, notify_order_change, send_bugreport_to_telegram
 from bot.filters import order_callback_confirmed, order_callback_done, order_callback_ready, order_cancel_reason, \
     CancelReasons, special_problem
 from bot.keyboards import gen_order_done_buttons, gen_order_ready_button, \
@@ -9,6 +9,17 @@ from telebot import types
 from app.models import Order, Customer, CoffeeHouse, ban_customer, Product, OrderCancelReason, Topping
 
 from datetime import datetime, timedelta
+
+
+@bot.message_handler(commands=['help'], chat_types=['group', 'supergroup'])
+def send_help_info(message):
+    msg = 'Команды:\n'
+    msg += '<b>/open_cafe</b> - <i>чтобы открыть кафе в особых случаях</i>\n'
+    msg += '<b>/close_cafe</b> - <i>чтобы закрыть кафе в особых случаях</i>\n'
+    msg += '<b>/ban</b> НОМЕР_ТЕЛЕФОНА - <i>чтобы забанить пользователя на 2 дня</i>\n'
+    msg += '<b>/unban</b> НОМЕР_ТЕЛЕФОНА - <i>чтобы разбанить пользователя</i>\n'
+
+    bot.send_message(chat_id=message.chat.id, text=msg, parse_mode='HTML')
 
 
 @bot.message_handler(commands=['status'], chat_types=['group', 'supergroup'])

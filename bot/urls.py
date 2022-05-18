@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from fastapi import APIRouter
 import telebot
 
-from app.models import Order, ban_customer
+from app.models import Order, ban_customer, Customer
 from bot.filters import bind_bot_filters
 from fastapiProject.settings import DOMAIN, BOT_TOKEN, BOT_PORT, DEBUG
 
@@ -46,36 +46,12 @@ def send_welcome(message):
     markup = gen_send_contact_button()
     if message.chat.type == 'group':
         markup = None
-    bot.send_message(message.chat.id,
-                     f"Hello, i'm cofefu webhook bot.",
-                     reply_markup=markup)
-
-
-@bot.message_handler(commands=['help'])
-def send_help_info(message):
-    msg = 'Команды:\n'
-    if message.chat.type == 'group':
-        msg += '<b>/status</b> НОМЕР_ЗАКАЗА - <i>чтобы узнать статус указанного заказа</i>\n'
-    else:
-        msg += '<b>/start</b> - <i>для подтверждения номера телефона</i>\n'
-        msg += '<b>/change_name</b> ТЕКСТ - <i>для изменения имени пользователя</i>\n'
-    msg += '<b>/bug_report</b> ТЕКСТ - <i>для информации о различных ошибках</i>\n'
-    msg += '<b>/feed_back</b> ТЕКСТ - <i>для советов, пожеланий</i>'
-
-    bot.send_message(chat_id=message.chat.id, text=msg, parse_mode='HTML')
+    bot.send_message(message.chat.id, f"Привет! Я бот cofefu.", reply_markup=markup)
 
 
 @bot.message_handler(commands=['chat_id'])
 def send_chat_id(message):
     bot.reply_to(message, message.chat.id)
-
-
-@bot.message_handler(commands=['bug_report', 'feed_back'])
-def send_bug_report(message):
-    if message.text.split()[0] == '/feed_back':
-        send_feedback_to_telegram(message.text[11:])
-    else:
-        send_bugreport_to_telegram(message.text[12:])
 
 
 @router.on_event('startup')
