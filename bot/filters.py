@@ -31,7 +31,7 @@ class CancelReasons:
 class States:
     changing_name = 0
     sending_feedback = 1
-    bug_report_asking_contact = 2
+    bug_report_request_contact = 2
     sending_bugreport_with_contact = 3
     sending_bugreport_without_contact = 4
 
