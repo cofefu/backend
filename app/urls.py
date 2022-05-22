@@ -232,8 +232,10 @@ async def send_feedback(background_tasks: BackgroundTasks, msg: str = Body(...))
 
 
 @router.post('/bugreport', description='Для информации о различных ошибках')
-async def send_bugreport(background_tasks: BackgroundTasks, msg: str = Body(...)):
-    background_tasks.add_task(send_bugreport_to_telegram, msg)
+async def send_bugreport(background_tasks: BackgroundTasks,
+                         msg: str = Body(...),
+                         customer: Customer = Depends(get_current_user)):
+    background_tasks.add_task(send_bugreport_to_telegram, msg, customer)
 
 
 @router.put('/change_name',
