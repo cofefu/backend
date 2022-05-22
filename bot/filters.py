@@ -55,7 +55,7 @@ class FSMFilter(AdvancedCustomFilter):
 
     def check(self, message: types.Message, state):
         if fsm := FSM.get_or_none(FSM.telegram_id == message.from_user.id):
-            return fsm.chat_state == state
+            return fsm.state == state
         return False
 
 

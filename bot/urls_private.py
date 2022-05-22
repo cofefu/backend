@@ -86,7 +86,7 @@ def handler_feed_back_command(message):
     bot.register_next_step_handler_by_chat_id(message.chat.id, feed_back_state)
 
 
-@bot.message_handler(func=lambda m: True, state=States.changing_name)
+@bot.message_handler(func=lambda m: True, chat_types=['private'], state=States.changing_name)
 def change_user_name_state(message: types.Message):
     customer: Customer = Customer.get(Customer.telegram_id == message.from_user.id)
     new_name = message.text.strip()
@@ -108,6 +108,6 @@ def change_user_name_state(message: types.Message):
                      text=f'Имя пользователя обновлено.\nНовое имя пользователя: {customer.name}')
 
 
-@bot.message_handler(func=lambda m: True, state=States.sending_feedback)
+@bot.message_handler(func=lambda m: True, chat_types=['private'], state=States.sending_feedback)
 def feed_back_state(message: types.Message):
     send_feedback_to_telegram(message.text.strip())
