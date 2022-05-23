@@ -4,6 +4,7 @@ import telebot
 from telebot import types, AdvancedCustomFilter
 from telebot.callback_data import CallbackData, CallbackDataFilter
 
+from app.models import FSM
 from bot import bot
 
 order_callback_confirmed = CallbackData("order_number", "status", prefix="order_confirmed")
@@ -27,6 +28,14 @@ class CancelReasons:
     zapara = 4
 
 
+class States:
+    changing_name = 0
+    sending_feedback = 1
+    bug_report_request_contact = 2
+    sending_bugreport_with_contact = 3
+    sending_bugreport_without_contact = 4
+
+
 class OrderStatusCallbackFilter(AdvancedCustomFilter):
     key = 'order_status_config'
 
@@ -41,6 +50,16 @@ class OrderCancelCallbackFilter(AdvancedCustomFilter):
         return config.check(query=call)
 
 
+class FSMFilter(AdvancedCustomFilter):
+    key = 'state'
+
+    def check(self, message: types.Message, state):
+        if fsm := FSM.get_or_none(FSM.telegram_id == message.from_user.id):
+            return fsm.state == state
+        return False
+
+
 def bind_bot_filters():
     bot.add_custom_filter(OrderStatusCallbackFilter())
     bot.add_custom_filter(OrderCancelCallbackFilter())
+    bot.add_custom_filter(FSMFilter())

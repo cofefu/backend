@@ -155,6 +155,11 @@ class OrderCancelReason(BaseModel):
     reason = CharField(max_length=150)
 
 
+class FSM(BaseModel):
+    telegram_id = IntegerField(unique=True)
+    state = IntegerField(null=True)
+
+
 # TODO вынести в db.migrate
 if __name__ == '__main__':
     import db
@@ -163,11 +168,11 @@ if __name__ == '__main__':
     db.db.create_tables(
         [Customer, Product, CoffeeHouse, Order, Worktime,
          ProductVarious, OrderedProduct, ToppingToProduct, Topping,
-         LoginCode, BlackList, OrderCancelReason])
+         LoginCode, BlackList, OrderCancelReason, FSM])
     # field_db.field()
 
 __all__ = ['Customer', 'Product', 'CoffeeHouse', 'Order', 'Worktime', 'ProductVarious', 'OrderedProduct',
-           'ToppingToProduct', 'Topping', 'LoginCode', 'BlackList', 'ban_customer', 'OrderCancelReason']
+           'ToppingToProduct', 'Topping', 'LoginCode', 'BlackList', 'ban_customer', 'OrderCancelReason', 'FSM']
 
 
 # todo перенести куда-нибудь эту функцию
