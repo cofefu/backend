@@ -17,9 +17,12 @@ DEBUG = bool(os.getenv("DEBUG", False))
 DEV = bool(os.getenv("DEV", False))
 
 DATABASE = {
-    'NAME': os.getenv('DB_NAME'),
-    'USER': os.getenv('DB_USER'),
-    'PASSWORD': os.getenv('DB_PASSWORD'),
+    'engine': 'Postgresql',
+    'name': os.getenv('DB_NAME'),
+    'user': os.getenv('DB_USER'),
+    'password': os.getenv('DB_PASSWORD'),
+    'host': 'localhost',
+    'port': '5432',
 }
 
 SERVER_HOST = os.getenv('SERVER_HOST', 'localhost')
@@ -27,6 +30,9 @@ SERVER_PORT = int(os.getenv('SERVER_PORT', 8000))
 ALLOW_ORIGINS = [
     'https://cofefu.ru'
 ] if not (DEV or DEBUG) else ['*']
+
+SERVER_HOST = os.getenv('SERVER_HOST', '127.0.0.1')
+SERVER_PORT = int(os.getenv('SERVER_PORT', 8000))
 
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 BOT_PORT = os.getenv('BOT_PORT', 443)
