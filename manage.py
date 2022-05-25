@@ -2,7 +2,7 @@
 import argparse
 import uvicorn
 
-from fastapiProject.settings import SERVER_PORT, WORKERS
+from fastapiProject.settings import SERVER_PORT, SERVER_HOST, WORKERS
 
 # init parser
 parser = argparse.ArgumentParser(add_help=False)
@@ -17,6 +17,7 @@ def main():
             port=SERVER_PORT,
             log_level='info',
             workers=WORKERS,
+            host=SERVER_HOST,
         )
 
 

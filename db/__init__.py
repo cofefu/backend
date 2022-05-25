@@ -1,17 +1,15 @@
-# noinspection PyPackageRequirements
-import os
+import peewee
 
-from peewee import Model, SqliteDatabase
+from fastapiProject.settings import DATABASE
 
-from fastapiProject.settings import BASE_DIR, DATABASE
+Engine = getattr(peewee, f'{DATABASE.pop("engine", None)}Database', None)
+if Engine is None:
+    raise ImportError('The database engine is specified incorrectly')
 
-# TODO creation of various databases
-
-db = SqliteDatabase(os.path.join(BASE_DIR, DATABASE['NAME']), pragmas={
-    'foreign_keys': 1,
-    # 'journal_mode': 'wal',
-    'cache_size': -1 * 64000,  # 64MB
-})
+db = Engine(
+    DATABASE.pop('name', None),
+    **DATABASE
+)
 
 
 def get_data(inst):
@@ -20,7 +18,7 @@ def get_data(inst):
     return inst
 
 
-class BaseModel(Model):
+class BaseModel(peewee.Model):
     def data(self, **kwargs) -> dict:
         """Returns a dictionary with fields, excluding hidden_fields"""
         fields = set(self.__data__.keys()).union(set(kwargs.pop('fields', '')))

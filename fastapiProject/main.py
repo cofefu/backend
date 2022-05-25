@@ -7,11 +7,11 @@ from fastapiProject.settings import API_PREFIX, APPS, ALLOW_ORIGINS
 
 tags_metadata = [
     {
-        "name": "common",
-        "description": "Для получения общей информации из бд",
+        'name': 'common',
+        'description': 'Для получения общей информации из бд',
     },
     {
-        "name": 'jwt require',
+        'name': 'jwt require',
         'description': 'Требуется jwt-токен'
     }
 ]
@@ -28,8 +28,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOW_ORIGINS,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT"],
-    allow_headers=["*"],
+    allow_methods=['GET', 'POST', 'PUT'],
+    allow_headers=['*'],
 )
 
 for app_ in APPS:

@@ -1,8 +1,8 @@
 from datetime import datetime
 from typing import Optional
 
-from peewee import \
-    ForeignKeyField, CharField, DateTimeField, IntegerField, TimeField, \
+from peewee import (
+    ForeignKeyField, CharField, DateTimeField, IntegerField, TimeField,
     BooleanField, Check, TimestampField
 
 from db import BaseModel
@@ -32,7 +32,7 @@ class Product(BaseModel):
         (1, 'Не кофе')
     )
     type = IntegerField(choices=ProductTypes, default=0)
-    name = CharField(max_length=20)
+    name = CharField(max_length=50)
     description = CharField(max_length=200, null=True)
     img = CharField(max_length=200, null=True)
 
