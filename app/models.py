@@ -1,9 +1,8 @@
 from datetime import datetime
 from typing import Optional
 
-from peewee import (
-    ForeignKeyField, CharField, DateTimeField, IntegerField, TimeField,
-    BooleanField, Check, TimestampField
+from peewee import (ForeignKeyField, CharField, DateTimeField, IntegerField,
+                    TimeField, BooleanField, Check, TimestampField)
 
 from db import BaseModel
 
