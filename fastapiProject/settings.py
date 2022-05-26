@@ -25,7 +25,7 @@ DATABASE = {
     'port': os.getenv('DB_PORT'),
 }
 
-HOSTS = [
+ALLOW_ORIGINS = [
     'https://cofefu.ru'
 ] if not (DEV or DEBUG) else ['*']
 
