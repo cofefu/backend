@@ -8,8 +8,8 @@ from jose import jwt
 from datetime import datetime, timedelta
 from pytz import timezone
 
-from app.models import ProductVarious, Product, Topping, CoffeeHouse, Customer, Order, OrderedProduct, \
-    ToppingToProduct, LoginCode, Worktime
+from app.models import (ProductVarious, Product, Topping, CoffeeHouse, Customer,
+                        Order, OrderedProduct, ToppingToProduct, LoginCode, Worktime)
 from fastapiProject import schemas
 from fastapiProject.settings import JWT_SECRET_KEY, JWT_ALGORITHM
 from bot.bot_funcs import send_order, send_login_code, send_feedback_to_telegram, send_bugreport_to_telegram
@@ -75,6 +75,7 @@ async def get_order_status(number: int, customer: Customer = Depends(get_current
     return order.get_status_name()
 
 
+# TEST delete
 @router.get('/products_various/{prod_id}',
             tags=['common'],
             description='Возвращает все вариации продукта или ошибку, если продукта нет',
