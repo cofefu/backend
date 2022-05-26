@@ -17,7 +17,7 @@ DEBUG = bool(os.getenv('DEBUG', False))
 DEV = bool(os.getenv('DEV', False))
 
 DATABASE = {
-    'engine': 'Postgresql',
+    'engine': os.getenv('DB_ENGINE'),
     'name': os.getenv('DB_NAME'),
     'user': os.getenv('DB_USER'),
     'password': os.getenv('DB_PASSWORD'),
