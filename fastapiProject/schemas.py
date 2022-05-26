@@ -69,7 +69,7 @@ class OrderIn(BaseModel):
                     }
                 ],
                 "comment": "Хочу много сахара и воду без газа",
-                "time": "2022-03-29 22:59"
+                "time": (datetime.now() + timedelta(minutes=20)).strftime("%Y-%m-%d %H:%M"),
             }
         }
 
@@ -100,8 +100,8 @@ class OrderIn(BaseModel):
         if worktime is None or (not house.is_open):
             raise HTTPException(status_code=400, detail="Кофейня закрыта")
 
-        open_time = datetime.strptime(worktime.open_time, '%H:%M:%S').time()
-        close_time = datetime.strptime(worktime.close_time, '%H:%M:%S').time()
+        open_time = worktime.open_time
+        close_time = worktime.close_time
         if not open_time <= order_time.time() <= close_time:
             raise HTTPException(status_code=400, detail="Кофейня закрыта")
 
@@ -149,7 +149,7 @@ class OrderResponseModel(BaseModel):
     order_number: int
     coffee_house: int
     comment: str = None
-    time: str
+    time: time
     status: str
     products: List[SmallProductResponseModel]
 
