@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 from typing import List, Optional
 
 from fastapi import HTTPException
@@ -112,8 +112,8 @@ class CoffeeHouseResponseModel(BaseModel):
     id: int
     name: str
     placement: str
-    open_time: Optional[str]
-    close_time: Optional[str]
+    open_time: Optional[time]
+    close_time: Optional[time]
 
 
 class ProductsVariousResponseModel(BaseModel):
