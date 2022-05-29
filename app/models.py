@@ -159,6 +159,10 @@ class FSM(BaseModel):
     state = IntegerField(null=True)
 
 
+class MenuUpdateTime(BaseModel):
+    time = DateTimeField()
+
+
 # TODO вынести в db.migrate
 if __name__ == '__main__':
     import db
@@ -167,11 +171,13 @@ if __name__ == '__main__':
     db.db.create_tables(
         [Customer, Product, CoffeeHouse, Order, Worktime,
          ProductVarious, OrderedProduct, ToppingToProduct, Topping,
-         LoginCode, BlackList, OrderCancelReason, FSM])
-    # field_db.field()
+         LoginCode, BlackList, OrderCancelReason, FSM, MenuUpdateTime])
+
+    # field_db.field_all()
 
 __all__ = ['Customer', 'Product', 'CoffeeHouse', 'Order', 'Worktime', 'ProductVarious', 'OrderedProduct',
-           'ToppingToProduct', 'Topping', 'LoginCode', 'BlackList', 'ban_customer', 'OrderCancelReason', 'FSM']
+           'ToppingToProduct', 'Topping', 'LoginCode', 'BlackList', 'ban_customer', 'OrderCancelReason', 'FSM',
+           'MenuUpdateTime']
 
 
 # todo перенести куда-нибудь эту функцию
