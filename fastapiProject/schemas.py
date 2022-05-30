@@ -149,7 +149,7 @@ class OrderResponseModel(BaseModel):
     order_number: int
     coffee_house: int
     comment: str = None
-    time: time
+    time: datetime
     status: str
     products: List[SmallProductResponseModel]
 
