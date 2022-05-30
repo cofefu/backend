@@ -3,6 +3,7 @@ from typing import Optional
 
 from peewee import (ForeignKeyField, CharField, DateTimeField, IntegerField,
                     TimeField, BooleanField, Check, TimestampField)
+from playhouse.postgres_ext import DateTimeTZField
 
 from db import BaseModel
 
@@ -11,8 +12,8 @@ class Customer(BaseModel):
     name = CharField(max_length=20)
     phone_number = CharField(max_length=10)
     confirmed = BooleanField(default=False)
-    telegram_id = IntegerField(null=True)
-    chat_id = IntegerField(null=True)
+    telegram_id = IntegerField(null=True)  # todo change to bigint
+    chat_id = IntegerField(null=True)  # todo change to bigint
 
     @property
     def ban(self):
@@ -62,7 +63,7 @@ class ProductVarious(BaseModel):
 class CoffeeHouse(BaseModel):
     name = CharField(max_length=20)
     placement = CharField(max_length=20)
-    chat_id = IntegerField()
+    chat_id = IntegerField()  # todo change to bigint
     is_open = BooleanField()
 
     def __str__(self):
@@ -84,7 +85,7 @@ class Order(BaseModel):
     coffee_house = ForeignKeyField(CoffeeHouse, backref='house_orders')
     customer = ForeignKeyField(Customer, backref='customer_orders')
     comment = CharField(max_length=200, null=True)
-    time = DateTimeField()
+    time = DateTimeTZField()
     creation_time = DateTimeField(default=datetime.utcnow)
     status = IntegerField(default=0, choices=OrderStatus)
 
@@ -159,6 +160,10 @@ class FSM(BaseModel):
     state = IntegerField(null=True)
 
 
+class MenuUpdateTime(BaseModel):
+    time = DateTimeField()
+
+
 # TODO вынести в db.migrate
 if __name__ == '__main__':
     import db
@@ -167,11 +172,13 @@ if __name__ == '__main__':
     db.db.create_tables(
         [Customer, Product, CoffeeHouse, Order, Worktime,
          ProductVarious, OrderedProduct, ToppingToProduct, Topping,
-         LoginCode, BlackList, OrderCancelReason, FSM])
-    # field_db.field()
+         LoginCode, BlackList, OrderCancelReason, FSM, MenuUpdateTime])
+
+    # field_db.field_all()
 
 __all__ = ['Customer', 'Product', 'CoffeeHouse', 'Order', 'Worktime', 'ProductVarious', 'OrderedProduct',
-           'ToppingToProduct', 'Topping', 'LoginCode', 'BlackList', 'ban_customer', 'OrderCancelReason', 'FSM']
+           'ToppingToProduct', 'Topping', 'LoginCode', 'BlackList', 'ban_customer', 'OrderCancelReason', 'FSM',
+           'MenuUpdateTime']
 
 
 # todo перенести куда-нибудь эту функцию
