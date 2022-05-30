@@ -7,7 +7,6 @@ from app.models import Order, ban_customer, Customer
 from bot.filters import bind_bot_filters
 from fastapiProject.settings import DOMAIN, BOT_TOKEN, BOT_PORT, DEBUG
 
-from bot.bot_funcs import send_feedback_to_telegram, send_bugreport_to_telegram
 from bot.keyboards import gen_send_contact_button
 
 import bot.urls_private
@@ -16,10 +15,11 @@ import bot.urls_groups
 from bot import bot
 
 router = APIRouter(prefix='/bot')
+B_TOKEN = BOT_TOKEN.replace(':', '_')
 
 
 def set_webhook():
-    webhook_url = f"https://{DOMAIN}:{BOT_PORT}" + f'/bot/{BOT_TOKEN}/'
+    webhook_url = f'https://{DOMAIN}:{BOT_PORT}' + f'/bot/{B_TOKEN}/'
     if not DEBUG and \
             bot.get_webhook_info().url != webhook_url:
         bot.remove_webhook()
@@ -32,7 +32,7 @@ def order_not_picked(order: Order):
         ban_customer(customer, datetime.utcnow(), forever=True)
 
 
-@router.post(f'/{BOT_TOKEN}/', include_in_schema=False)
+@router.post(f'/{B_TOKEN}/', include_in_schema=False)
 def process_webhook(update: dict):
     if update:
         update = telebot.types.Update.de_json(update)
@@ -46,7 +46,7 @@ def send_welcome(message):
     markup = gen_send_contact_button()
     if message.chat.type == 'group':
         markup = None
-    bot.send_message(message.chat.id, f"Привет! Я бот cofefu.", reply_markup=markup)
+    bot.send_message(message.chat.id, f'Привет! Я бот cofefu.', reply_markup=markup)
 
 
 @bot.message_handler(commands=['chat_id'])

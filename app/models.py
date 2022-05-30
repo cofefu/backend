@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional
 
 from peewee import (ForeignKeyField, CharField, DateTimeField, IntegerField,
-                    TimeField, BooleanField, Check, TimestampField)
+                    TimeField, BooleanField, Check, TimestampField, BigIntegerField)
 from playhouse.postgres_ext import DateTimeTZField
 
 from db import BaseModel
@@ -12,8 +12,8 @@ class Customer(BaseModel):
     name = CharField(max_length=20)
     phone_number = CharField(max_length=10)
     confirmed = BooleanField(default=False)
-    telegram_id = IntegerField(null=True)  # todo change to bigint
-    chat_id = IntegerField(null=True)  # todo change to bigint
+    telegram_id = BigIntegerField(null=True)
+    chat_id = BigIntegerField(null=True)
 
     @property
     def ban(self):
@@ -63,7 +63,7 @@ class ProductVarious(BaseModel):
 class CoffeeHouse(BaseModel):
     name = CharField(max_length=20)
     placement = CharField(max_length=20)
-    chat_id = IntegerField()  # todo change to bigint
+    chat_id = BigIntegerField()
     is_open = BooleanField()
 
     def __str__(self):
@@ -156,7 +156,7 @@ class OrderCancelReason(BaseModel):
 
 
 class FSM(BaseModel):
-    telegram_id = IntegerField(unique=True)
+    telegram_id = BigIntegerField(unique=True)
     state = IntegerField(null=True)
 
 
