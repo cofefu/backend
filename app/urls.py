@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from pytz import timezone
 
 from app.models import (ProductVarious, Product, Topping, CoffeeHouse, Customer,
-                        Order, OrderedProduct, ToppingToProduct, LoginCode, Worktime)
+                        Order, OrderedProduct, ToppingToProduct, LoginCode, Worktime, MenuUpdateTime)
 from fastapiProject import schemas
 from fastapiProject.settings import JWT_SECRET_KEY, JWT_ALGORITHM
 from bot.bot_funcs import send_order, send_login_code, send_feedback_to_telegram, send_bugreport_to_telegram
@@ -232,7 +232,9 @@ async def send_feedback(background_tasks: BackgroundTasks, msg: str = Body(...))
     background_tasks.add_task(send_feedback_to_telegram, msg)
 
 
-@router.post('/bugreport', description='Для информации о различных ошибках')
+@router.post('/bugreport',
+             tags=['jwt require'],
+             description='Для информации о различных ошибках')
 async def send_bugreport(background_tasks: BackgroundTasks,
                          msg: str = Body(...),
                          customer: Customer = Depends(get_current_user)):
@@ -257,3 +259,18 @@ async def change_customer_name(new_name: constr(strip_whitespace=True) = Body(..
             description='Узнать подтвержден ли номер телефона')
 async def get_user_is_confirmed(customer: Customer = Depends(get_current_user)):
     return bool(customer.confirmed)
+
+
+@router.get('/menu',
+            tags=['common'],
+            description='Сверить последнюю дату обновления БД',
+            response_model=schemas.MenuResponseModel)
+async def check_menu_update(time: datetime = None):
+    menu_update = MenuUpdateTime.get_or_none()
+    if menu_update.time == time:
+        return None
+    return {
+        "time": menu_update.time,
+        "products": await get_products(),
+        "toppings": await get_toppings()
+    }

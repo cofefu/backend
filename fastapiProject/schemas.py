@@ -191,3 +191,9 @@ class OrderResponseModel(BaseModel):
                 ]
             }
         }
+
+
+class MenuResponseModel(BaseModel):
+    time: datetime
+    products: List[ProductResponseModel]
+    toppings: List[ToppingsResponseModel]
