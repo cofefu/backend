@@ -141,12 +141,13 @@ async def make_order(order_inf: schemas.OrderIn,
 @router.put('/cancel_order',
             tags=['jwt require'],
             description='Служит для отмены заказа')
-async def cancel_user(order_number: int,
-                      customer: Customer = Depends(get_current_active_user)):
+async def cancel_order(order_number: int,
+                       customer: Customer = Depends(get_current_active_user)):
     if customer.customer_orders.where(Order.id == order_number).get_or_none() is None:
         raise HTTPException(status_code=400, detail='Заказ не найден.')
     try:
         scheduler.remove_job(str(order_number))
+        Order.get_by_id(order_number).delete_instance()
         return 'Ok'
     except JobLookupError:
         raise HTTPException(status_code=400, detail='Отменить заказ уже нельзя.')
