@@ -1,6 +1,7 @@
 import random
 from typing import List
 
+from apscheduler.jobstores.base import JobLookupError
 from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException, Body
 from pydantic import constr
 from starlette.responses import FileResponse
@@ -11,6 +12,7 @@ from pytz import timezone
 from app.models import (ProductVarious, Product, Topping, CoffeeHouse, Customer,
                         Order, OrderedProduct, ToppingToProduct, LoginCode, Worktime, MenuUpdateTime)
 from fastapiProject import schemas
+from fastapiProject.scheduler import scheduler
 from fastapiProject.settings import JWT_SECRET_KEY, JWT_ALGORITHM
 from bot.bot_funcs import send_order, send_login_code, send_feedback_to_telegram, send_bugreport_to_telegram
 from app.dependencies import get_current_active_user, get_current_user, get_not_baned_user, timeout_is_over
@@ -117,7 +119,6 @@ async def get_favicon_svg():
              description='Служит для создания заказа',
              response_model=schemas.OrderNumberResponseModel)
 async def make_order(order_inf: schemas.OrderIn,
-                     background_tasks: BackgroundTasks,
                      customer: Customer = Depends(get_not_baned_user)):
     coffee_house: CoffeeHouse = CoffeeHouse.get(CoffeeHouse.id == order_inf.coffee_house)
     order = Order.create(coffee_house=coffee_house, customer=customer, time=order_inf.time, comment=order_inf.comment)
@@ -127,8 +128,28 @@ async def make_order(order_inf: schemas.OrderIn,
         for top in p.toppings:
             ToppingToProduct.create(ordered_product=order_prod, topping=top)
 
-    background_tasks.add_task(send_order, order.id)
+    scheduler.add_job(send_order,
+                      'date',
+                      timezone='utc',
+                      run_date=datetime.utcnow() + timedelta(minutes=1),
+                      replace_existing=True,
+                      args=[order.id],
+                      id=str(order.id))
     return {'order_number': order.id}
+
+
+@router.put('/cancel_order',
+            tags=['jwt require'],
+            description='Служит для отмены заказа')
+async def cancel_user(order_number: int,
+                      customer: Customer = Depends(get_current_active_user)):
+    if customer.customer_orders.where(Order.id == order_number).get_or_none() is None:
+        raise HTTPException(status_code=400, detail='Заказ не найден.')
+    try:
+        scheduler.remove_job(str(order_number))
+        return 'Ok'
+    except JobLookupError:
+        raise HTTPException(status_code=400, detail='Отменить заказ уже нельзя.')
 
 
 @router.post('/register_customer',

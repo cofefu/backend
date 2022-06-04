@@ -2,13 +2,15 @@ import peewee
 
 from fastapiProject.settings import DATABASE
 
-Engine = getattr(peewee, f'{DATABASE.pop("engine", None)}Database', None)
+db_settings = DATABASE.copy()
+
+Engine = getattr(peewee, f'{db_settings.pop("engine", None)}Database', None)
 if Engine is None:
     raise ImportError('The database engine is specified incorrectly')
 
 db = Engine(
-    DATABASE.pop('name', None),
-    **DATABASE
+    db_settings.pop('name', None),
+    **db_settings
 )
 
 
