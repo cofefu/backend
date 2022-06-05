@@ -17,11 +17,10 @@ time_breaks = (
 )
 
 
-def min_order_preparation_time() -> timedelta:
-    now = datetime.now(tz=timezone('Asia/Vladivostok')).time()
+def min_order_preparation_time(order_time: datetime) -> timedelta:
     shift = timedelta(minutes=5)
     for time_break in time_breaks:
-        if (time_break - shift).time() < now < (time_break + timedelta(minutes=10) + shift).time():
+        if (time_break - shift).time() < order_time.time() < (time_break + timedelta(minutes=10) + shift).time():
             return timedelta(minutes=7)
     return timedelta(minutes=5)
 
@@ -104,7 +103,7 @@ class OrderIn(BaseModel):
 
         order_time = timezone('Asia/Vladivostok').localize(order_time)
         now = datetime.now(tz=timezone('Asia/Vladivostok'))
-        min_time = min_order_preparation_time()
+        min_time = min_order_preparation_time(order_time)
         max_time = timedelta(hours=5)
         if not (min_time - timedelta(seconds=10) <= order_time - now <= max_time):
             raise HTTPException(status_code=400,
