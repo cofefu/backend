@@ -82,8 +82,8 @@ class Order(BaseModel):
         (4, 'Не забран покупателем'),
         (5, 'Готов')
     )
-    coffee_house = ForeignKeyField(CoffeeHouse, backref='house_orders')
-    customer = ForeignKeyField(Customer, backref='customer_orders')
+    coffee_house = ForeignKeyField(CoffeeHouse, backref='house_orders', null=True, on_delete='SET NULL')
+    customer = ForeignKeyField(Customer, backref='customer_orders', null=True, on_delete='SET NULL')
     comment = CharField(max_length=200, null=True)
     time = DateTimeTZField()
     creation_time = DateTimeField(default=datetime.utcnow)
@@ -100,7 +100,7 @@ class Order(BaseModel):
     def save(self, *args, **kwargs):
         super(Order, self).save(*args, **kwargs)
         if self.status == 4:
-            if len(self.customer.customer_orders.where(Order.status == 4)) >= 3:
+            if len(self.customer.customer_orders.where(Order.status == 4)) >= 2:
                 ban_customer(self.customer, datetime.utcnow(), forever=True)
 
 
@@ -139,7 +139,7 @@ class ToppingToProduct(BaseModel):
 
 
 class LoginCode(BaseModel):
-    customer = ForeignKeyField(Customer)
+    customer = ForeignKeyField(Customer, on_delete='CASCADE')
     code = IntegerField(unique=True)
     expire = TimestampField()
 
