@@ -2,11 +2,28 @@ from datetime import datetime, timedelta, time
 from typing import List, Optional
 
 from fastapi import HTTPException
-from pydantic import BaseModel, validator, constr, EmailStr
+from pydantic import BaseModel, validator, constr
 from pytz import timezone
 
 from app import models
 from app.models import CoffeeHouse, ProductVarious, Topping, Worktime
+
+time_breaks = (
+    datetime(year=2022, month=1, day=1, hour=10),
+    datetime(year=2022, month=1, day=1, hour=11, minute=40),
+    datetime(year=2022, month=1, day=1, hour=13, minute=20),
+    datetime(year=2022, month=1, day=1, hour=15),
+    datetime(year=2022, month=1, day=1, hour=16, minute=40)
+)
+
+
+def min_order_preparation_time() -> timedelta:
+    now = datetime.now(tz=timezone('Asia/Vladivostok')).time()
+    shift = timedelta(minutes=5)
+    for time_break in time_breaks:
+        if (time_break - shift).time() < now < (time_break + timedelta(minutes=10) + shift).time():
+            return timedelta(minutes=7)
+    return timedelta(minutes=5)
 
 
 class Customer(BaseModel):
@@ -87,11 +104,12 @@ class OrderIn(BaseModel):
 
         order_time = timezone('Asia/Vladivostok').localize(order_time)
         now = datetime.now(tz=timezone('Asia/Vladivostok'))
-        min_time = timedelta(minutes=4, seconds=50)
+        min_time = min_order_preparation_time()
         max_time = timedelta(hours=5)
-        if not (now < order_time and min_time <= order_time - now <= max_time):
+        if not (min_time - timedelta(seconds=10) <= order_time - now <= max_time):
             raise HTTPException(status_code=400,
-                                detail="Неправильное время заказа. Минимальное время приготовления заказа - 5 минут")
+                                detail=f"Неправильное время заказа. Минимальное время приготовления заказа - "
+                                       f"{min_time.seconds // 60} минут")
 
         weekday = datetime.now(tz=timezone('Asia/Vladivostok')).weekday()
         worktime = Worktime.get_or_none(
