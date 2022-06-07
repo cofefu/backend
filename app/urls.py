@@ -249,6 +249,17 @@ async def get_last_order(customer: Customer = Depends(get_current_active_user)):
     return schemas.OrderResponseModel.to_dict(order[0])
 
 
+@router.get('/active_orders',
+            tags=['jwt require'],
+            description='Возвращает активные заказы пользователя',
+            response_model=List[schemas.OrderResponseModel])
+async def get_active_orders(customer: Customer = Depends(get_current_active_user)):
+    orders = Order.select() \
+        .where((Order.customer == customer) & (Order.status.in_([0, 1, 5]))) \
+        .order_by(Order.id.desc())
+    return [schemas.OrderResponseModel.to_dict(order) for order in orders]
+
+
 @router.post('/feedback', description='Для советов, пожеланий и т.д.')
 async def send_feedback(background_tasks: BackgroundTasks, msg: str = Body(...)):
     background_tasks.add_task(send_feedback_to_telegram, msg)
