@@ -124,6 +124,12 @@ class OrderIn(BaseModel):
 
         return order_time
 
+    @validator('products')
+    def products_validator(cls, products: list):
+        if len(products) > 5:
+            raise HTTPException(status_code=400, detail=f"Нельзя заказать более 5 продуктов из меню.")
+        return products
+
 
 class CoffeeHouseResponseModel(BaseModel):
     id: int
