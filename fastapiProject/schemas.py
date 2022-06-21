@@ -21,8 +21,8 @@ def min_order_preparation_time(order_time: datetime) -> timedelta:
     shift = timedelta(minutes=5)
     for time_break in time_breaks:
         if (time_break - shift).time() < order_time.time() < (time_break + timedelta(minutes=10) + shift).time():
-            return timedelta(minutes=7)
-    return timedelta(minutes=5)
+            return timedelta(minutes=10)
+    return timedelta(minutes=7)
 
 
 class Customer(BaseModel):
