@@ -29,7 +29,8 @@ class Customer(BaseModel):
 class Product(BaseModel):
     ProductTypes = (
         (0, 'Кофе'),
-        (1, 'Не кофе')
+        (1, 'Не кофе'),
+        (2, 'Летнее'),
     )
     type = IntegerField(choices=ProductTypes, default=0)
     name = CharField(max_length=50)
