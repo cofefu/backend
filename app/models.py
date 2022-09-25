@@ -1,185 +1,174 @@
+import enum
 from datetime import datetime
 from typing import Optional
 
-from peewee import (ForeignKeyField, CharField, DateTimeField, IntegerField,
-                    TimeField, BooleanField, Check, TimestampField, BigIntegerField)
-from playhouse.postgres_ext import DateTimeTZField
+from sqlalchemy import (Column, Boolean, BigInteger, Integer, String, Enum, DateTime, ForeignKey,
+                        CheckConstraint, Time)
+from sqlalchemy.orm import relationship
+import sqlalchemy
 
-from db import BaseModel
+import db
+from db import Base, engine
 
 
-class Customer(BaseModel):
-    name = CharField(max_length=20)
-    phone_number = CharField(max_length=10)
-    confirmed = BooleanField(default=False)
-    telegram_id = BigIntegerField(null=True)
-    chat_id = BigIntegerField(null=True)
+class Customer(Base):
+    name = Column(String(20))
+    phone_number = Column(String(10))
+    confirmed = Column(Boolean(False))
+    orders = relationship('Order')
+    telegram_id = Column(BigInteger, nullable=True)
+    chat_id = Column(BigInteger, nullable=True)
 
-    @property
+    @property  # REDO
     def ban(self):
         return self.bans.get_or_none()
 
     def __str__(self):
-        return f'name: {self.name}, phone_number: {self.phone_number}'
-
-    class Meta:
-        table_name = 'customers'
+        return f'<{self.name=}, {self.phone_number=}, {self.confirmed=}, {self.telegram_id=}, {self.chat_id=}>'
 
 
-class Product(BaseModel):
-    ProductTypes = (
-        (0, 'Кофе'),
-        (1, 'Не кофе'),
-        (2, 'Летнее'),
-    )
-    type = IntegerField(choices=ProductTypes, default=0)
-    name = CharField(max_length=50)
-    description = CharField(max_length=200, null=True)
-    img = CharField(max_length=200, null=True)
-
-    class Meta:
-        table_name = 'products'
+class Product(Base):
+    type = Column(Integer, nullable=False)
+    variations = relationship('ProductVarious')  # One to Many (ForeignKey in related)
+    name = Column(String(50))
+    description = Column(String(200), nullable=True)
+    img = Column(String(200), nullable=True)
 
     def __str__(self):
         return f'name: {self.name}'
 
     def get_type_name(self):
-        return dict(self.ProductTypes)[self.type]
+        return 'Not implemented'
 
 
-class ProductVarious(BaseModel):
-    ProductSizes = (
-        (0, 'S'),
-        (1, 'M'),
-        (2, 'L')
-    )
-    product = ForeignKeyField(Product, backref='variations', on_delete='CASCADE')
-    size = IntegerField(choices=ProductSizes, constraints=[Check('size >= 0')])
-    price = IntegerField(constraints=[Check('size >= 0')])
+class ProductVarious(Base):
+    __tablename__ = 'productvarious'
+
+    product_id = Column(ForeignKey('products.id', ondelete='CASCADE'))
+    size = Column(Integer, CheckConstraint('size >= 0'), nullable=False)  # REDO need constraint?
+    price = Column(Integer, CheckConstraint('size >= 0'))
 
     def get_size_name(self):
-        return dict(self.ProductSizes)[self.size]
+        return 'Not implemented'
 
 
-class CoffeeHouse(BaseModel):
-    name = CharField(max_length=20)
-    placement = CharField(max_length=20)
-    chat_id = BigIntegerField()
-    is_open = BooleanField()
-
-    def __str__(self):
-        return f'name: {self.name}, placement: {self.placement}'
-
-    class Meta:
-        table_name = 'coffeehouses'
-
-
-class Order(BaseModel):
-    OrderStatus = (
-        (0, 'В ожидании'),
-        (1, 'Принят в работу'),
-        (2, 'Отклонен'),
-        (3, 'Отдан покупателю'),
-        (4, 'Не забран покупателем'),
-        (5, 'Готов')
+class Order(Base):
+    coffee_house_id = Column(Integer, ForeignKey('coffeehouses.id', ondelete='SET NULL'), nullable=True)
+    customer_id = Column(Integer, ForeignKey('customers.id', ondelete='SET NULL'), nullable=True)
+    ordered_products = relationship('OrderedProduct')
+    comment = Column(String(200), nullable=True)
+    time = Column(Time)
+    creation_time = Column(DateTime, default=datetime.utcnow)
+    status = Column(
+        # Enum(
+        #     'В ожидании',
+        #     'Принят в работу',
+        #     'Отклонен',
+        #     'Отдан покупателю',
+        #     'Не забран покупателем',
+        #     'Готов'
+        # ),
+        Integer, nullable=False,
+        default=0
     )
-    coffee_house = ForeignKeyField(CoffeeHouse, backref='house_orders', null=True, on_delete='SET NULL')
-    customer = ForeignKeyField(Customer, backref='customer_orders', null=True, on_delete='SET NULL')
-    comment = CharField(max_length=200, null=True)
-    time = DateTimeTZField()
-    creation_time = DateTimeField(default=datetime.utcnow)
-    status = IntegerField(default=0, choices=OrderStatus)
-
-    class Meta:
-        table_name = 'orders'
 
     def get_status_name(self):
         if self.status == 2:
             return 'Отклонен' if (reason := self.cancel_reason.get_or_none()) is None else reason.reason
         return dict(self.OrderStatus)[self.status]
 
-    def save(self, *args, **kwargs):
-        super(Order, self).save(*args, **kwargs)
-        if self.status == 4:
-            if len(self.customer.customer_orders.where(Order.status == 4)) >= 2:
-                ban_customer(self.customer, datetime.utcnow(), forever=True)
+    # def save(self, *args, **kwargs):
+    #     super(Order, self).save(*args, **kwargs)
+    #     if self.status == 4:
+    #         if len(self.customer.customer_orders.where(Order.status == 4)) >= 2:
+    #             ban_customer(self.customer, datetime.utcnow(), forever=True)
 
 
-class OrderedProduct(BaseModel):
-    order = ForeignKeyField(Order, backref='ordered_products', on_delete='CASCADE')
-    product = ForeignKeyField(ProductVarious, on_delete='CASCADE')
+class OrderedProduct(Base):
+    order_id = Column(Integer, ForeignKey('orders.id', ondelete='CASCADE'))
+    product_id = Column(Integer, ForeignKey('productvarious.id', ondelete='CASCADE'))
+    product = relationship('ProductVarious')
 
 
-class Worktime(BaseModel):
-    DaysOfWeek = (
-        (0, 'Понедельник'),
-        (1, 'Вторник'),
-        (2, 'Среда'),
-        (3, 'Четверг'),
-        (4, 'Пятница'),
-        (5, 'Суббота'),
-        (6, 'Воскресенье'),
+class CoffeeHouse(Base):
+    name = Column(String(20))
+    placement = Column(String(20))
+    # worktime = relationship('Worktime')
+    chat_id = Column(BigInteger)
+    is_open = Column(Boolean)
+
+
+class Worktime(Base):
+    # __tablename__ = 'worktime'
+    coffee_house = Column(Integer, ForeignKey('coffeehouses.id', ondelete='CASCADE'))
+    day_of_week = Column(
+        # Enum(
+        #     'Понедельник',
+        #     'Вторник',
+        #     'Среда',
+        #     'Четверг',
+        #     'Пятница',
+        #     'Суббота',
+        #     'Воскресенье',
+        # )
+        Integer, nullable=False
     )
-    coffee_house = ForeignKeyField(CoffeeHouse, backref='worktime', on_delete='CASCADE')
-    day_of_week = IntegerField(choices=DaysOfWeek)
-    open_time = TimeField(formats='%H:%M:%S')
-    close_time = TimeField(formats='%H:%M:%S')
+    open_time = Column(Time)
+    close_time = Column(Time)
 
     def get_day_of_week_name(self):
         return dict(self.DaysOfWeek)[self.day_of_week]
 
 
-class Topping(BaseModel):
-    name = CharField(max_length=100)
-    price = IntegerField(constraints=[Check('price >= 0')])
+class Topping(Base):
+    name = Column(String(100))
+    price = Column(Integer, CheckConstraint('price >= 0'))
 
 
-class ToppingToProduct(BaseModel):
-    ordered_product = ForeignKeyField(OrderedProduct, backref='toppings', on_delete='CASCADE')
-    topping = ForeignKeyField(Topping, on_delete='CASCADE')
+class ToppingToProduct(Base):
+    ordered_product = Column(Integer, ForeignKey('orderedproduct', ondelete='CASCADE'))
+    # backref = 'toppings'
+    topping = Column(Integer, ForeignKey('toppings', ondelete='CASCADE'))
 
 
-class LoginCode(BaseModel):
-    customer = ForeignKeyField(Customer, on_delete='CASCADE')
-    code = IntegerField(unique=True)
-    expire = TimestampField()
+class LoginCode(Base):
+    customer_id = Column(Integer, ForeignKey('customers.id', ondelete='CASCADE'))
+    customer = relationship('Customer')  # Many to One (ForeignKey here)
+    code = Column(Integer, unique=True)
+    expire = Column(Time)
 
 
-class BlackList(BaseModel):
-    customer = ForeignKeyField(Customer, unique=True, on_delete='CASCADE', backref='bans')
-    expire = TimestampField(null=True)  # если null - это бан навсегда ???
-    forever = BooleanField(default=False)
+class BlackList(Base):
+    customer = Column(Integer, ForeignKey('customers', ondelete='CASCADE'), unique=True)
+    # backref = 'bans'
+    expire = Column(Time, nullable=True)  # если null - это бан навсегда ???
+    forever = Column(Boolean, default=False)
 
 
-class OrderCancelReason(BaseModel):
-    order = ForeignKeyField(Order, unique=True, on_delete='CASCADE', backref='cancel_reason')
-    reason = CharField(max_length=150)
+class OrderCancelReason(Base):
+    order = Column(Integer, ForeignKey('orders', ondelete='CASCADE'), unique=True)
+    # backref = 'cancel_reason'
+    reason = Column(String(150))
 
 
-class FSM(BaseModel):
-    telegram_id = BigIntegerField(unique=True)
-    state = IntegerField(null=True)
+class FSM(Base):
+    telegram_id = Column(BigInteger, unique=True)
+    state = Column(Integer, nullable=True)
 
 
-class MenuUpdateTime(BaseModel):
-    time = DateTimeField()
+class MenuUpdateTime(Base):
+    time = Column(DateTime)
 
-
-# TODO вынести в db.migrate
-if __name__ == '__main__':
-    import db
-    from app import field_db
-
-    db.db.create_tables(
-        [Customer, Product, CoffeeHouse, Order, Worktime,
-         ProductVarious, OrderedProduct, ToppingToProduct, Topping,
-         LoginCode, BlackList, OrderCancelReason, FSM, MenuUpdateTime])
-
-    # field_db.field_all()
 
 __all__ = ['Customer', 'Product', 'CoffeeHouse', 'Order', 'Worktime', 'ProductVarious', 'OrderedProduct',
            'ToppingToProduct', 'Topping', 'LoginCode', 'BlackList', 'ban_customer', 'OrderCancelReason', 'FSM',
            'MenuUpdateTime']
+
+# TODO remove
+if __name__ == '__main__':
+    ses = db.SessionLocal()
+    print(ses.query(Order).filter_by(id=37).delete())
+    ses.commit()
 
 
 # todo перенести куда-нибудь эту функцию
