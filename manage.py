@@ -7,6 +7,7 @@ from fastapiProject.settings import SERVER_PORT, SERVER_HOST, WORKERS
 # init parser
 parser = argparse.ArgumentParser(add_help=False)
 parser.add_argument('--runserver', action='store_true')
+parser.add_argument('--reload', action='store_true')
 args = parser.parse_args()
 
 
@@ -18,6 +19,7 @@ def main():
             log_level='info',
             workers=WORKERS,
             host=SERVER_HOST,
+            reload=args.reload
         )
 
 
