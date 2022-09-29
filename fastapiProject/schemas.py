@@ -159,7 +159,7 @@ class ProductResponseModel(BaseModel):
     id: int
     type: int
     name: str
-    description: str
+    description: str | None
     variations: List[ProductsVariousResponseModel]
 
 
@@ -176,6 +176,7 @@ class OrderResponseModel(BaseModel):
     status: str
     products: List[SmallProductResponseModel]
 
+    # TODO
     @staticmethod
     def to_dict(order: models.Order) -> dict:
         products = []

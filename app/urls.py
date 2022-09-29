@@ -125,7 +125,7 @@ async def get_favicon_svg():
              response_model=schemas.OrderNumberResponseModel)
 async def make_order(order_inf: schemas.OrderIn,
                      customer: Customer = Depends(get_not_baned_user),
-                     db: Session = Depends(get_db())):
+                     db: Session = Depends(get_db)):
     coffee_house: CoffeeHouse = db.query(CoffeeHouse).filter_by(id=order_inf.coffee_house).one()
     order = Order(coffee_house_id=coffee_house.id,
                   customer_id=customer.id,
@@ -155,7 +155,7 @@ async def make_order(order_inf: schemas.OrderIn,
             description='Служит для отмены заказа')
 async def cancel_order(order_number: int,
                        customer: Customer = Depends(get_current_active_user),
-                       db: Session = Depends(get_db())):
+                       db: Session = Depends(get_db)):
     if db.query(Order).filter_by(id=order_number, customer_id=customer.id).delete() == 0:
         raise HTTPException(status_code=400, detail='Заказ не найден.')
     try:
@@ -192,7 +192,7 @@ async def update_token(customer: Customer = Depends(get_current_user)):
              response_description='Ничего не возвращает')
 async def create_login_code(customer_data: schemas.Customer,
                             background_tasks: BackgroundTasks,
-                            db: Session = Depends(get_db())):
+                            db: Session = Depends(get_db)):
     customer = db.query(Customer).filter_by(phone_number=customer_data.phone_number).one_or_none()
     if customer is None:
         raise HTTPException(status_code=400,
@@ -215,11 +215,12 @@ async def create_login_code(customer_data: schemas.Customer,
     return "Success"
 
 
+# TEST db.get(User, id) - instance or None
 # TEST verify_lc
 @router.get('/verify_login_code',
             description='Для проверки login кода и получения jwt-токена',
             response_description='Возвращает jwt-токен')
-async def verify_login_code(code: int, db: Session = Depends(get_db())):
+async def verify_login_code(code: int, db: Session = Depends(get_db)):
     login_code: LoginCode = db.query(LoginCode).filter_by(code=code).one_or_none()
     if login_code is None:
         raise HTTPException(status_code=401, detail='Неверный код подтверждения.')
@@ -234,7 +235,7 @@ async def verify_login_code(code: int, db: Session = Depends(get_db())):
             description="Возвращает историю заказов",
             response_model=List[schemas.OrderResponseModel])
 async def get_my_order_history(customer: Customer = Depends(get_current_active_user),
-                               db: Session = Depends(get_db())):
+                               db: Session = Depends(get_db)):
     orders = []
     for order in db.query(Order).filter_by(customer_id=customer).all():
         orders.append(schemas.OrderResponseModel.to_dict(order))
@@ -254,7 +255,7 @@ async def get_me(customer: Customer = Depends(get_current_user)):
             description='Возвращает последний заказ пользователя',
             response_model=schemas.OrderResponseModel)
 async def get_last_order(customer: Customer = Depends(get_current_active_user),
-                         db: Session = Depends(get_db())):
+                         db: Session = Depends(get_db)):
     order = db.query(Order).filter_by(customer_id=customer.id).join(Customer).order_by(Order.id.desc()).first()
     if len(order) == 0:
         return None
@@ -266,7 +267,7 @@ async def get_last_order(customer: Customer = Depends(get_current_active_user),
             description='Возвращает активные заказы пользователя',
             response_model=List[schemas.OrderResponseModel])
 async def get_active_orders(customer: Customer = Depends(get_current_active_user),
-                            db: Session = Depends(get_db())):
+                            db: Session = Depends(get_db)):
     orders = db.query(Order).filter(Order.customer_id == customer.id, Order.status.in_([0, 1, 5])).order_by(
         Order.id.desc()).all()
     return [schemas.OrderResponseModel.to_dict(order) for order in orders]
@@ -292,7 +293,7 @@ async def send_bugreport(background_tasks: BackgroundTasks,
             response_model=schemas.Customer)
 async def change_customer_name(new_name: constr(strip_whitespace=True) = Body(...),
                                customer: Customer = Depends(get_current_user),
-                               db: Session = Depends(get_db())):
+                               db: Session = Depends(get_db)):
     if len(new_name) > 20:
         raise HTTPException(status_code=422, detail='Длина имени не может превышать 20 символов')
     customer.name = new_name
@@ -312,7 +313,7 @@ async def get_user_is_confirmed(customer: Customer = Depends(get_current_user)):
             description='Сверить последнюю дату обновления БД',
             response_model=schemas.MenuResponseModel)
 async def check_menu_update(time: datetime = None,
-                            db: Session = Depends(get_db())):
+                            db: Session = Depends(get_db)):
     menu_update = db.query(MenuUpdateTime).one_or_none()
     if menu_update.time == time:
         return None
