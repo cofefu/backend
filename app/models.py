@@ -100,7 +100,7 @@ class CoffeeHouse(Base):
 
 class Worktime(Base):
     # __tablename__ = 'worktime'
-    coffee_house = Column(Integer, ForeignKey('coffeehouses.id', ondelete='CASCADE'))
+    coffee_house_id = Column(Integer, ForeignKey('coffeehouses.id', ondelete='CASCADE'))
     day_of_week = Column(
         # Enum(
         #     'Понедельник',
@@ -126,9 +126,9 @@ class Topping(Base):
 
 
 class ToppingToProduct(Base):
-    ordered_product = Column(Integer, ForeignKey('orderedproduct', ondelete='CASCADE'))
+    ordered_product_id = Column(Integer, ForeignKey('orderedproduct.id', ondelete='CASCADE'))
     # backref = 'toppings'
-    topping = Column(Integer, ForeignKey('toppings', ondelete='CASCADE'))
+    topping_id = Column(Integer, ForeignKey('toppings.id', ondelete='CASCADE'))
 
 
 class LoginCode(Base):
@@ -139,14 +139,14 @@ class LoginCode(Base):
 
 
 class BlackList(Base):
-    customer = Column(Integer, ForeignKey('customers', ondelete='CASCADE'), unique=True)
+    customer_id = Column(Integer, ForeignKey('customers.id', ondelete='CASCADE'), unique=True)
     # backref = 'bans'
     expire = Column(Time, nullable=True)  # если null - это бан навсегда ???
     forever = Column(Boolean, default=False)
 
 
 class OrderCancelReason(Base):
-    order = Column(Integer, ForeignKey('orders', ondelete='CASCADE'), unique=True)
+    order_id = Column(Integer, ForeignKey('orders.id', ondelete='CASCADE'), unique=True)
     # backref = 'cancel_reason'
     reason = Column(String(150))
 
