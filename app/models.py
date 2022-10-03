@@ -126,7 +126,7 @@ class Topping(Base):
 
 
 class ToppingToProduct(Base):
-    ordered_product_id = Column(Integer, ForeignKey('orderedproduct.id', ondelete='CASCADE'))
+    ordered_product_id = Column(Integer, ForeignKey('orderedproducts.id', ondelete='CASCADE'))
     # backref = 'toppings'
     topping_id = Column(Integer, ForeignKey('toppings.id', ondelete='CASCADE'))
 
