@@ -9,7 +9,7 @@ from fastapiProject.settings import DATABASE
 def db_url():
     return f"{DATABASE.get('engine')}" \
            f"{f'+{x}' if (x := DATABASE.get('driver')) else ''}://" \
-           f"{f'{x}' if (x := DATABASE.get('password')) else ''}" \
+           f"{f'{x}' if (x := DATABASE.get('user')) else ''}" \
            f"{f':{x}' if (x := DATABASE.get('password')) else ''}" \
            f"{f'@{x}' if (x := DATABASE.get('host')) else ''}" \
            f"{f':{x}' if (x := DATABASE.get('port')) else ''}/" \
