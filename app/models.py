@@ -4,7 +4,7 @@ from typing import Optional
 
 from sqlalchemy import (Column, Boolean, BigInteger, Integer, String, Enum, DateTime, ForeignKey,
                         CheckConstraint, Time)
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, Session
 import sqlalchemy
 
 import db
@@ -18,65 +18,65 @@ class Customer(Base):
     orders = relationship('Order')
     telegram_id = Column(BigInteger, nullable=True)
     chat_id = Column(BigInteger, nullable=True)
-
-    @property  # REDO
-    def ban(self):
-        return self.bans.get_or_none()
+    ban = relationship("BlackList", uselist=False)
 
     def __str__(self):
         return f'<{self.name=}, {self.phone_number=}, {self.confirmed=}, {self.telegram_id=}, {self.chat_id=}>'
 
 
+class ProductTypes(enum.Enum):
+    coffee = 'Кофе'
+    no_coffee = 'Не кофе'
+
+
 class Product(Base):
-    type = Column(Integer, nullable=False)
+    type = Column(Enum(ProductTypes))
     variations = relationship('ProductVarious')  # One to Many (ForeignKey in related)
     name = Column(String(50))
     description = Column(String(200), nullable=True)
     img = Column(String(200), nullable=True)
 
     def __str__(self):
-        return f'name: {self.name}'
+        return f'<{self.name=}>'
 
-    def get_type_name(self):
-        return 'Not implemented'
+
+class ProductSizes(enum.Enum):
+    S = 'S'
+    M = 'M'
+    L = 'L'
 
 
 class ProductVarious(Base):
     __tablename__ = 'productvarious'
 
     product_id = Column(ForeignKey('products.id', ondelete='CASCADE'))
-    size = Column(Integer, CheckConstraint('size >= 0'), nullable=False)  # REDO need constraint?
-    price = Column(Integer, CheckConstraint('size >= 0'))
+    size = Column(Enum(ProductSizes))
+    price = Column(Integer)
 
-    def get_size_name(self):
-        return 'Not implemented'
+
+class OrderStatuses(enum.Enum):
+    waiting = 'В ожидании'
+    accepted = 'Принят в работу'
+    rejected = 'Отклонен'
+    taken = 'Отдан покупателю'
+    no_taken = 'Не забран покупателем'
+    ready = 'Готов'
 
 
 class Order(Base):
     coffee_house_id = Column(Integer, ForeignKey('coffeehouses.id', ondelete='SET NULL'), nullable=True)
     customer_id = Column(Integer, ForeignKey('customers.id', ondelete='SET NULL'), nullable=True)
-    ordered_products = relationship('OrderedProduct')
     comment = Column(String(200), nullable=True)
-    time = Column(Time)
+    time = Column(DateTime(timezone=True))
     creation_time = Column(DateTime, default=datetime.utcnow)
-    status = Column(
-        # Enum(
-        #     'В ожидании',
-        #     'Принят в работу',
-        #     'Отклонен',
-        #     'Отдан покупателю',
-        #     'Не забран покупателем',
-        #     'Готов'
-        # ),
-        Integer, nullable=False,
-        default=0
-    )
+    status = Column(Enum(OrderStatuses), default=OrderStatuses.waiting)
+    ordered_products = relationship('OrderedProduct')
+    cancel_reason = relationship("OrderCancelReason", uselist=False)
 
     def get_status_name(self):
-        if self.status == 2:
-            return 'Отклонен' if (reason := self.cancel_reason.get_or_none()) is None else reason.reason
-        return dict(self.OrderStatus)[self.status]
+        return self.status.value if self.cancel_reason is None else self.cancel_reason.reason
 
+    # todo переписать
     # def save(self, *args, **kwargs):
     #     super(Order, self).save(*args, **kwargs)
     #     if self.status == 4:
@@ -93,31 +93,27 @@ class OrderedProduct(Base):
 class CoffeeHouse(Base):
     name = Column(String(20))
     placement = Column(String(20))
-    # worktime = relationship('Worktime')
+    worktime = relationship('Worktime')
     chat_id = Column(BigInteger)
     is_open = Column(Boolean)
+
+
+class DaysOfWeek(enum.Enum):
+    monday = 'Понедельник'
+    tuesday = 'Вторник'
+    wednesday = 'Среда'
+    thursday = 'Четверг'
+    friday = 'Пятница'
+    saturday = 'Суббота'
+    sunday = 'Воскресенье'
 
 
 class Worktime(Base):
     # __tablename__ = 'worktime'
     coffee_house_id = Column(Integer, ForeignKey('coffeehouses.id', ondelete='CASCADE'))
-    day_of_week = Column(
-        # Enum(
-        #     'Понедельник',
-        #     'Вторник',
-        #     'Среда',
-        #     'Четверг',
-        #     'Пятница',
-        #     'Суббота',
-        #     'Воскресенье',
-        # )
-        Integer, nullable=False
-    )
+    day_of_week = Column(Enum(DaysOfWeek))
     open_time = Column(Time)
     close_time = Column(Time)
-
-    def get_day_of_week_name(self):
-        return dict(self.DaysOfWeek)[self.day_of_week]
 
 
 class Topping(Base):
@@ -127,7 +123,6 @@ class Topping(Base):
 
 class ToppingToProduct(Base):
     ordered_product_id = Column(Integer, ForeignKey('orderedproducts.id', ondelete='CASCADE'))
-    # backref = 'toppings'
     topping_id = Column(Integer, ForeignKey('toppings.id', ondelete='CASCADE'))
 
 
@@ -135,19 +130,17 @@ class LoginCode(Base):
     customer_id = Column(Integer, ForeignKey('customers.id', ondelete='CASCADE'))
     customer = relationship('Customer')  # Many to One (ForeignKey here)
     code = Column(Integer, unique=True)
-    expire = Column(Time)
+    expire = Column(DateTime)
 
 
 class BlackList(Base):
     customer_id = Column(Integer, ForeignKey('customers.id', ondelete='CASCADE'), unique=True)
-    # backref = 'bans'
     expire = Column(Time, nullable=True)  # если null - это бан навсегда ???
     forever = Column(Boolean, default=False)
 
 
 class OrderCancelReason(Base):
     order_id = Column(Integer, ForeignKey('orders.id', ondelete='CASCADE'), unique=True)
-    # backref = 'cancel_reason'
     reason = Column(String(150))
 
 
@@ -166,9 +159,7 @@ __all__ = ['Customer', 'Product', 'CoffeeHouse', 'Order', 'Worktime', 'ProductVa
 
 # TODO remove
 if __name__ == '__main__':
-    ses = db.SessionLocal()
-    print(ses.query(Order).filter_by(id=37).delete())
-    ses.commit()
+    Base.metadata.create_all(engine)
 
 
 # todo перенести куда-нибудь эту функцию
@@ -176,18 +167,23 @@ def ban_customer(customer: Customer, expire: datetime, forever: bool = False) ->
     if customer is None:
         return
 
-    ban: BlackList = customer.ban
-    if ban is None:
-        return BlackList.create(customer=customer, expire=expire, forever=forever)
+    sess: Session
+    with db.SessionLocal() as sess:
+        ban: BlackList = customer.ban
+        if ban is None:
+            new_ban = BlackList(customer_id=customer.id, expire=expire, forever=forever)
+            sess.add(new_ban)
+            sess.commit()
+            return new_ban
 
-    if forever:
-        ban.forever = forever
-        ban.save()
+        if forever:
+            ban.forever = forever
+            sess.commit()
+            return ban
+
+        if ban.expire < expire:
+            ban.expire = expire
+            sess.commit()
+            return ban
+
         return ban
-
-    if ban.expire < expire:
-        ban.expire = expire
-        ban.save()
-        return ban
-
-    return ban
