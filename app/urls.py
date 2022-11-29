@@ -14,7 +14,7 @@ from app.models import (ProductVarious, Product, Topping, CoffeeHouse, Customer,
                         Order, OrderedProduct, ToppingToProduct, LoginCode, Worktime, MenuUpdateTime)
 from fastapiProject import schemas
 from fastapiProject.scheduler import scheduler
-from fastapiProject.settings import JWT_SECRET_KEY, JWT_ALGORITHM
+from fastapiProject.settings import settings
 from bot.bot_funcs import send_order, send_login_code, send_feedback_to_telegram, send_bugreport_to_telegram
 from app.dependencies import get_current_active_user, get_current_user, get_not_baned_user, timeout_is_over, get_db
 
@@ -26,7 +26,7 @@ def create_token(customer: Customer) -> str:
         "sub": str(customer.phone_number),
         "exp": datetime.utcnow() + timedelta(days=14)
     }
-    return jwt.encode(user_data, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
+    return jwt.encode(user_data, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
 
 
 @router.get('/products',

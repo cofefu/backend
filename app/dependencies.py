@@ -5,9 +5,9 @@ from jose import jwt, JWTError, ExpiredSignatureError
 from sqlalchemy.orm import Session
 
 from app.models import Customer, Order
-from fastapiProject.settings import JWT_SECRET_KEY, JWT_ALGORITHM, ORDER_TIMEOUT
 
 from db import SessionLocal
+from fastapiProject.settings import settings
 
 
 def get_db():
@@ -20,7 +20,7 @@ def get_db():
 
 def decode_jwt_token(jwt_token: str = Header(...)) -> dict:
     try:
-        return jwt.decode(jwt_token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+        return jwt.decode(jwt_token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])
     except ExpiredSignatureError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Срок действия токена истек.')
     except JWTError:
@@ -65,6 +65,6 @@ def timeout_is_over(customer: Customer = Depends(get_current_active_user), db: S
     if last_order is None:
         return
 
-    if datetime.utcnow() - last_order.creation_time <= ORDER_TIMEOUT:
+    if datetime.utcnow() - last_order.creation_time <= settings.order_timeout:
         raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
                             detail=f'С момента последнего заказа прошло менее 2 минут')

@@ -1,9 +1,9 @@
 from datetime import datetime
 
-from fastapiProject.settings import FEEDBACK_CHAT
 from bot import bot
 from app.models import *
 from bot.keyboards import gen_order_confirmed_buttons
+from fastapiProject.settings import settings
 
 
 def gen_order_msg_text(order_number: int) -> str:
@@ -44,14 +44,14 @@ def send_login_code(login_code: LoginCode):
 
 def send_feedback_to_telegram(msg: str):
     msg = '<b>FEED BACK</b>\n' + msg
-    bot.send_message(chat_id=FEEDBACK_CHAT, text=msg, parse_mode='HTML')
+    bot.send_message(chat_id=settings.feedback_chat, text=msg, parse_mode='HTML')
 
 
 def send_bugreport_to_telegram(msg: str, customer: Customer = None):
     msg_text = '<b>BUG REPORT</b>\n' + msg
     if customer:
         msg_text += f'\n<b>Номер телефона: +7{customer.phone_number}</b>'
-    bot.send_message(chat_id=FEEDBACK_CHAT, text=msg_text, parse_mode='HTML')
+    bot.send_message(chat_id=settings.feedback_chat, text=msg_text, parse_mode='HTML')
 
 
 def notify_order_change(order: Order):

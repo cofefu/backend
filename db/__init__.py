@@ -2,24 +2,10 @@ from sqlalchemy import create_engine, Column, Integer
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, declared_attr, Session
 
-from fastapiProject.settings import DATABASE
-
-
-# DATA_BASE_URL = "dialect+driver://username:password@host:port/database"
-def db_url():
-    return f"{DATABASE.get('engine')}" \
-           f"{f'+{x}' if (x := DATABASE.get('driver')) else ''}://" \
-           f"{f'{x}' if (x := DATABASE.get('user')) else ''}" \
-           f"{f':{x}' if (x := DATABASE.get('password')) else ''}" \
-           f"{f'@{x}' if (x := DATABASE.get('host')) else ''}" \
-           f"{f':{x}' if (x := DATABASE.get('port')) else ''}/" \
-           f"{DATABASE.get('name')}"
-
-
-DATABASE_URL = db_url()
+from fastapiProject.settings import settings
 
 engine = create_engine(
-    DATABASE_URL,
+    settings.database_url,
     # connect_args={"check_same_thread": False}  # SQLite
 )
 
