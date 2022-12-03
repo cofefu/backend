@@ -1,21 +1,21 @@
-from datetime import datetime
-
 from bot import bot
 from app.models import *
 from bot.keyboards import gen_order_confirmed_buttons
+from db import SessionLocal
 from fastapiProject.settings import settings
 
 
 def gen_order_msg_text(order_number: int) -> str:
-    order = Order.get_or_none(order_number)
-    products = OrderedProduct.select().where(OrderedProduct.order == order)
+    db = SessionLocal()
+    order: Order = db.get(Order, order_number)
+    products: list[OrderedProduct, ...] = db.query(OrderedProduct).filter_by(order_id=order_number).all()
 
     message = f'<b>Заказ №{order_number}</b>\n'
     message += f'<i>Содержание:</i>\n'
 
     for prod in products:
-        message += f'  - {prod.product.product.name}, размер {prod.product.get_size_name()}'
-        for top in ToppingToProduct.select().where(ToppingToProduct.ordered_product == prod):
+        message += f'  - {prod.product.product.name}, размер {prod.product.size.value}'
+        for top in db.query(ToppingToProduct).filter_by(ordered_product_id=prod.id):
             message += f' + {top.topping.name}'
         message += '\n'
 
@@ -26,15 +26,18 @@ def gen_order_msg_text(order_number: int) -> str:
     message += f'<i>Имя покупателя:</i> {order.customer.name}\n'
     message += f'<i>Телефон покупателя:</i> +7{order.customer.phone_number}\n'
 
+    db.close()
     return message
 
 
 def send_order(order_number: int):
-    if (order := Order.get_or_none(order_number)) is not None:
+    db = SessionLocal()
+    if (order := db.get(Order, order_number)) is not None:
         bot.send_message(chat_id=order.coffee_house.chat_id,
                          text=gen_order_msg_text(order_number),
                          parse_mode='HTML',
                          reply_markup=gen_order_confirmed_buttons(order_number))
+    db.close()
 
 
 def send_login_code(login_code: LoginCode):

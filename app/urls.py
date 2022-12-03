@@ -126,23 +126,26 @@ async def get_favicon_svg():
 async def make_order(order_inf: schemas.OrderIn,
                      customer: Customer = Depends(get_not_baned_user),
                      db: Session = Depends(get_db)):
-    coffee_house: CoffeeHouse = db.query(CoffeeHouse).filter_by(id=order_inf.coffee_house).one()
+    ordered_products: list[OrderedProduct, ...] = []
+    for p in order_inf.products:
+        toppings: list[Topping, ...] = []
+        for top_id in p.toppings:
+            toppings.append(ToppingToProduct(topping_id=top_id))
+        ordered_products.append(OrderedProduct(product_id=p.id, toppings=toppings))
+
+    coffee_house: CoffeeHouse = db.get(CoffeeHouse, order_inf.coffee_house)
     order = Order(coffee_house_id=coffee_house.id,
                   customer_id=customer.id,
                   time=order_inf.time,
-                  comment=order_inf.comment)
+                  comment=order_inf.comment,
+                  ordered_products=ordered_products)
     db.add(order)
     db.commit()
-    for p in order_inf.products:
-        prod: ProductVarious = db.query(ProductVarious).filter_by(id=p.id).one()
-        order_prod = OrderedProduct(order=order, product=prod)
-        for top in p.toppings:
-            topping = ToppingToProduct(ordered_product=order_prod, topping=top)
 
     scheduler.add_job(send_order,
                       'date',
                       timezone='utc',
-                      run_date=datetime.utcnow() + timedelta(minutes=1),
+                      run_date=datetime.utcnow() + settings.order_timeout,
                       replace_existing=True,
                       args=[order.id],
                       id=str(order.id))
@@ -256,10 +259,10 @@ async def get_me(customer: Customer = Depends(get_current_user)):
             response_model=schemas.OrderResponseModel)
 async def get_last_order(customer: Customer = Depends(get_current_active_user),
                          db: Session = Depends(get_db)):
-    order = db.query(Order).filter_by(customer_id=customer.id).join(Customer).order_by(Order.id.desc()).first()
-    if len(order) == 0:
+    order = db.query(Order).filter_by(customer_id=customer.id).order_by(Order.id.desc()).first()
+    if order is None:
         return None
-    return schemas.OrderResponseModel.to_dict(order[0])
+    return schemas.OrderResponseModel.to_dict(order)
 
 
 @router.get('/active_orders',

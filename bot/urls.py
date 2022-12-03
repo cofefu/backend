@@ -4,8 +4,9 @@ from fastapi import APIRouter
 import telebot
 from pydantic import AnyHttpUrl
 
-from app.models import Order, ban_customer, Customer
+from app.models import Order, ban_customer, Customer, OrderStatuses
 from bot.filters import bind_bot_filters
+from db import SessionLocal
 from fastapiProject.settings import settings
 
 from bot.keyboards import gen_send_contact_button
@@ -33,9 +34,13 @@ def set_webhook():
 
 
 def order_not_picked(order: Order):
+    db = SessionLocal()
     customer = order.customer
-    if len(customer.customer_orders.where(Order.status == 4)) >= 3:
+    if db.query(Order) \
+            .filter_by(customer_id=customer.id, status=OrderStatuses.no_taken) \
+            .count() >= settings.max_not_picked_orders:
         ban_customer(customer, datetime.utcnow(), forever=True)
+    db.close()
 
 
 @router.post(f'/{B_TOKEN}/', include_in_schema=False)

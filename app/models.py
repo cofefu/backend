@@ -11,13 +11,25 @@ import db
 from db import Base, engine
 
 
+def get_or_create(session: Session, model, **kwargs):
+    instance = session.query(model).filter_by(**kwargs).first()
+    if instance:
+        return instance, False
+    else:
+        instance = model(**kwargs)
+        session.add(instance)
+        session.commit()
+        return instance, True
+
+
 class Customer(Base):
     name = Column(String(20))
     phone_number = Column(String(10))
     confirmed = Column(Boolean(False))
-    orders = relationship('Order')
     telegram_id = Column(BigInteger, nullable=True)
     chat_id = Column(BigInteger, nullable=True)
+
+    orders = relationship('Order', back_populates='customer')
     ban = relationship("BlackList", uselist=False)
 
     def __str__(self):
@@ -31,10 +43,11 @@ class ProductTypes(enum.Enum):
 
 class Product(Base):
     type = Column(Enum(ProductTypes))
-    variations = relationship('ProductVarious')  # One to Many (ForeignKey in related)
     name = Column(String(50))
     description = Column(String(200), nullable=True)
     img = Column(String(200), nullable=True)
+
+    variations = relationship('ProductVarious', back_populates='product')  # One to Many (ForeignKey in related)
 
     def __str__(self):
         return f'<{self.name=}>'
@@ -53,6 +66,8 @@ class ProductVarious(Base):
     size = Column(Enum(ProductSizes))
     price = Column(Integer)
 
+    product = relationship('Product', back_populates='variations')
+
 
 class OrderStatuses(enum.Enum):
     waiting = 'В ожидании'
@@ -70,6 +85,9 @@ class Order(Base):
     time = Column(DateTime(timezone=True))
     creation_time = Column(DateTime, default=datetime.utcnow)
     status = Column(Enum(OrderStatuses), default=OrderStatuses.waiting)
+
+    customer = relationship('Customer', back_populates='orders')
+    coffee_house = relationship('CoffeeHouse')
     ordered_products = relationship('OrderedProduct')
     cancel_reason = relationship("OrderCancelReason", uselist=False)
 
@@ -87,25 +105,28 @@ class Order(Base):
 class OrderedProduct(Base):
     order_id = Column(Integer, ForeignKey('orders.id', ondelete='CASCADE'))
     product_id = Column(Integer, ForeignKey('productvarious.id', ondelete='CASCADE'))
+
     product = relationship('ProductVarious')
+    toppings = relationship('ToppingToProduct')
 
 
 class CoffeeHouse(Base):
     name = Column(String(20))
     placement = Column(String(20))
-    worktime = relationship('Worktime')
     chat_id = Column(BigInteger)
     is_open = Column(Boolean)
 
+    worktime = relationship('Worktime')
+
 
 class DaysOfWeek(enum.Enum):
-    monday = 'Понедельник'
-    tuesday = 'Вторник'
-    wednesday = 'Среда'
-    thursday = 'Четверг'
-    friday = 'Пятница'
-    saturday = 'Суббота'
-    sunday = 'Воскресенье'
+    monday = 0
+    tuesday = 1
+    wednesday = 2
+    thursday = 3
+    friday = 4
+    saturday = 5
+    sunday = 6
 
 
 class Worktime(Base):
@@ -121,16 +142,20 @@ class Topping(Base):
     price = Column(Integer, CheckConstraint('price >= 0'))
 
 
+# todo maybe change to ARRAY(Integer) in OrderedProduct
 class ToppingToProduct(Base):
     ordered_product_id = Column(Integer, ForeignKey('orderedproducts.id', ondelete='CASCADE'))
     topping_id = Column(Integer, ForeignKey('toppings.id', ondelete='CASCADE'))
 
+    topping = relationship('Topping')
+
 
 class LoginCode(Base):
     customer_id = Column(Integer, ForeignKey('customers.id', ondelete='CASCADE'))
-    customer = relationship('Customer')  # Many to One (ForeignKey here)
     code = Column(Integer, unique=True)
     expire = Column(DateTime)
+
+    customer = relationship('Customer')  # Many to One (ForeignKey here)
 
 
 class BlackList(Base):
@@ -155,7 +180,7 @@ class MenuUpdateTime(Base):
 
 __all__ = ['Customer', 'Product', 'CoffeeHouse', 'Order', 'Worktime', 'ProductVarious', 'OrderedProduct',
            'ToppingToProduct', 'Topping', 'LoginCode', 'BlackList', 'ban_customer', 'OrderCancelReason', 'FSM',
-           'MenuUpdateTime']
+           'MenuUpdateTime', 'OrderStatuses', 'ProductTypes', 'ProductSizes']
 
 # TODO remove
 if __name__ == '__main__':

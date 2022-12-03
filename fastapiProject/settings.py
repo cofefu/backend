@@ -56,6 +56,8 @@ class Settings(BaseSettings):
     workers: int = 1
     api_prefix: str = ''
 
+    max_not_picked_orders: int = 2
+    max_product_in_order: int = 5
     order_timeout: timedelta = timedelta()
 
     class Config:

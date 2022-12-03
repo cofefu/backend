@@ -4,6 +4,7 @@ from telebot.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMar
 from app.models import Order
 from bot.filters import order_callback_confirmed, order_callback_done, order_callback_ready, order_cancel_reason, \
     CancelReasons, special_problem
+from db import SessionLocal
 
 
 def gen_send_contact_button() -> ReplyKeyboardMarkup:
@@ -64,31 +65,37 @@ def gen_order_cancel_reasons_buttons(order_number: int) -> InlineKeyboardMarkup:
 
 def gen_bad_mix_button(order_number: int) -> InlineKeyboardMarkup:
     markup_btns = InlineKeyboardMarkup(row_width=1)
-    for prod in Order.get_by_id(order_number).ordered_products:
+    db = SessionLocal()
+    for prod in db.get(Order, order_number).ordered_products:
         markup_btns.add(InlineKeyboardButton(prod.product.product.name,
                                              callback_data=special_problem.new(order_number,
                                                                                prod.product.product.id,
                                                                                CancelReasons.bad_mix)))
+    db.close()
     return markup_btns
 
 
 def gen_no_product_button(order_number: int) -> InlineKeyboardMarkup:
     markup_btns = InlineKeyboardMarkup(row_width=1)
-    for prod in Order.get_by_id(order_number).ordered_products:
+    db = SessionLocal()
+    for prod in db.get(Order, order_number).ordered_products:
         markup_btns.add(InlineKeyboardButton(prod.product.product.name,
                                              callback_data=special_problem.new(order_number,
                                                                                prod.product.product.id,
                                                                                CancelReasons.no_product)))
+    db.close()
     return markup_btns
 
 
 def gen_no_topping_button(order_number: int) -> InlineKeyboardMarkup:
     markup_btns = InlineKeyboardMarkup(row_width=1)
-    for prod in Order.get_by_id(order_number).ordered_products:
+    db = SessionLocal()
+    for prod in db.get(Order, order_number).ordered_products:
         for top in prod.toppings:
             markup_btns.add(InlineKeyboardButton(top.topping.name,
                                                  callback_data=special_problem.new(order_number,
                                                                                    top.topping.id,
                                                                                    CancelReasons.no_topping)))
+    db.close()
 
     return markup_btns
