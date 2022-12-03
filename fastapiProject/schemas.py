@@ -4,16 +4,19 @@ from typing import List, Optional
 from fastapi import HTTPException
 from pydantic import BaseModel, validator, constr
 from pytz import timezone
+from sqlalchemy.orm import Session
 
 from app import models
-from app.models import CoffeeHouse, ProductVarious, Topping, Worktime
+from app.models import CoffeeHouse, ProductVarious, Topping, Worktime, DaysOfWeek
+from db import SessionLocal
+from fastapiProject.settings import settings
 
 time_breaks = (
-    datetime(year=2022, month=1, day=1, hour=10),
-    datetime(year=2022, month=1, day=1, hour=11, minute=40),
-    datetime(year=2022, month=1, day=1, hour=13, minute=20),
-    datetime(year=2022, month=1, day=1, hour=15),
-    datetime(year=2022, month=1, day=1, hour=16, minute=40)
+    datetime(year=datetime.now().year, month=1, day=1, hour=10),
+    datetime(year=datetime.now().year, month=1, day=1, hour=11, minute=40),
+    datetime(year=datetime.now().year, month=1, day=1, hour=13, minute=20),
+    datetime(year=datetime.now().year, month=1, day=1, hour=15),
+    datetime(year=datetime.now().year, month=1, day=1, hour=16, minute=40)
 )
 
 
@@ -52,16 +55,20 @@ class Product(BaseModel):
 
     @validator('id')
     def product_validator(cls, prod: int):
-        if ProductVarious.get_or_none(ProductVarious.id == prod) is None:
-            raise HTTPException(status_code=400, detail=f"Несуществующий идентификатор продукта: {prod}")
-        return prod
+        db: Session
+        with SessionLocal() as db:
+            if db.get(ProductVarious, prod) is None:
+                raise HTTPException(status_code=400, detail=f"Несуществующий идентификатор продукта: {prod}")
+            return prod
 
     @validator('toppings')
     def toppings_validator(cls, toppings: List[int]):
-        for top in toppings:
-            if Topping.get_or_none(Topping.id == top) is None:
-                raise HTTPException(status_code=400, detail=f'Несуществующий идентификатор топинга: {top}')
-        return toppings
+        db: Session
+        with SessionLocal() as db:
+            for top_id in toppings:
+                if db.get(Topping, top_id) is None:
+                    raise HTTPException(status_code=400, detail=f'Несуществующий идентификатор топинга: {top_id}')
+            return toppings
 
 
 class OrderIn(BaseModel):
@@ -91,43 +98,48 @@ class OrderIn(BaseModel):
 
     @validator('coffee_house')
     def coffeehouse_validator(cls, coffee_house: str):
-        if CoffeeHouse.get_or_none(CoffeeHouse.id == coffee_house) is None:
-            raise HTTPException(status_code=400, detail=f"Несуществующий идентификатор кофейни: {coffee_house}")
-        return coffee_house
+        db: Session
+        with SessionLocal() as db:
+            if db.get(CoffeeHouse, coffee_house) is None:
+                raise HTTPException(status_code=400, detail=f"Несуществующий идентификатор кофейни: {coffee_house}")
+            return coffee_house
 
     @validator('time')
     def time_validator(cls, order_time: datetime, values: dict):
-        if 'coffee_house' not in values:
+        if values.get('coffee_house') is None:
             return order_time
-        house = CoffeeHouse.get_or_none(id=values['coffee_house'])
+        db: Session
+        with SessionLocal() as db:
+            house: CoffeeHouse = db.get(CoffeeHouse, values.get('coffee_house'))
 
-        order_time = timezone('Asia/Vladivostok').localize(order_time)
-        now = datetime.now(tz=timezone('Asia/Vladivostok'))
-        min_time = min_order_preparation_time(order_time)
-        max_time = timedelta(hours=5)
-        if not (min_time - timedelta(seconds=10) <= order_time - now <= max_time):
-            raise HTTPException(status_code=400,
-                                detail=f"Неправильное время заказа. Минимальное время приготовления заказа - "
-                                       f"{min_time.seconds // 60} минут")
+            order_time = timezone('Asia/Vladivostok').localize(order_time)
+            now = datetime.now(tz=timezone('Asia/Vladivostok'))
+            min_time = min_order_preparation_time(order_time)
+            max_time = timedelta(hours=5)
+            if not (min_time - timedelta(seconds=10) <= order_time - now <= max_time):
+                raise HTTPException(status_code=400,
+                                    detail=f"Неправильное время заказа. Минимальное время приготовления заказа - "
+                                           f"{min_time.seconds // 60} минут")
 
-        weekday = datetime.now(tz=timezone('Asia/Vladivostok')).weekday()
-        worktime = Worktime.get_or_none(
-            (Worktime.coffee_house == house) &
-            (Worktime.day_of_week == weekday))
-        if worktime is None or (not house.is_open):
-            raise HTTPException(status_code=400, detail="Кофейня закрыта")
+            weekday = datetime.now(tz=timezone('Asia/Vladivostok')).weekday()
+            worktime: Worktime = (db.query(Worktime)
+                                  .filter_by(coffee_house_id=house.id, day_of_week=DaysOfWeek(weekday))
+                                  .first())
+            if worktime is None or (not house.is_open):
+                raise HTTPException(status_code=400, detail="Кофейня закрыта")
 
-        open_time = worktime.open_time
-        close_time = worktime.close_time
-        if not open_time <= order_time.time() <= close_time:
-            raise HTTPException(status_code=400, detail="Кофейня закрыта")
+            open_time = worktime.open_time
+            close_time = worktime.close_time
+            if not open_time <= order_time.time() <= close_time:
+                raise HTTPException(status_code=400, detail="Кофейня закрыта")
 
-        return order_time
+            return order_time
 
     @validator('products')
     def products_validator(cls, products: list):
-        if len(products) > 5:
-            raise HTTPException(status_code=400, detail=f"Нельзя заказать более 5 продуктов из меню.")
+        if len(products) > settings.max_product_in_order:
+            raise HTTPException(status_code=400,
+                                detail=f"Нельзя заказать более {settings.max_product_in_order} продуктов из меню.")
         return products
 
 
@@ -159,7 +171,7 @@ class ProductResponseModel(BaseModel):
     id: int
     type: int
     name: str
-    description: str
+    description: str | None
     variations: List[ProductsVariousResponseModel]
 
 
