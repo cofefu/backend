@@ -7,7 +7,7 @@ from pytz import timezone
 from sqlalchemy.orm import Session
 
 from app import models
-from app.models import CoffeeHouse, ProductVarious, Topping, Worktime, DaysOfWeek
+from app.models import CoffeeHouse, ProductVarious, Topping, Worktime, DaysOfWeek, ProductSizes, ProductTypes
 from db import SessionLocal
 from fastapiProject.settings import settings
 
@@ -153,7 +153,7 @@ class CoffeeHouseResponseModel(BaseModel):
 
 class ProductsVariousResponseModel(BaseModel):
     id: int
-    size: int
+    size: ProductSizes
     price: int
 
 
@@ -169,7 +169,7 @@ class ToppingsResponseModel(BaseModel):
 
 class ProductResponseModel(BaseModel):
     id: int
-    type: int
+    type: ProductTypes
     name: str
     description: str | None
     variations: List[ProductsVariousResponseModel]
