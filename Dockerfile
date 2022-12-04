@@ -17,6 +17,6 @@ COPY manage.py /code/
 COPY requirements.txt /code/
 
 
-RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
+RUN pip install --no-cache-dir -r /code/requirements.txt
 
 CMD ["python3", "manage.py", "--runserver"]
