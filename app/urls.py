@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from pytz import timezone
 
 from app.models import (ProductVarious, Product, Topping, CoffeeHouse, Customer,
-                        Order, OrderedProduct, ToppingToProduct, LoginCode, Worktime, MenuUpdateTime)
+                        Order, OrderedProduct, ToppingToProduct, LoginCode, Worktime, MenuUpdateTime, DaysOfWeek)
 from fastapiProject import schemas
 from fastapiProject.scheduler import scheduler
 from fastapiProject.settings import settings
@@ -55,8 +55,8 @@ async def get_coffeehouses(db: Session = Depends(get_db)):
 
         weekday = datetime.now(tz=timezone('Asia/Vladivostok')).weekday()
         worktime = db.query(Worktime).filter(
-            Worktime.coffee_house == house.id,
-            Worktime.day_of_week == weekday
+            Worktime.coffee_house_id == house.id,
+            Worktime.day_of_week == DaysOfWeek(weekday)
         ).one_or_none()
 
         if worktime is None or (not house.is_open):
