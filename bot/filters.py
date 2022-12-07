@@ -58,7 +58,7 @@ class FSMFilter(AdvancedCustomFilter):
     def check(self, message: types.Message, state):
         with SessionLocal() as db:
             db: Session
-            if fsm := db.query(FSM).filter_by(telegram_id=message.from_user.id):
+            if fsm := db.query(FSM).filter_by(telegram_id=message.from_user.id).first():
                 return fsm.state == state
             return False
 
