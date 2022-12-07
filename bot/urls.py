@@ -26,7 +26,7 @@ def set_webhook():
         scheme='https',
         host=settings.domain,
         port=str(settings.bot_port),
-        path=f'{settings.bot_prefix}/bot/{B_TOKEN}/'
+        path=f'/{settings.bot_prefix}/bot/{B_TOKEN}/'
     )
     if bot.get_webhook_info().url != webhook_url:
         bot.remove_webhook()
