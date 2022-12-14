@@ -1,4 +1,4 @@
-FROM python:3.10-slim as builder
+FROM python:3.10-alpine as builder
 
 WORKDIR /code
 
@@ -9,7 +9,7 @@ RUN pip install -U pip
 RUN pip wheel --no-cache-dir --no-deps --wheel-dir /code/wheels -r requirements.txt
 
 
-FROM python:3.10-slim
+FROM python:3.10-alpine
 
 WORKDIR /code
 
