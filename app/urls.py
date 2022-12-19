@@ -317,7 +317,7 @@ async def get_user_is_confirmed(customer: Customer = Depends(get_current_user)):
             response_model=schemas.MenuResponseModel)
 async def check_menu_update(time: datetime = None,
                             db: Session = Depends(get_db)):
-    menu_update = db.query(MenuUpdateTime).one_or_none()
+    menu_update = db.query(MenuUpdateTime).one_or_none()  # redo падает, если menu_update = None
     if menu_update.time == time:
         return None
     return {
