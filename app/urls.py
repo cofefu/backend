@@ -139,13 +139,12 @@ async def make_order(order_inf: schemas.OrderIn,
                   time=order_inf.time,
                   comment=order_inf.comment,
                   ordered_products=ordered_products)
-    db.add(order)
-    db.commit()
+    order.save(db)
 
     scheduler.add_job(send_order,
                       'date',
                       timezone='utc',
-                      run_date=datetime.utcnow() + settings.order_timeout,
+                      run_date=datetime.utcnow() + settings.time_to_cancel_order,
                       replace_existing=True,
                       args=[order.id],
                       id=str(order.id))
@@ -240,7 +239,7 @@ async def verify_login_code(code: int, db: Session = Depends(get_db)):
 async def get_my_order_history(customer: Customer = Depends(get_current_active_user),
                                db: Session = Depends(get_db)):
     orders = []
-    for order in db.query(Order).filter_by(customer_id=customer).all():
+    for order in db.query(Order).filter_by(customer_id=customer.id).all():
         orders.append(schemas.OrderResponseModel.to_dict(order))
     return orders
 
