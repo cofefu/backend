@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     db_port: int = 5432
     db_name: str
     database_url: PostgresDsn = None
+    test_database_url: PostgresDsn = None
 
     @validator("database_url")
     def assemble_db_connection(cls, v: str | None, values: dict) -> str:
@@ -59,6 +60,7 @@ class Settings(BaseSettings):
     max_not_picked_orders: int = 2
     max_product_in_order: int = 5
     order_timeout: timedelta = timedelta()
+    time_to_cancel_order = timedelta()
 
     class Config:
         env_file = './.env'
