@@ -118,6 +118,7 @@ async def get_favicon_svg():
 
 
 # REDO make_order
+# TEST
 @router.post('/make_order',
              dependencies=[Depends(timeout_is_over)],
              tags=['jwt require'],
@@ -264,6 +265,7 @@ async def get_last_order(customer: Customer = Depends(get_current_active_user),
     return schemas.OrderResponseModel.to_dict(order)
 
 
+# TEST
 @router.get('/active_orders',
             tags=['jwt require'],
             description='Возвращает активные заказы пользователя',
@@ -300,7 +302,7 @@ async def change_customer_name(new_name: constr(strip_whitespace=True) = Body(..
         raise HTTPException(status_code=422, detail='Длина имени не может превышать 20 символов')
     customer.name = new_name
     customer.save(db)
-    return customer  # TEST without .data()
+    return customer.data()
 
 
 @router.get('/is_confirmed',
@@ -317,10 +319,11 @@ async def get_user_is_confirmed(customer: Customer = Depends(get_current_user)):
 async def check_menu_update(time: datetime = None,
                             db: Session = Depends(get_db)):
     menu_update = db.query(MenuUpdateTime).one_or_none()  # redo падает, если menu_update = None
-    if menu_update.time == time:
+    latest_update = menu_update.time if menu_update else None
+    if latest_update == time:
         return None
     return {
-        "time": menu_update.time,
+        "time": latest_update,
         "products": await get_products(),
         "toppings": await get_toppings()
     }

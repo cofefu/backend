@@ -206,3 +206,48 @@ def test_make_order(client: TestClient, db: Session):
     )
     assert response.text == 'hello'
     assert response.status_code == 200
+
+
+def test_feedback(client: TestClient):
+    response = client.post(
+        'api/feedback',
+        json="Все круто!",
+    )
+    assert response.status_code == 200
+
+
+def test_bugreport(client: TestClient, db: Session):
+    customer = get_or_create_customer(db)
+    response = client.post(
+        'api/bugreport',
+        json="Ничего не работает",
+        headers={"jwt-token": create_token(customer)},
+    )
+    assert response.status_code == 200
+
+
+def test_change_name(client: TestClient, db: Session):
+    customer = get_or_create_customer(db)
+    response = client.put(
+        'api/change_name',
+        json="andrey",
+        headers={"jwt-token": create_token(customer)},
+    )
+    assert response.status_code == 200
+
+
+def test_phone_confirmed(client: TestClient, db: Session):
+    customer = get_or_create_customer(db)
+    response = client.get(
+        'api/is_confirmed',
+        headers={"jwt-token": create_token(customer)}
+    )
+    assert response.status_code == 200
+    assert bool(response.json) == bool(customer.confirmed)
+
+
+def test_get_menu(client: TestClient):
+    response = client.get(
+        'api/menu',
+    )
+    assert response.status_code == 200
