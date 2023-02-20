@@ -1,33 +1,42 @@
-import peewee
+from sqlalchemy import create_engine, Column, Integer
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker, declared_attr, Session
 
-from fastapiProject.settings import DATABASE
+from fastapiProject.settings import settings
 
-Engine = getattr(peewee, f'{DATABASE.pop("engine", None)}Database', None)
-if Engine is None:
-    raise ImportError('The database engine is specified incorrectly')
-
-db = Engine(
-    DATABASE.pop('name', None),
-    **DATABASE
+engine = create_engine(
+    settings.database_url,
+    # connect_args={"check_same_thread": False}  # SQLite
 )
 
-
-def get_data(inst):
-    if isinstance(inst, BaseModel):
-        return inst.data()
-    return inst
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
-class BaseModel(peewee.Model):
-    def data(self, **kwargs) -> dict:
-        """Returns a dictionary with fields, excluding hidden_fields"""
-        fields = set(self.__data__.keys()).union(set(kwargs.pop('fields', '')))
-        fields -= set(kwargs.pop('hide', ''))
+class Base(declarative_base()):
+    __abstract__ = True
 
-        if fields is None:
-            return self.__data__
-        return {k: get_data(getattr(self, k)) for k in self.__data__.keys() if k in fields}
+    id = Column(Integer, primary_key=True, index=True, unique=True, autoincrement=True)
 
-    class Meta:
-        database = db
-        order_by = 'id'
+    # created_at = Column(TIMESTAMP, nullable=False)
+    # updated_at = Column(TIMESTAMP, nullable=False)
+
+    @declared_attr
+    def __tablename__(cls):
+        return f'{cls.__name__.lower()}s'
+
+    def data(self, *args: str) -> dict:
+        """args: names of fields to hide"""
+        hidden = {'_sa_instance_state'}.union(args)
+        return {k: v for k, v in self.__dict__.items() if k not in hidden}
+
+    def save(self, db: Session):
+        db.add(self)
+        db.commit()
+        db.refresh(self)
+
+    def delete(self, db: Session):
+        db.delete(self)
+        db.commit()
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__}(id={self.id!r})>"

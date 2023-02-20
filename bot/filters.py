@@ -6,6 +6,8 @@ from telebot.callback_data import CallbackData, CallbackDataFilter
 
 from app.models import FSM
 from bot import bot
+from db import SessionLocal
+from sqlalchemy.orm import Session
 
 order_callback_confirmed = CallbackData("order_number", "status", prefix="order_confirmed")
 order_callback_done = CallbackData("order_number", "status", prefix='order_done')
@@ -54,9 +56,11 @@ class FSMFilter(AdvancedCustomFilter):
     key = 'state'
 
     def check(self, message: types.Message, state):
-        if fsm := FSM.get_or_none(FSM.telegram_id == message.from_user.id):
-            return fsm.state == state
-        return False
+        with SessionLocal() as db:
+            db: Session
+            if fsm := db.query(FSM).filter_by(telegram_id=message.from_user.id).first():
+                return fsm.state == state
+            return False
 
 
 def bind_bot_filters():

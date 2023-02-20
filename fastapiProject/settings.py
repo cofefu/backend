@@ -1,46 +1,69 @@
-import os
+import pathlib
+from functools import lru_cache
+
+from pydantic import BaseSettings, PostgresDsn, validator
 from datetime import timedelta
 from pathlib import Path
 
-from dotenv import load_dotenv
 
-load_dotenv()
+@lru_cache
+class Settings(BaseSettings):
+    base_dir: pathlib.WindowsPath = Path(__file__).resolve().parent.parent
+    apps: tuple[str, ...] = ('app', 'bot')
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+    db_engine: str = 'postgresql'
+    db_user: str = 'postgres'
+    db_password: str
+    db_host: str = 'localhost'
+    db_port: int = 5432
+    db_name: str
+    database_url: PostgresDsn = None
+    test_database_url: PostgresDsn = None
 
-APPS = (
-    'app',
-    'bot',
-)
+    @validator("database_url")
+    def assemble_db_connection(cls, v: str | None, values: dict) -> str:
+        if isinstance(v, str):
+            return v
+        # "scheme://user:password@host:port/path"
+        return PostgresDsn.build(
+            scheme=values.get('db_engine'),
+            user=values.get('db_user'),
+            password=values.get('db_password'),
+            host=values.get('db_host'),
+            port=str(values.get('db_port')),
+            path=f"/{values.get('db_name')}"
+        )
 
-DEBUG = bool(os.getenv('DEBUG', False))
-DEV = bool(os.getenv('DEV', False))
+    allow_origins: list[str, ...] | str = ['*']
 
-DATABASE = {
-    'engine': os.getenv('DB_ENGINE'),
-    'name': os.getenv('DB_NAME'),
-    'user': os.getenv('DB_USER'),
-    'password': os.getenv('DB_PASSWORD'),
-    'host': os.getenv('DB_HOST'),
-    'port': os.getenv('DB_PORT'),
-}
+    @validator('allow_origins')
+    def setup_allow_origins(cls, v: list[str, ...] | str):
+        if isinstance(v, list):
+            return v
+        return list(v.split(','))
 
-ALLOW_ORIGINS = [
-    'https://cofefu.ru'
-] if not (DEV or DEBUG) else ['*']
+    server_host: str = '127.0.0.1'
+    server_port: int = 8000
 
-SERVER_HOST = os.getenv('SERVER_HOST', '127.0.0.1')
-SERVER_PORT = int(os.getenv('SERVER_PORT', 8000))
+    bot_token: str
+    bot_port: int = 443
+    bot_prefix: str = ''
+    feedback_chat: str
+    domain: str
 
-BOT_TOKEN = os.getenv('BOT_TOKEN')
-BOT_PORT = os.getenv('BOT_PORT', 443)
-FEEDBACK_CHAT = os.getenv('FEEDBACK_CHAT')
-DOMAIN = os.getenv('DOMAIN')
+    jwt_secret_key: str
+    jwt_algorithm: str = 'HS256'
 
-JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY')
-JWT_ALGORITHM = 'HS256'
+    workers: int = 1
+    api_prefix: str = ''
 
-WORKERS = int(os.getenv('WORKERS', 1))
-API_PREFIX = '/dev' if DEV else ''
+    max_not_picked_orders: int = 2
+    max_product_in_order: int = 5
+    order_timeout: timedelta = timedelta()
+    time_to_cancel_order = timedelta()
 
-ORDER_TIMEOUT = timedelta() if (DEV or DEBUG) else timedelta(minutes=2)
+    class Config:
+        env_file = './.env'
+
+
+settings = Settings()

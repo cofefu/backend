@@ -2,11 +2,12 @@
 import argparse
 import uvicorn
 
-from fastapiProject.settings import SERVER_PORT, SERVER_HOST, WORKERS
+from fastapiProject.settings import settings
 
 # init parser
 parser = argparse.ArgumentParser(add_help=False)
 parser.add_argument('--runserver', action='store_true')
+parser.add_argument('--reload', action='store_true')
 args = parser.parse_args()
 
 
@@ -14,10 +15,11 @@ def main():
     if args.runserver:
         uvicorn.run(
             'fastapiProject.main:app',
-            port=SERVER_PORT,
+            port=settings.server_port,
             log_level='info',
-            workers=WORKERS,
-            host=SERVER_HOST,
+            workers=settings.workers,
+            host=settings.server_host,
+            reload=args.reload
         )
 
 
