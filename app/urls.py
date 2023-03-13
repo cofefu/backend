@@ -324,6 +324,6 @@ async def check_menu_update(time: datetime = None,
         return None
     return {
         "time": latest_update,
-        "products": await get_products(),
-        "toppings": await get_toppings()
+        "products": await get_products(db),
+        "toppings": await get_toppings(db)
     }
