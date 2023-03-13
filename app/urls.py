@@ -11,7 +11,8 @@ from datetime import datetime, timedelta
 from pytz import timezone
 
 from app.models import (ProductVarious, Product, Topping, CoffeeHouse, Customer,
-                        Order, OrderedProduct, ToppingToProduct, LoginCode, Worktime, MenuUpdateTime, DaysOfWeek)
+                        Order, OrderedProduct, ToppingToProduct, LoginCode, Worktime, MenuUpdateTime, DaysOfWeek,
+                        ProductSizes)
 from fastapiProject import schemas
 from fastapiProject.scheduler import scheduler
 from fastapiProject.settings import settings
@@ -38,6 +39,14 @@ async def get_products(db: Session = Depends(get_db)):
     for product in db.query(Product).all():
         product_with_vars = product.data()
         product_var = [var.data() for var in product.variations]
+        for var in product_var:  # todo temp patch
+            match var['size']:
+                case ProductSizes.S:
+                    var['size'] = 0
+                case ProductSizes.M:
+                    var['size'] = 1
+                case ProductSizes.L:
+                    var['size'] = 2
         product_with_vars.update({'variations': product_var})
         products.append(product_with_vars)
 
