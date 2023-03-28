@@ -130,7 +130,8 @@ class DaysOfWeek(enum.Enum):
 
 
 class Worktime(Base):
-    # __tablename__ = 'worktime'
+    __tablename__ = 'worktime'
+
     coffee_house_id = Column(Integer, ForeignKey('coffeehouses.id', ondelete='CASCADE'))
     day_of_week = Column(Enum(DaysOfWeek))
     open_time = Column(Time)
@@ -159,6 +160,8 @@ class LoginCode(Base):
 
 
 class BlackList(Base):
+    __tablename__ = 'blacklist'
+
     customer_id = Column(Integer, ForeignKey('customers.id', ondelete='CASCADE'), unique=True)
     expire = Column(Time, nullable=True)  # если null - это бан навсегда ???
     forever = Column(Boolean, default=False)
@@ -170,6 +173,8 @@ class OrderCancelReason(Base):
 
 
 class FSM(Base):
+    __tablename__ = 'fsm'
+
     telegram_id = Column(BigInteger, unique=True)
     state = Column(Integer, nullable=True)
 
