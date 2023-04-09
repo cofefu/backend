@@ -193,7 +193,7 @@ async def update_token(customer: Customer = Depends(get_current_user)):
 @router.post('/send_login_code',
              description='Отправляет пользователю код для подтверждения входа',
              response_description='Ничего не возвращает')
-async def create_login_code(customer_data: schemas.Customer,
+async def create_login_code(customer_data: schemas.Customer,  # todo change to phone_number
                             background_tasks: BackgroundTasks,
                             db: Session = Depends(get_db)):
     customer = db.query(Customer).filter_by(phone_number=customer_data.phone_number).one_or_none()
