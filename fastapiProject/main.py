@@ -2,7 +2,6 @@ import importlib
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
 from fastapiProject.settings import settings
 
 tags_metadata = [
@@ -20,7 +19,7 @@ app = FastAPI(
     openapi_tags=tags_metadata,
     docs_url='/api/docs',
     redoc_url='/api/redoc',
-    openapi_prefix=settings.api_prefix,
+    root_path=settings.api_prefix,
     openapi_url='/api/openapi.json',
 )
 
