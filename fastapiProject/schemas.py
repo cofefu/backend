@@ -153,7 +153,7 @@ class CoffeeHouseResponseModel(BaseModel):
 
 class ProductsVariousResponseModel(BaseModel):
     id: int
-    size: int  # ProductSizes  todo temp patch
+    size: ProductSizes
     price: int
 
 
