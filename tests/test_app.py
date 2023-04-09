@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from app.models import Customer, LoginCode
 from app.urls import create_token
 from tests.utils import get_random_order, get_or_create_customer, get_or_create_product, get_or_create_product_various, \
-    get_or_create_topping, get_or_create_coffee_house
+    get_or_create_topping, get_or_create_coffee_house, get_or_create_any_customer_order
 
 
 def test_get_products(client: TestClient):
@@ -22,16 +22,20 @@ def test_get_coffee_houses(client: TestClient):
 
 
 def test_get_existing_order_status(client: TestClient, db: Session):
-    if order := get_random_order(db):
-        response = client.get(f'api/order_status/{order.id}')
-        assert response.status_code == 200
-        assert response.json == order.get_status_name()
+    customer = get_or_create_customer(db)
+    order = get_or_create_any_customer_order(db, customer)
+    response = client.get(
+        f'api/order_status/{order.id}',
+        headers={"jwt-token": create_token(customer)},
+    )
+    assert response.status_code == 200
+    assert response.json() == order.get_status_name()
 
 
 def test_get_products_various(client: TestClient, db: Session):
-    if order := get_random_order(db):
-        response = client.get(f'api/products_various/{order.id}')
-        assert response.status_code == 200
+    product = get_or_create_product(db)
+    response = client.get(f'api/products_various/{product.id}')
+    assert response.status_code == 200
 
 
 def test_get_toppings(client: TestClient):

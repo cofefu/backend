@@ -1,3 +1,6 @@
+from datetime import datetime, timedelta
+
+from pytz import timezone
 from sqlalchemy.orm import Session
 from app.models import Order, Customer, Product, ProductVarious, Topping, ProductTypes, ProductSizes, CoffeeHouse, \
     DaysOfWeek, Worktime
@@ -5,6 +8,22 @@ from app.models import Order, Customer, Product, ProductVarious, Topping, Produc
 
 def get_random_order(db: Session) -> Order:
     return db.query(Order).first()
+
+
+def create_customer_order(db: Session, customer: Customer) -> Order:
+    new_order = Order(
+        coffee_house_id=get_or_create_coffee_house(db).id,
+        customer_id=customer.id,
+        time=datetime.now(tz=timezone('Asia/Vladivostok')) + timedelta(minutes=20)
+    )
+    new_order.save(db)
+    return new_order
+
+
+def get_or_create_any_customer_order(db: Session, customer: Customer) -> Order:
+    if order := db.query(Order).filter_by(customer_id=customer.id).first():
+        return order
+    return create_customer_order(db, customer)
 
 
 def get_or_create_customer(db: Session) -> Customer:
