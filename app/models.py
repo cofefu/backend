@@ -25,7 +25,6 @@ class Customer(Base):
     id = None
     phone_number = Column(BigInteger, primary_key=True, index=True)
     name = Column(String(20))
-    confirmed = Column(Boolean(False))
     telegram_id = Column(BigInteger, nullable=True)
     chat_id = Column(BigInteger, nullable=True)
 
