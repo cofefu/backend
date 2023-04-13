@@ -67,9 +67,9 @@ def gen_bad_mix_button(order_number: int) -> InlineKeyboardMarkup:
     markup_btns = InlineKeyboardMarkup(row_width=1)
     db = SessionLocal()
     for prod in db.get(Order, order_number).ordered_products:
-        markup_btns.add(InlineKeyboardButton(prod.product.product.name,
+        markup_btns.add(InlineKeyboardButton(prod.product_various.product_various.name,
                                              callback_data=special_problem.new(order_number,
-                                                                               prod.product.product.id,
+                                                                               prod.product_various.product_various.id,
                                                                                CancelReasons.bad_mix)))
     db.close()
     return markup_btns
@@ -79,9 +79,9 @@ def gen_no_product_button(order_number: int) -> InlineKeyboardMarkup:
     markup_btns = InlineKeyboardMarkup(row_width=1)
     db = SessionLocal()
     for prod in db.get(Order, order_number).ordered_products:
-        markup_btns.add(InlineKeyboardButton(prod.product.product.name,
+        markup_btns.add(InlineKeyboardButton(prod.product_various.product_various.name,
                                              callback_data=special_problem.new(order_number,
-                                                                               prod.product.product.id,
+                                                                               prod.product_various.product_various.id,
                                                                                CancelReasons.no_product)))
     db.close()
     return markup_btns

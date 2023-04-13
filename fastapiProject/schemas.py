@@ -195,7 +195,7 @@ class OrderResponseModel(BaseModel):
             toppings = []
             for top in prod.toppings:
                 toppings.append(top.topping.id)
-            products.append({"id": prod.product.id, "toppings": toppings})
+            products.append({"id": prod.product_various.id, "toppings": toppings})
         data = {
             "order_number": order.id,
             "coffee_house": order.coffee_house.id,

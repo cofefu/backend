@@ -2,15 +2,14 @@ import enum
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import (Column, Boolean, BigInteger, Integer, String, Enum, DateTime, ForeignKey,
-                        CheckConstraint, Time)
+from sqlalchemy import (Column, Boolean, BigInteger, Integer, String, Enum, DateTime, ForeignKey, Time)
 from sqlalchemy.orm import relationship, Session
-import sqlalchemy
 
 import db
 from db import Base, engine
 
 
+# todo засунуть в Base и переписать
 def get_or_create(session: Session, model, **kwargs):
     instance = session.query(model).filter_by(**kwargs).first()
     if instance:
@@ -23,8 +22,9 @@ def get_or_create(session: Session, model, **kwargs):
 
 
 class Customer(Base):
+    id = None
+    phone_number = Column(BigInteger, primary_key=True, index=True)
     name = Column(String(20))
-    phone_number = Column(String(10))
     confirmed = Column(Boolean(False))
     telegram_id = Column(BigInteger, nullable=True)
     chat_id = Column(BigInteger, nullable=True)
@@ -36,16 +36,32 @@ class Customer(Base):
         return f'<{self.name=}, {self.phone_number=}, {self.confirmed=}, {self.telegram_id=}, {self.chat_id=}>'
 
 
-class ProductTypes(enum.Enum):
-    coffee = 'Кофе'
-    no_coffee = 'Не кофе'
+class CoffeeHouse(Base):
+    id = None
+    name = Column(String(20), primary_key=True, index=True)
+    is_active = Column(Boolean(True))
+
+
+class CoffeeHouseBranch(Base):
+    placement = Column(String(20))
+    chat_id = Column(BigInteger)
+    is_active = Column(Boolean(True))
+    coffee_house_name = Column(ForeignKey('coffeehouses.name', ondelete='CASCADE'))
+
+    worktime = relationship('Worktime')
+
+
+class ProductType(Base):
+    id = None
+    name = Column(String(20), primary_key=True, index=True)
 
 
 class Product(Base):
-    type = Column(Enum(ProductTypes))
     name = Column(String(50))
     description = Column(String(200), nullable=True)
-    img = Column(String(200), nullable=True)
+    is_active = Column(Boolean(True))
+    type_name = Column(ForeignKey('producttypes.name', ondelete='RESTRICT'))
+    coffee_house_name = Column(ForeignKey('coffeehouses.name', ondelete='CASCADE'))
 
     variations = relationship('ProductVarious', back_populates='product')  # One to Many (ForeignKey in related)
 
@@ -53,20 +69,26 @@ class Product(Base):
         return f'<{self.name=}>'
 
 
-class ProductSizes(enum.Enum):
-    S = 'S'
-    M = 'M'
-    L = 'L'
+class ProductSize(Base):
+    id = None
+    name = Column(String(4), primary_key=True, index=True)
 
 
 class ProductVarious(Base):
     __tablename__ = 'productvarious'
 
-    product_id = Column(ForeignKey('products.id', ondelete='CASCADE'))
-    size = Column(Enum(ProductSizes))
     price = Column(Integer)
+    product_id = Column(ForeignKey('products.id', ondelete='CASCADE'))
+    size_name = Column(ForeignKey('productsizes.name', ondelete='RESTRICT'))
 
     product = relationship('Product', back_populates='variations')
+
+
+class Topping(Base):
+    name = Column(String(100))
+    price = Column(Integer)
+    is_active = Column(Boolean(True))
+    coffee_house_name = Column(ForeignKey('coffeehouses.name', ondelete='CASCADE'))
 
 
 class OrderStatuses(enum.Enum):
@@ -76,23 +98,26 @@ class OrderStatuses(enum.Enum):
     taken = 'Отдан покупателю'
     no_taken = 'Не забран покупателем'
     ready = 'Готов'
+    cart = 'В корзине'
 
 
 class Order(Base):
-    coffee_house_id = Column(Integer, ForeignKey('coffeehouses.id', ondelete='SET NULL'), nullable=True)
-    customer_id = Column(Integer, ForeignKey('customers.id', ondelete='SET NULL'), nullable=True)
+    id = Column(BigInteger, primary_key=True, index=True, autoincrement=True)
+    order_number = Column(String(3), nullable=True)
+    coffee_house_branch_id = Column(ForeignKey('coffeehousebranchs.id', ondelete='SET NULL'), nullable=True)
+    customer_phone_number = Column(ForeignKey('customers.phone_number', ondelete='SET NULL'), nullable=True)
     comment = Column(String(200), nullable=True)
     time = Column(DateTime(timezone=True))
     creation_time = Column(DateTime, default=datetime.utcnow)
     status = Column(Enum(OrderStatuses), default=OrderStatuses.waiting)
+    cancel_reason = Column(String(150), nullable=True)
 
     customer = relationship('Customer', back_populates='orders')
     coffee_house = relationship('CoffeeHouse')
     ordered_products = relationship('OrderedProduct')
-    cancel_reason = relationship("OrderCancelReason", uselist=False)
 
     def get_status_name(self):
-        return self.status.value if self.cancel_reason is None else self.cancel_reason.reason
+        return self.status.value if self.cancel_reason is None else self.cancel_reason
 
     # todo переписать
     # def save(self, *args, **kwargs):
@@ -103,20 +128,18 @@ class Order(Base):
 
 
 class OrderedProduct(Base):
-    order_id = Column(Integer, ForeignKey('orders.id', ondelete='CASCADE'))
-    product_id = Column(Integer, ForeignKey('productvarious.id', ondelete='CASCADE'))
+    order_id = Column(ForeignKey('orders.id', ondelete='CASCADE'))
+    product_various_id = Column(ForeignKey('productvarious.id', ondelete='CASCADE'))
 
-    product = relationship('ProductVarious')
+    product_various = relationship('ProductVarious')
     toppings = relationship('ToppingToProduct')
 
 
-class CoffeeHouse(Base):
-    name = Column(String(20))
-    placement = Column(String(20))
-    chat_id = Column(BigInteger)
-    is_open = Column(Boolean)
+class ToppingToProduct(Base):
+    ordered_product_id = Column(ForeignKey('orderedproducts.id', ondelete='CASCADE'))
+    topping_id = Column(ForeignKey('toppings.id', ondelete='CASCADE'))
 
-    worktime = relationship('Worktime')
+    topping = relationship('Topping')
 
 
 class DaysOfWeek(enum.Enum):
@@ -132,28 +155,16 @@ class DaysOfWeek(enum.Enum):
 class Worktime(Base):
     __tablename__ = 'worktime'
 
-    coffee_house_id = Column(Integer, ForeignKey('coffeehouses.id', ondelete='CASCADE'))
+    coffee_house_branch_id = Column(ForeignKey('coffeehousebranchs.id', ondelete='CASCADE'))
     day_of_week = Column(Enum(DaysOfWeek))
     open_time = Column(Time)
     close_time = Column(Time)
 
 
-class Topping(Base):
-    name = Column(String(100))
-    price = Column(Integer, CheckConstraint('price >= 0'))
-
-
-# todo maybe change to ARRAY(Integer) in OrderedProduct
-class ToppingToProduct(Base):
-    ordered_product_id = Column(Integer, ForeignKey('orderedproducts.id', ondelete='CASCADE'))
-    topping_id = Column(Integer, ForeignKey('toppings.id', ondelete='CASCADE'))
-
-    topping = relationship('Topping')
-
-
 class LoginCode(Base):
-    customer_id = Column(Integer, ForeignKey('customers.id', ondelete='CASCADE'))
-    code = Column(Integer, unique=True)
+    id = None
+    code = Column(Integer, primary_key=True, index=True)
+    customer_phone_number = Column(ForeignKey('customers.phone_number', ondelete='CASCADE'))
     expire = Column(DateTime)
 
     customer = relationship('Customer')  # Many to One (ForeignKey here)
@@ -162,14 +173,9 @@ class LoginCode(Base):
 class BlackList(Base):
     __tablename__ = 'blacklist'
 
-    customer_id = Column(Integer, ForeignKey('customers.id', ondelete='CASCADE'), unique=True)
+    id = None
+    customer = Column(ForeignKey('customers.phone_number', ondelete='CASCADE'), primary_key=True, index=True)
     expire = Column(Time, nullable=True)  # если null - это бан навсегда ???
-    forever = Column(Boolean, default=False)
-
-
-class OrderCancelReason(Base):
-    order_id = Column(Integer, ForeignKey('orders.id', ondelete='CASCADE'), unique=True)
-    reason = Column(String(150))
 
 
 class FSM(Base):
@@ -181,11 +187,12 @@ class FSM(Base):
 
 class MenuUpdateTime(Base):
     time = Column(DateTime)
+    coffee_house_name = Column()
 
 
-__all__ = ['Customer', 'Product', 'CoffeeHouse', 'Order', 'Worktime', 'ProductVarious', 'OrderedProduct',
-           'ToppingToProduct', 'Topping', 'LoginCode', 'BlackList', 'ban_customer', 'OrderCancelReason', 'FSM',
-           'MenuUpdateTime', 'OrderStatuses', 'ProductTypes', 'ProductSizes']
+__all__ = ['Customer', 'CoffeeHouse', 'CoffeeHouseBranch', 'ProductType', 'Product', 'ProductSize', 'ProductVarious',
+           'Topping', 'OrderStatuses', 'Order', 'OrderedProduct', 'ToppingToProduct', 'DaysOfWeek', 'Worktime',
+           'LoginCode', 'BlackList', 'FSM', 'MenuUpdateTime']
 
 # TODO remove
 if __name__ == '__main__':

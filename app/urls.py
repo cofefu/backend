@@ -55,7 +55,7 @@ async def get_coffeehouses(db: Session = Depends(get_db)):
 
         weekday = datetime.now(tz=timezone('Asia/Vladivostok')).weekday()
         worktime = db.query(Worktime).filter(
-            Worktime.coffee_house_id == house.id,
+            Worktime.coffee_house_branch_id == house.id,
             Worktime.day_of_week == DaysOfWeek(weekday)
         ).one_or_none()
 
