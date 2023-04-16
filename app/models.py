@@ -38,13 +38,13 @@ class Customer(Base):
 class CoffeeHouse(Base):
     id = None
     name = Column(String(20), primary_key=True, index=True)
-    is_active = Column(Boolean(True))
+    is_active = Column(Boolean, default=True, nullable=False)
 
 
 class CoffeeHouseBranch(Base):
     placement = Column(String(20))
     chat_id = Column(BigInteger)
-    is_active = Column(Boolean(True))
+    is_active = Column(Boolean, default=True, nullable=False)
     coffee_house_name = Column(ForeignKey('coffeehouses.name', ondelete='CASCADE'))
 
     worktime = relationship('Worktime')
@@ -58,7 +58,7 @@ class ProductType(Base):
 class Product(Base):
     name = Column(String(50))
     description = Column(String(200), nullable=True)
-    is_active = Column(Boolean(True))
+    is_active = Column(Boolean, default=True, nullable=False)
     type_name = Column(ForeignKey('producttypes.name', ondelete='RESTRICT'))
     coffee_house_name = Column(ForeignKey('coffeehouses.name', ondelete='CASCADE'))
 
@@ -86,7 +86,7 @@ class ProductVarious(Base):
 class Topping(Base):
     name = Column(String(100))
     price = Column(Integer)
-    is_active = Column(Boolean(True))
+    is_active = Column(Boolean, default=True, nullable=False)
     coffee_house_name = Column(ForeignKey('coffeehouses.name', ondelete='CASCADE'))
 
 
@@ -112,7 +112,7 @@ class Order(Base):
     cancel_reason = Column(String(150), nullable=True)
 
     customer = relationship('Customer', back_populates='orders')
-    coffee_house = relationship('CoffeeHouse')
+    coffee_house = relationship('CoffeeHouseBranch')
     ordered_products = relationship('OrderedProduct')
 
     def get_status_name(self):
