@@ -186,7 +186,7 @@ class FSM(Base):
 
 class MenuUpdateTime(Base):
     time = Column(DateTime)
-    coffee_house_name = Column()
+    coffee_house_name = Column(ForeignKey('coffeehouses.name', ondelete='CASCADE'))
 
 
 __all__ = ['Customer', 'CoffeeHouse', 'CoffeeHouseBranch', 'ProductType', 'Product', 'ProductSize', 'ProductVarious',
