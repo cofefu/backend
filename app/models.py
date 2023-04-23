@@ -39,6 +39,7 @@ class Customer(Base):
 class ProductTypes(enum.Enum):
     coffee = 'Кофе'
     no_coffee = 'Не кофе'
+    special = 'Special'
 
 
 class Product(Base):
