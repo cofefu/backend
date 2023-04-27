@@ -15,7 +15,7 @@ def gen_order_msg_text(order_number: int) -> str:
 
     for prod in products:
         message += f'  - {prod.product_various.product_various.name}, размер {prod.product_various.size.value}'
-        for top in db.query(ToppingToProduct).filter_by(ordered_product_id=prod.id):
+        for top in db.query(Topping2OrderedProduct).filter_by(ordered_product_id=prod.id):
             message += f' + {top.topping.name}'
         message += '\n'
 

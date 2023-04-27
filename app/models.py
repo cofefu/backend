@@ -55,6 +55,17 @@ class ProductType(Base):
     name = Column(String(20), primary_key=True, index=True)
 
 
+class Tag(Base):
+    id = None
+    name = Column(String(20), primary_key=True, index=True)
+
+
+class Tag2Product(Base):
+    id = None
+    tag_name = Column(ForeignKey('tags.name', ondelete='CASCADE'), primary_key=True)
+    product_id = Column(ForeignKey('products.id', ondelete='CASCADE'), primary_key=True, index=True)
+
+
 class Product(Base):
     name = Column(String(50))
     description = Column(String(200), nullable=True)
@@ -63,6 +74,7 @@ class Product(Base):
     coffee_house_name = Column(ForeignKey('coffeehouses.name', ondelete='CASCADE'))
 
     variations = relationship('ProductVarious', back_populates='product')  # One to Many (ForeignKey in related)
+    tags = relationship('Tag', secondary=Tag2Product, backref='product')
 
     def __str__(self):
         return f'<{self.name=}>'
@@ -134,7 +146,7 @@ class OrderedProduct(Base):
     toppings = relationship('ToppingToProduct')
 
 
-class ToppingToProduct(Base):
+class Topping2OrderedProduct(Base):
     ordered_product_id = Column(ForeignKey('orderedproducts.id', ondelete='CASCADE'))
     topping_id = Column(ForeignKey('toppings.id', ondelete='CASCADE'))
 
@@ -190,7 +202,7 @@ class MenuUpdateTime(Base):
 
 
 __all__ = ['Customer', 'CoffeeHouse', 'CoffeeHouseBranch', 'ProductType', 'Product', 'ProductSize', 'ProductVarious',
-           'Topping', 'OrderStatuses', 'Order', 'OrderedProduct', 'ToppingToProduct', 'DaysOfWeek', 'Worktime',
+           'Topping', 'OrderStatuses', 'Order', 'OrderedProduct', 'Topping2OrderedProduct', 'DaysOfWeek', 'Worktime',
            'LoginCode', 'BlackList', 'FSM', 'MenuUpdateTime']
 
 # TODO remove
