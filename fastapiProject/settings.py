@@ -62,6 +62,10 @@ class Settings(BaseSettings):
     order_timeout: timedelta = timedelta()
     time_to_cancel_order = timedelta()
 
+    sbis_app_client_id: str | None
+    sbis_app_secret: str | None
+    sbis_secret_key: str | None
+
     class Config:
         env_file = './.env'
 
