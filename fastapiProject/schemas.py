@@ -7,7 +7,7 @@ from pytz import timezone
 from sqlalchemy.orm import Session
 
 from app import models
-from app.models import CoffeeHouse, ProductVarious, Topping, Worktime, DaysOfWeek, ProductSizes, ProductTypes
+from app.models import CoffeeHouse, ProductVarious, Topping, Worktime, DaysOfWeek, ProductSize, ProductType
 from db import SessionLocal
 from fastapiProject.settings import settings
 
@@ -49,100 +49,6 @@ class Customer(BaseModel):
         return number
 
 
-class Product(BaseModel):
-    id: int
-    toppings: List[int]
-
-    @validator('id')
-    def product_validator(cls, prod: int):
-        db: Session
-        with SessionLocal() as db:
-            if db.get(ProductVarious, prod) is None:
-                raise HTTPException(status_code=400, detail=f"Несуществующий идентификатор продукта: {prod}")
-            return prod
-
-    @validator('toppings')
-    def toppings_validator(cls, toppings: List[int]):
-        db: Session
-        with SessionLocal() as db:
-            for top_id in toppings:
-                if db.get(Topping, top_id) is None:
-                    raise HTTPException(status_code=400, detail=f'Несуществующий идентификатор топинга: {top_id}')
-            return toppings
-
-
-class OrderIn(BaseModel):
-    coffee_house: str  # TEST maybe int
-    comment: constr(max_length=200, strip_whitespace=True) = None
-    products: List[Product]
-    time: datetime
-
-    class Config:
-        schema_extra = {
-            "example": {
-                "coffee_house": "1",
-                "products": [
-                    {
-                        "id": 1,
-                        "toppings": []
-                    },
-                    {
-                        "id": 3,
-                        "toppings": [2]
-                    }
-                ],
-                "comment": "Хочу много сахара и воду без газа",
-                "time": (datetime.now() + timedelta(minutes=20)).strftime("%Y-%m-%d %H:%M"),
-            }
-        }
-
-    @validator('coffee_house')
-    def coffeehouse_validator(cls, coffee_house: str):
-        db: Session
-        with SessionLocal() as db:
-            if db.get(CoffeeHouse, coffee_house) is None:
-                raise HTTPException(status_code=400, detail=f"Несуществующий идентификатор кофейни: {coffee_house}")
-            return coffee_house
-
-    @validator('time')
-    def time_validator(cls, order_time: datetime, values: dict):
-        if values.get('coffee_house') is None:
-            return order_time
-        db: Session
-        with SessionLocal() as db:
-            house: CoffeeHouse = db.get(CoffeeHouse, values.get('coffee_house'))
-
-            order_time = timezone('Asia/Vladivostok').localize(order_time)
-            now = datetime.now(tz=timezone('Asia/Vladivostok'))
-            min_time = min_order_preparation_time(order_time)
-            max_time = timedelta(hours=5)
-            if not (min_time - timedelta(seconds=10) <= order_time - now <= max_time):
-                raise HTTPException(status_code=400,
-                                    detail=f"Неправильное время заказа. Минимальное время приготовления заказа - "
-                                           f"{min_time.seconds // 60} минут")
-
-            weekday = datetime.now(tz=timezone('Asia/Vladivostok')).weekday()
-            worktime: Worktime = (db.query(Worktime)
-                                  .filter_by(coffee_house_id=house.id, day_of_week=DaysOfWeek(weekday))
-                                  .first())
-            if worktime is None or (not house.is_open):
-                raise HTTPException(status_code=400, detail="Кофейня закрыта")
-
-            open_time = worktime.open_time
-            close_time = worktime.close_time
-            if not open_time <= order_time.time() <= close_time:
-                raise HTTPException(status_code=400, detail="Кофейня закрыта")
-
-            return order_time
-
-    @validator('products')
-    def products_validator(cls, products: list):
-        if len(products) > settings.max_product_in_order:
-            raise HTTPException(status_code=400,
-                                detail=f"Нельзя заказать более {settings.max_product_in_order} продуктов из меню.")
-        return products
-
-
 class CoffeeHouseResponseModel(BaseModel):
     id: int
     name: str
@@ -153,7 +59,7 @@ class CoffeeHouseResponseModel(BaseModel):
 
 class ProductsVariousResponseModel(BaseModel):
     id: int
-    size: ProductSizes
+    size: str  # ProductSize.name
     price: int
 
 
@@ -169,7 +75,7 @@ class ToppingsResponseModel(BaseModel):
 
 class ProductResponseModel(BaseModel):
     id: int
-    type: ProductTypes
+    type: str  # ProductType
     name: str
     description: str | None
     variations: List[ProductsVariousResponseModel]

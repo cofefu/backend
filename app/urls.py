@@ -17,6 +17,8 @@ from fastapiProject.scheduler import scheduler
 from fastapiProject.settings import settings
 from bot.bot_funcs import send_order, send_login_code, send_feedback_to_telegram, send_bugreport_to_telegram
 from app.dependencies import get_current_active_user, get_current_user, get_not_baned_user, timeout_is_over, get_db
+from orders.dependencies import valid_order_info
+from orders.schemas import OrderCreate
 
 router = APIRouter(prefix='/api')
 
@@ -124,7 +126,7 @@ async def get_favicon_svg():
              tags=['jwt require'],
              description='Служит для создания заказа',
              response_model=schemas.OrderNumberResponseModel)
-async def make_order(order_inf: schemas.OrderIn,
+async def make_order(order_inf: OrderCreate,
                      customer: Customer = Depends(get_not_baned_user),
                      db: Session = Depends(get_db)):
     ordered_products: list[OrderedProduct, ...] = []

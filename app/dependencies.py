@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Annotated
 
 from fastapi import Depends, Header, HTTPException, status
 from jose import jwt, JWTError, ExpiredSignatureError
@@ -7,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.models import Customer, Order
 
 from db import SessionLocal
+# from fastapiProject.schemas import OrderCreate
 from fastapiProject.settings import settings
 
 
@@ -40,7 +42,7 @@ def get_current_user(data: dict = Depends(decode_jwt_token), db: Session = Depen
 
 
 def get_current_active_user(customer: Customer = Depends(get_current_user)) -> Customer:
-    if not customer.confirmed:
+    if not customer.telegram_id:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail='Номер телефона не подтвержден.')
     return customer
@@ -58,7 +60,7 @@ def get_not_baned_user(customer: Customer = Depends(get_current_active_user)) ->
 
 def timeout_is_over(customer: Customer = Depends(get_current_active_user), db: Session = Depends(get_db)):
     last_order: Order = (db.query(Order)
-                         .filter_by(customer_id=customer.id)
+                         .filter_by(customer_phone_number=customer.phone_number)
                          .join(Customer)
                          .order_by(Order.id.desc())
                          .first())

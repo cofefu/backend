@@ -8,13 +8,13 @@ from bot.keyboards import gen_order_done_buttons, gen_order_ready_button, \
     gen_order_cancel_reasons_buttons, gen_bad_mix_button, gen_no_product_button, gen_no_topping_button
 from telebot import types
 
-from app.models import Order, Customer, CoffeeHouse, ban_customer, Product, OrderCancelReason, Topping, OrderStatuses
+from app.models import Order, Customer, CoffeeHouse, ban_customer, Product, Topping, OrderStatuses
 
 from datetime import datetime, timedelta
 
 from db import SessionLocal
 
-
+OrderCancelReason = 'hello'  # todo remove this
 @bot.message_handler(commands=['help'], chat_types=['group', 'supergroup'])
 def send_help_info(message):
     msg = 'Команды:\n'

@@ -74,7 +74,7 @@ class Product(Base):
     coffee_house_name = Column(ForeignKey('coffeehouses.name', ondelete='CASCADE'))
 
     variations = relationship('ProductVarious', back_populates='product')  # One to Many (ForeignKey in related)
-    tags = relationship('Tag', secondary=Tag2Product, backref='product')
+    # tags = relationship('Tag', secondary=Tag2Product, backref='product')
 
     def __str__(self):
         return f'<{self.name=}>'
@@ -143,7 +143,7 @@ class OrderedProduct(Base):
     product_various_id = Column(ForeignKey('productvarious.id', ondelete='CASCADE'))
 
     product_various = relationship('ProductVarious')
-    toppings = relationship('ToppingToProduct')
+    toppings = relationship('Topping2OrderedProduct')
 
 
 class Topping2OrderedProduct(Base):
