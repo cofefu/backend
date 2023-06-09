@@ -8,14 +8,14 @@ from fastapiProject.settings import settings
 def gen_order_msg_text(order_number: int) -> str:
     db = SessionLocal()
     order: Order = db.get(Order, order_number)
-    products: list[OrderedProduct, ...] = db.query(OrderedProduct).filter_by(order_id=order_number).all()
+    products: list[ProductInOrder, ...] = db.query(ProductInOrder).filter_by(order_id=order_number).all()
 
     message = f'<b>Заказ №{order_number}</b>\n'
     message += f'<i>Содержание:</i>\n'
 
     for prod in products:
         message += f'  - {prod.product_various.product_various.name}, размер {prod.product_various.size.value}'
-        for top in db.query(Topping2OrderedProduct).filter_by(ordered_product_id=prod.id):
+        for top in db.query(Topping2ProductInOrder).filter_by(ordered_product_id=prod.id):
             message += f' + {top.topping.name}'
         message += '\n'
 

@@ -10,7 +10,7 @@ from bot.bot_funcs import send_order
 from fastapiProject.scheduler import scheduler
 from fastapiProject.settings import settings
 from orders.dependencies import valid_ordered_product, valid_order_info
-from orders.schemas import OrderedProductCreate, OrderCreate
+from orders.schemas import ProductInCartCreate, OrderCreate
 from orders.services import get_or_create_cart, gen_order_number, valid_equal_coffee_house
 
 router = APIRouter(prefix='/api')

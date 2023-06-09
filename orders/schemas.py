@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from pydantic import BaseModel, validator, constr
 
 
-class OrderedProductCreate(BaseModel):
+class ProductInCartCreate(BaseModel):
     product_various_id: int
     toppings: list[int]
 

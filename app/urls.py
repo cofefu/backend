@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from pytz import timezone
 
 from app.models import (ProductVarious, Product, Topping, CoffeeHouse, Customer,
-                        Order, ProductInOrder, Topping2OrderedProduct, LoginCode, Worktime, MenuUpdateTime, DaysOfWeek)
+                        Order, ProductInOrder, Topping2ProductInOrder, LoginCode, Worktime, MenuUpdateTime, DaysOfWeek)
 from fastapiProject import schemas
 from fastapiProject.scheduler import scheduler
 from fastapiProject.settings import settings
@@ -133,7 +133,7 @@ async def make_order(order_inf: OrderCreate,
     for p in order_inf.products:
         toppings: list[Topping, ...] = []
         for top_id in p.toppings:
-            toppings.append(Topping2OrderedProduct(topping_id=top_id))
+            toppings.append(Topping2ProductInOrder(topping_id=top_id))
         ordered_products.append(ProductInOrder(product_id=p.id, toppings=toppings))
 
     coffee_house: CoffeeHouse = db.get(CoffeeHouse, order_inf.coffee_house)

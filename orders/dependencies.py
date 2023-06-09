@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.dependencies import get_db, get_not_baned_user
 from app.models import CoffeeHouseBranch, Customer, ProductVarious, Topping
-from orders.schemas import OrderCreate, OrderedProductCreate
+from orders.schemas import OrderCreate, ProductInCartCreate
 
 
 async def valid_coffee_house_branch_id(
@@ -57,8 +57,8 @@ async def valid_ordered_product(
             list[Annotated[int, Depends(valid_topping_id)]],
             Body(embed=True)
         ]
-) -> OrderedProductCreate:
-    return OrderedProductCreate(
+) -> ProductInCartCreate:
+    return ProductInCartCreate(
         product_various_id=id,
         toppings=toppings
     )
