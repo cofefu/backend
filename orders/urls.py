@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.orm import Session
 
 from app.dependencies import get_db, get_current_active_user, get_not_baned_user, timeout_is_over
-from app.models import Customer, Order, ProductInOrder
+from app.models import Customer, Order, ProductInOrder, ProductInCart, Topping2ProductInCart
 from bot.bot_funcs import send_order
 from fastapiProject.scheduler import scheduler
 from fastapiProject.settings import settings
@@ -20,17 +20,22 @@ router = APIRouter(prefix='/api')
              tags=['jwt require'],
              description='Для добавления продукта в корзину',
              status_code=status.HTTP_200_OK)
-async def add_prod2cart(
-        product_to_order: Annotated[OrderedProductCreate, Depends(valid_ordered_product)],
+def add_prod2cart(
+        product_to_order: Annotated[ProductInCartCreate, Depends(valid_ordered_product)],
         customer: Annotated[Customer, Depends(get_current_active_user)],
         db: Annotated[Session, Depends(get_db)]):
-    cart: Order = get_or_create_cart(customer, db)
-    ordered_prod = ProductInOrder(
-        order_id=cart.id,
+    prod_in_cart = ProductInCart(
+        customer_phone_number=customer.phone_number,
         product_various_id=product_to_order.product_various_id,
-        toppings=product_to_order.toppings
     )
-    ordered_prod.save(db)
+    prod_in_cart.save(db)
+
+    for top_id in product_to_order.toppings:
+        top2prod = Topping2ProductInCart(
+            product_in_cart_id=prod_in_cart.id,
+            topping_id=top_id
+        )
+        top2prod.save(db)
 
 
 @router.post('/make_order_new',

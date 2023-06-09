@@ -1,7 +1,7 @@
 from sqlalchemy import desc
 from sqlalchemy.orm import Session
 
-from app.models import Customer, Order
+from app.models import Customer, Order, ProductInCart
 
 
 def get_or_create_cart(
@@ -29,10 +29,10 @@ def gen_order_number() -> str:
     pass
 
 
-async def valid_equal_coffee_house(cart_id: int) -> bool:
+async def valid_equal_coffee_house(prods_in_cart: list[ProductInCart]) -> bool:
     """
     Проверяет, что продукты в заказе относятся к одной кофейне. Возможно рэйзит ошибку
-    :param cart_id: integer identifier of Order model
+    :param prods_in_cart: list of integer of ProductInCart model
     :rtype: bool
     """
     pass
