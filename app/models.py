@@ -125,7 +125,7 @@ class Order(Base):
 
     customer = relationship('Customer', back_populates='orders')
     coffee_house = relationship('CoffeeHouseBranch')
-    ordered_products = relationship('OrderedProduct')
+    products_in_order = relationship('ProductInOrder')
 
     def get_status_name(self):
         return self.status.value if self.cancel_reason is None else self.cancel_reason
@@ -138,16 +138,16 @@ class Order(Base):
     #             ban_customer(self.customer, datetime.utcnow(), forever=True)
 
 
-class OrderedProduct(Base):
+class ProductInOrder(Base):
     order_id = Column(ForeignKey('orders.id', ondelete='CASCADE'))
     product_various_id = Column(ForeignKey('productvarious.id', ondelete='CASCADE'))
 
     product_various = relationship('ProductVarious')
-    toppings = relationship('Topping2OrderedProduct')
+    toppings = relationship('Topping2ProductInOrder')
 
 
-class Topping2OrderedProduct(Base):
-    ordered_product_id = Column(ForeignKey('orderedproducts.id', ondelete='CASCADE'))
+class Topping2ProductInOrder(Base):
+    product_in_order_id = Column(ForeignKey('productinorders.id', ondelete='CASCADE'))
     topping_id = Column(ForeignKey('toppings.id', ondelete='CASCADE'))
 
     topping = relationship('Topping')
@@ -219,7 +219,7 @@ class MenuUpdateTime(Base):
 
 
 __all__ = ['Customer', 'CoffeeHouse', 'CoffeeHouseBranch', 'ProductType', 'Product', 'ProductSize', 'ProductVarious',
-           'Topping', 'OrderStatuses', 'Order', 'OrderedProduct', 'Topping2OrderedProduct', 'DaysOfWeek', 'Worktime',
+           'Topping', 'OrderStatuses', 'Order', 'ProductInOrder', 'Topping2ProductInOrder', 'DaysOfWeek', 'Worktime',
            'LoginCode', 'BlackList', 'FSM', 'MenuUpdateTime', 'ProductInCart', 'Topping2ProductInCart']
 
 # TODO remove

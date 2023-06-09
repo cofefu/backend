@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.orm import Session
 
 from app.dependencies import get_db, get_current_active_user, get_not_baned_user, timeout_is_over
-from app.models import Customer, Order, OrderedProduct
+from app.models import Customer, Order, ProductInOrder
 from bot.bot_funcs import send_order
 from fastapiProject.scheduler import scheduler
 from fastapiProject.settings import settings
@@ -25,7 +25,7 @@ async def add_prod2cart(
         customer: Annotated[Customer, Depends(get_current_active_user)],
         db: Annotated[Session, Depends(get_db)]):
     cart: Order = get_or_create_cart(customer, db)
-    ordered_prod = OrderedProduct(
+    ordered_prod = ProductInOrder(
         order_id=cart.id,
         product_various_id=product_to_order.product_various_id,
         toppings=product_to_order.toppings
@@ -46,7 +46,7 @@ async def make_order_new(
     if not valid_equal_coffee_house(cart.id):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail='Продукты принадлежат разным кофейням')
-    elif not cart.ordered_products:
+    elif not cart.products_in_order:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail='Корзина пуста')
 

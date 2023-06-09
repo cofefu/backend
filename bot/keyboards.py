@@ -66,7 +66,7 @@ def gen_order_cancel_reasons_buttons(order_number: int) -> InlineKeyboardMarkup:
 def gen_bad_mix_button(order_number: int) -> InlineKeyboardMarkup:
     markup_btns = InlineKeyboardMarkup(row_width=1)
     db = SessionLocal()
-    for prod in db.get(Order, order_number).ordered_products:
+    for prod in db.get(Order, order_number).products_in_order:
         markup_btns.add(InlineKeyboardButton(prod.product_various.product_various.name,
                                              callback_data=special_problem.new(order_number,
                                                                                prod.product_various.product_various.id,
@@ -78,7 +78,7 @@ def gen_bad_mix_button(order_number: int) -> InlineKeyboardMarkup:
 def gen_no_product_button(order_number: int) -> InlineKeyboardMarkup:
     markup_btns = InlineKeyboardMarkup(row_width=1)
     db = SessionLocal()
-    for prod in db.get(Order, order_number).ordered_products:
+    for prod in db.get(Order, order_number).products_in_order:
         markup_btns.add(InlineKeyboardButton(prod.product_various.product_various.name,
                                              callback_data=special_problem.new(order_number,
                                                                                prod.product_various.product_various.id,
@@ -90,7 +90,7 @@ def gen_no_product_button(order_number: int) -> InlineKeyboardMarkup:
 def gen_no_topping_button(order_number: int) -> InlineKeyboardMarkup:
     markup_btns = InlineKeyboardMarkup(row_width=1)
     db = SessionLocal()
-    for prod in db.get(Order, order_number).ordered_products:
+    for prod in db.get(Order, order_number).products_in_order:
         for top in prod.toppings:
             markup_btns.add(InlineKeyboardButton(top.topping.name,
                                                  callback_data=special_problem.new(order_number,

@@ -10,10 +10,14 @@ def get_or_create_cart(
 ) -> (Order, bool):
     cart = db.query(Order) \
         .filter_by(customer_phone_number=customer.phone_number) \
-        .order_by(desc(Order.creation_time)) \
+        .order_by(desc(Order.id)) \
         .first()
-    print(cart)
-    print(type(cart))
+    if cart:
+        return cart, False
+
+    cart = Order(customer=customer.phone_number)
+    cart.save(db)
+    return cart, True
 
 
 

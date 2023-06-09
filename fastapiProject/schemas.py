@@ -97,7 +97,7 @@ class OrderResponseModel(BaseModel):
     @staticmethod
     def to_dict(order: models.Order) -> dict:
         products = []
-        for prod in order.ordered_products:
+        for prod in order.products_in_order:
             toppings = []
             for top in prod.toppings:
                 toppings.append(top.topping.id)

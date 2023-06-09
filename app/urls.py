@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from pytz import timezone
 
 from app.models import (ProductVarious, Product, Topping, CoffeeHouse, Customer,
-                        Order, OrderedProduct, Topping2OrderedProduct, LoginCode, Worktime, MenuUpdateTime, DaysOfWeek)
+                        Order, ProductInOrder, Topping2OrderedProduct, LoginCode, Worktime, MenuUpdateTime, DaysOfWeek)
 from fastapiProject import schemas
 from fastapiProject.scheduler import scheduler
 from fastapiProject.settings import settings
@@ -129,12 +129,12 @@ async def get_favicon_svg():
 async def make_order(order_inf: OrderCreate,
                      customer: Customer = Depends(get_not_baned_user),
                      db: Session = Depends(get_db)):
-    ordered_products: list[OrderedProduct, ...] = []
+    ordered_products: list[ProductInOrder, ...] = []
     for p in order_inf.products:
         toppings: list[Topping, ...] = []
         for top_id in p.toppings:
             toppings.append(Topping2OrderedProduct(topping_id=top_id))
-        ordered_products.append(OrderedProduct(product_id=p.id, toppings=toppings))
+        ordered_products.append(ProductInOrder(product_id=p.id, toppings=toppings))
 
     coffee_house: CoffeeHouse = db.get(CoffeeHouse, order_inf.coffee_house)
     order = Order(coffee_house_id=coffee_house.id,
