@@ -153,6 +153,23 @@ class Topping2OrderedProduct(Base):
     topping = relationship('Topping')
 
 
+class ProductInCart(Base):
+    __tablename__ = 'productincart'
+
+    customer_phone_number = Column(ForeignKey('customers.phone_number', ondelete='CASCADE'))
+    product_various_id = Column(ForeignKey('productvarious.id', ondelete='CASCADE'))
+
+    product_various = relationship('ProductVarious')
+    toppings = relationship('Topping2ProductInCart')
+
+
+class Topping2ProductInCart(Base):
+    product_in_cart_id = Column(ForeignKey('productincart.id', ondelete='CASCADE'))
+    topping_id = Column(ForeignKey('toppings.id', ondelete='CASCADE'))
+
+    topping = relationship('Topping')
+
+
 class DaysOfWeek(enum.Enum):
     monday = 0
     tuesday = 1
@@ -203,7 +220,7 @@ class MenuUpdateTime(Base):
 
 __all__ = ['Customer', 'CoffeeHouse', 'CoffeeHouseBranch', 'ProductType', 'Product', 'ProductSize', 'ProductVarious',
            'Topping', 'OrderStatuses', 'Order', 'OrderedProduct', 'Topping2OrderedProduct', 'DaysOfWeek', 'Worktime',
-           'LoginCode', 'BlackList', 'FSM', 'MenuUpdateTime']
+           'LoginCode', 'BlackList', 'FSM', 'MenuUpdateTime', 'ProductInCart', 'Topping2ProductInCart']
 
 # TODO remove
 if __name__ == '__main__':
