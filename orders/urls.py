@@ -11,7 +11,8 @@ from fastapiProject.scheduler import scheduler
 from fastapiProject.settings import settings
 from orders.dependencies import valid_ordered_product, valid_order_info
 from orders.schemas import ProductInCartCreate, OrderCreate
-from orders.services import get_or_create_cart, gen_order_number, valid_equal_coffee_house
+from orders.services import get_or_create_cart, gen_order_number, valid_equal_coffee_house, \
+    move_cart_products_to_order
 
 router = APIRouter(prefix='/api')
 
@@ -47,25 +48,29 @@ async def make_order_new(
         order_info: Annotated[OrderCreate, Depends(valid_order_info)],
         customer: Annotated[Customer, Depends(get_not_baned_user)],
         db: Annotated[Session, Depends(get_db)]):
-    cart: Order = get_or_create_cart(customer, db)[0]
-    if not valid_equal_coffee_house(cart.id):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail='Продукты принадлежат разным кофейням')
-    elif not cart.products_in_order:
+    prods_in_cart: list[ProductInCart] = customer.cart
+    if not prods_in_cart:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail='Корзина пуста')
+    elif not valid_equal_coffee_house(prods_in_cart):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail='Продукты принадлежат разным кофейням')
 
-    cart.coffee_house_branch_id = order_info.coffee_house_branch
-    cart.comment = order_info.comment
-    cart.time = order_info.time
-    cart.order_number = gen_order_number()
-    db.commit()
+    order = Order(
+        order_number=gen_order_number(db),
+        coffee_house_branch_id=order_info.coffee_house_branch_id,
+        customer_phone_number=customer.phone_number,
+        comment=order_info.comment,
+        time=order_info.time,
+    )
+    order.save(db)
+    move_cart_products_to_order(customer, order, db)
 
     scheduler.add_job(send_order,
                       'date',
                       timezone='utc',
                       run_date=datetime.utcnow() + settings.time_to_cancel_order,
                       replace_existing=True,
-                      args=[cart.id],
-                      id=str(cart.id))
-    return {'order_number': cart.order_number}
+                      args=[order.id],
+                      id=str(order.id))
+    return {'order_number': order.order_number}

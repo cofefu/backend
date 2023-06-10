@@ -1,13 +1,15 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Annotated
+from pytz import timezone
 
 from fastapi import Depends, HTTPException, status, Body
 from pydantic import constr
 from sqlalchemy.orm import Session
 
 from app.dependencies import get_db, get_not_baned_user
-from app.models import CoffeeHouseBranch, Customer, ProductVarious, Topping
+from app.models import CoffeeHouseBranch, Customer, ProductVarious, Topping, Worktime, DaysOfWeek
 from orders.schemas import OrderCreate, ProductInCartCreate
+from orders.services import min_order_preparation_time
 
 
 async def valid_coffee_house_branch_id(
@@ -21,11 +23,40 @@ async def valid_coffee_house_branch_id(
     return branch
 
 
-# todo implement this
 async def valid_order_time(
         time: Annotated[datetime, Body()],
+        coffee_house_branch: Annotated[CoffeeHouseBranch, Depends(valid_coffee_house_branch_id)],
         db: Annotated[Session, Depends(get_db)],
 ) -> datetime:
+    """
+    Check that the coffee shop branch is open and the order will have time to prepare.
+    :param time: time of order issue
+    :param coffee_house_branch: coffee shop for ordering
+    :param db: sqlalchemy session
+    :return: valid time
+    """
+    time = timezone('Asia/Vladivostok').localize(time)
+    now = datetime.now(tz=timezone('Asia/Vladivostok'))
+    min_time = min_order_preparation_time(time)
+    max_time = timedelta(hours=5)
+    if not (min_time - timedelta(seconds=10) <= time - now <= max_time):
+        raise HTTPException(status_code=400,
+                            detail=f"Неправильное время заказа. Минимальное время приготовления заказа - "
+                                   f"{min_time.seconds // 60} минут")
+
+    weekday = datetime.now(tz=timezone('Asia/Vladivostok')).weekday()
+    worktime: Worktime = (db.query(Worktime)
+                          .filter_by(coffee_house_branch_id=coffee_house_branch.id,
+                                     day_of_week=DaysOfWeek(weekday))
+                          .first())
+    if worktime is None or (not coffee_house_branch.is_active):
+        raise HTTPException(status_code=400, detail="Кофейня закрыта")
+
+    open_time = worktime.open_time
+    close_time = worktime.close_time
+    if not open_time <= time.time() <= close_time:
+        raise HTTPException(status_code=400, detail="Кофейня закрыта")
+
     return time
 
 
@@ -75,7 +106,7 @@ async def valid_order_info(
     :rtype: OrderCreate
     """
     return OrderCreate(
-        coffee_house_branch=coffee_house_branch.id,
+        coffee_house_branch_id=coffee_house_branch.id,
         comment=comment,
         time=time
     )

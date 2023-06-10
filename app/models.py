@@ -29,6 +29,7 @@ class Customer(Base):
     chat_id = Column(BigInteger, nullable=True)
 
     orders = relationship('Order', back_populates='customer')
+    cart = relationship('ProductInCart', back_populates='customer')
     ban = relationship("BlackList", uselist=False)
 
     def __str__(self):
@@ -74,6 +75,7 @@ class Product(Base):
     coffee_house_name = Column(ForeignKey('coffeehouses.name', ondelete='CASCADE'))
 
     variations = relationship('ProductVarious', back_populates='product')  # One to Many (ForeignKey in related)
+
     # tags = relationship('Tag', secondary=Tag2Product, backref='product')
 
     def __str__(self):
@@ -159,8 +161,13 @@ class ProductInCart(Base):
     customer_phone_number = Column(ForeignKey('customers.phone_number', ondelete='CASCADE'))
     product_various_id = Column(ForeignKey('productvarious.id', ondelete='CASCADE'))
 
+    customer = relationship('Customer', back_populates='cart')
     product_various = relationship('ProductVarious')
-    toppings = relationship('Topping2ProductInCart')
+    toppings = relationship(
+        'Topping2ProductInCart',
+        cascade="all, delete",
+        passive_deletes=True,
+    )
 
 
 class Topping2ProductInCart(Base):
