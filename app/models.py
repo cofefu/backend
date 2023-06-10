@@ -114,7 +114,7 @@ class OrderStatuses(enum.Enum):
 
 class Order(Base):
     id = Column(BigInteger, primary_key=True, index=True, autoincrement=True)
-    order_number = Column(String(3), nullable=True)
+    order_number = Column(String(3))
     coffee_house_branch_id = Column(ForeignKey('coffeehousebranchs.id', ondelete='SET NULL'), nullable=True)
     customer_phone_number = Column(ForeignKey('customers.phone_number', ondelete='SET NULL'), nullable=True)
     comment = Column(String(200), nullable=True)
