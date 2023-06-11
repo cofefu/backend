@@ -33,7 +33,7 @@ class Customer(Base):
     ban = relationship("BlackList", uselist=False)
 
     def __str__(self):
-        return f'<{self.name=}, {self.phone_number=}, {self.confirmed=}, {self.telegram_id=}, {self.chat_id=}>'
+        return f'<{self.name=}, {self.phone_number=}, {self.telegram_id=}, {self.chat_id=}>'
 
 
 class CoffeeHouse(Base):
@@ -116,7 +116,7 @@ class OrderStatuses(enum.Enum):
 
 class Order(Base):
     id = Column(BigInteger, primary_key=True, index=True, autoincrement=True)
-    order_number = Column(String(3))
+    order_number = Column(String(3), nullable=False)
     coffee_house_branch_id = Column(ForeignKey('coffeehousebranchs.id', ondelete='SET NULL'), nullable=True)
     customer_phone_number = Column(ForeignKey('customers.phone_number', ondelete='SET NULL'), nullable=True)
     comment = Column(String(200), nullable=True)

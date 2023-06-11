@@ -10,15 +10,12 @@ from jose import jwt
 from datetime import datetime, timedelta
 from pytz import timezone
 
-from app.models import (ProductVarious, Product, Topping, CoffeeHouse, Customer,
-                        Order, ProductInOrder, Topping2ProductInOrder, LoginCode, Worktime, MenuUpdateTime, DaysOfWeek)
+from app.models import (Product, Topping, CoffeeHouse, Customer,
+                        LoginCode, Worktime, MenuUpdateTime, DaysOfWeek)
 from fastapiProject import schemas
-from fastapiProject.scheduler import scheduler
 from fastapiProject.settings import settings
-from bot.bot_funcs import send_order, send_login_code, send_feedback_to_telegram, send_bugreport_to_telegram
-from app.dependencies import get_current_active_user, get_current_user, get_not_baned_user, timeout_is_over, get_db
-from orders.dependencies import valid_order_info
-from orders.schemas import OrderCreate
+from bot.bot_funcs import send_login_code, send_feedback_to_telegram, send_bugreport_to_telegram
+from app.dependencies import get_current_user, get_db
 
 router = APIRouter(prefix='/api')
 
@@ -69,20 +66,6 @@ async def get_coffeehouses(db: Session = Depends(get_db)):
     return response
 
 
-@router.get('/order_status/{number}',
-            tags=['jwt require'],
-            description='Возвращает статус заказа по его id или ошибку, если заказа нет',
-            response_description='В ожидании | Принят | Отклонен | Выполнен | Не выполнен')
-async def get_order_status(number: int, customer: Customer = Depends(get_current_active_user),
-                           db: Session = Depends(get_db)):
-    order = db.query(Order).filter_by(id=number).one_or_none()
-    if order is None:
-        raise HTTPException(status_code=400, detail="Неверный номер заказа")
-    if order.customer != customer:
-        raise HTTPException(status_code=400, detail="Это заказ другого пользователя")
-    return order.get_status_name()
-
-
 # TEST delete
 @router.get('/products_various/{prod_id}',
             tags=['common'],
@@ -117,58 +100,6 @@ async def get_favicon_svg():
             response_class=FileResponse)
 async def get_favicon_svg():
     return FileResponse('assets/beans.ico')
-
-
-# REDO make_order
-# TEST
-@router.post('/make_order',
-             dependencies=[Depends(timeout_is_over)],
-             tags=['jwt require'],
-             description='Служит для создания заказа',
-             response_model=schemas.OrderNumberResponseModel)
-async def make_order(order_inf: OrderCreate,
-                     customer: Customer = Depends(get_not_baned_user),
-                     db: Session = Depends(get_db)):
-    ordered_products: list[ProductInOrder, ...] = []
-    for p in order_inf.products:
-        toppings: list[Topping, ...] = []
-        for top_id in p.toppings:
-            toppings.append(Topping2ProductInOrder(topping_id=top_id))
-        ordered_products.append(ProductInOrder(product_id=p.id, toppings=toppings))
-
-    coffee_house: CoffeeHouse = db.get(CoffeeHouse, order_inf.coffee_house)
-    order = Order(coffee_house_id=coffee_house.id,
-                  customer_id=customer.id,
-                  time=order_inf.time,
-                  comment=order_inf.comment,
-                  ordered_products=ordered_products)
-    order.save(db)
-
-    scheduler.add_job(send_order,
-                      'date',
-                      timezone='utc',
-                      run_date=datetime.utcnow() + settings.time_to_cancel_order,
-                      replace_existing=True,
-                      args=[order.id],
-                      id=str(order.id))
-    return {'order_number': order.id}
-
-
-# TEST cancel_order
-@router.put('/cancel_order',
-            tags=['jwt require'],
-            description='Служит для отмены заказа')
-async def cancel_order(order_number: int,
-                       customer: Customer = Depends(get_current_active_user),
-                       db: Session = Depends(get_db)):
-    if db.query(Order).filter_by(id=order_number, customer_id=customer.id).delete() == 0:
-        raise HTTPException(status_code=400, detail='Заказ не найден.')
-    try:
-        scheduler.remove_job(str(order_number))
-        db.commit()
-        return 'Ok'
-    except JobLookupError:
-        raise HTTPException(status_code=400, detail='Отменить заказ уже нельзя.')
 
 
 @router.post('/register_customer',
@@ -235,48 +166,12 @@ async def verify_login_code(code: int, db: Session = Depends(get_db)):
     return create_token(login_code.customer)
 
 
-@router.get('/my_orders',
-            tags=['jwt require'],
-            description="Возвращает историю заказов",
-            response_model=List[schemas.OrderResponseModel])
-async def get_my_order_history(customer: Customer = Depends(get_current_active_user),
-                               db: Session = Depends(get_db)):
-    orders = []
-    for order in db.query(Order).filter_by(customer_id=customer.id).all():
-        orders.append(schemas.OrderResponseModel.to_dict(order))
-    return orders
-
-
 @router.get('/me',
             tags=['jwt require'],
             description='Возвращает информацию о текущем пользователе',
             response_model=schemas.Customer)
 async def get_me(customer: Customer = Depends(get_current_user)):
     return customer.data()
-
-
-@router.get('/last_order',
-            tags=['jwt require'],
-            description='Возвращает последний заказ пользователя',
-            response_model=schemas.OrderResponseModel)
-async def get_last_order(customer: Customer = Depends(get_current_active_user),
-                         db: Session = Depends(get_db)):
-    order = db.query(Order).filter_by(customer_id=customer.id).order_by(Order.id.desc()).first()
-    if order is None:
-        return None
-    return schemas.OrderResponseModel.to_dict(order)
-
-
-# TEST
-@router.get('/active_orders',
-            tags=['jwt require'],
-            description='Возвращает активные заказы пользователя',
-            response_model=List[schemas.OrderResponseModel])
-async def get_active_orders(customer: Customer = Depends(get_current_active_user),
-                            db: Session = Depends(get_db)):
-    orders = db.query(Order).filter(Order.customer_id == customer.id, Order.status.in_([0, 1, 5])).order_by(
-        Order.id.desc()).all()
-    return [schemas.OrderResponseModel.to_dict(order) for order in orders]
 
 
 @router.post('/feedback', description='Для советов, пожеланий и т.д.')

@@ -65,7 +65,7 @@ def clear_cart(
         prod_in_cart.delete(db)
 
 
-def move_cart_products_to_order(
+def cart2order(
         customer: Customer,
         order: Order,
         db: Session
