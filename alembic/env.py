@@ -11,7 +11,6 @@ from dotenv import load_dotenv
 from app.models import *
 from db import Base
 
-
 load_dotenv()
 
 # this is the Alembic Config object, which provides
@@ -29,11 +28,19 @@ if config.config_file_name is not None:
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 target_metadata = Base.metadata
+hidden_tables = ('apscheduler_jobs',)
+
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
+
+def include_name(name, type_, parent_names):
+    if type_ == "table":
+        return name not in hidden_tables
+    else:
+        return True
 
 
 def run_migrations_offline() -> None:
@@ -53,6 +60,7 @@ def run_migrations_offline() -> None:
         url=url,
         target_metadata=target_metadata,
         literal_binds=True,
+        include_name=include_name,
         dialect_opts={"paramstyle": "named"},
     )
 
