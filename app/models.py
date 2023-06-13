@@ -74,7 +74,12 @@ class Product(Base):
     type_name = Column(ForeignKey('producttypes.name', ondelete='RESTRICT'))
     coffee_house_name = Column(ForeignKey('coffeehouses.name', ondelete='CASCADE'))
 
-    variations = relationship('ProductVarious', back_populates='product')  # One to Many (ForeignKey in related)
+    variations = relationship(
+        'ProductVarious',
+        back_populates='product',
+        cascade="all, delete",
+        passive_deletes=True,
+    )  # One to Many (ForeignKey in related)
 
     # tags = relationship('Tag', secondary=Tag2Product, backref='product')
 
@@ -111,7 +116,6 @@ class OrderStatuses(enum.Enum):
     taken = 'Отдан покупателю'
     no_taken = 'Не забран покупателем'
     ready = 'Готов'
-    cart = 'В корзине'
 
 
 class Order(Base):
@@ -127,7 +131,11 @@ class Order(Base):
 
     customer = relationship('Customer', back_populates='orders')
     coffee_house = relationship('CoffeeHouseBranch')
-    products_in_order = relationship('ProductInOrder')
+    products_in_order = relationship(
+        'ProductInOrder',
+        cascade="all, delete",
+        passive_deletes=True,
+    )
 
     def get_status_name(self):
         return self.status.value if self.cancel_reason is None else self.cancel_reason
@@ -145,7 +153,11 @@ class ProductInOrder(Base):
     product_various_id = Column(ForeignKey('productvarious.id', ondelete='CASCADE'))
 
     product_various = relationship('ProductVarious')
-    toppings = relationship('Topping2ProductInOrder')
+    toppings = relationship(
+        'Topping2ProductInOrder',
+        cascade="all, delete",
+        passive_deletes=True,
+    )
 
 
 class Topping2ProductInOrder(Base):
