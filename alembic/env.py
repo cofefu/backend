@@ -36,9 +36,11 @@ hidden_tables = ('apscheduler_jobs',)
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
-def include_name(name, type_, parent_names):
-    if type_ == "table":
-        return name not in hidden_tables
+
+def include_object(object, name, type_, reflected, compare_to):
+    if (type_ == "table" and
+            name in hidden_tables):
+        return False
     else:
         return True
 
@@ -60,7 +62,7 @@ def run_migrations_offline() -> None:
         url=url,
         target_metadata=target_metadata,
         literal_binds=True,
-        include_name=include_name,
+        include_object=include_object,
         dialect_opts={"paramstyle": "named"},
     )
 
@@ -83,7 +85,8 @@ def run_migrations_online() -> None:
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, target_metadata=target_metadata
+            connection=connection, target_metadata=target_metadata,
+            include_object=include_object,
         )
 
         with context.begin_transaction():
