@@ -24,7 +24,7 @@ def get_or_create(session: Session, model, **kwargs):
 class Customer(Base):
     id = None
     phone_number = Column(BigInteger, primary_key=True, index=True)
-    name = Column(String(20))
+    name = Column(String(20), nullable=False)
     telegram_id = Column(BigInteger, nullable=True)
     chat_id = Column(BigInteger, nullable=True)
 
@@ -43,10 +43,10 @@ class CoffeeHouse(Base):
 
 
 class CoffeeHouseBranch(Base):
-    placement = Column(String(20))
-    chat_id = Column(BigInteger)
+    placement = Column(String(20), nullable=False)
+    chat_id = Column(BigInteger, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
-    coffee_house_name = Column(ForeignKey('coffeehouses.name', ondelete='CASCADE'))
+    coffee_house_name = Column(ForeignKey('coffeehouses.name', ondelete='CASCADE'), nullable=False)
 
     worktime = relationship('Worktime')
 
@@ -68,11 +68,11 @@ class Tag2Product(Base):
 
 
 class Product(Base):
-    name = Column(String(50))
+    name = Column(String(50), nullable=False)
     description = Column(String(200), nullable=True)
     is_active = Column(Boolean, default=True, nullable=False)
-    type_name = Column(ForeignKey('producttypes.name', ondelete='RESTRICT'))
-    coffee_house_name = Column(ForeignKey('coffeehouses.name', ondelete='CASCADE'))
+    type_name = Column(ForeignKey('producttypes.name', ondelete='RESTRICT'), nullable=False)
+    coffee_house_name = Column(ForeignKey('coffeehouses.name', ondelete='CASCADE'), nullable=False)
 
     variations = relationship(
         'ProductVarious',
@@ -95,18 +95,18 @@ class ProductSize(Base):
 class ProductVarious(Base):
     __tablename__ = 'productvarious'
 
-    price = Column(Integer)
-    product_id = Column(ForeignKey('products.id', ondelete='CASCADE'))
-    size_name = Column(ForeignKey('productsizes.name', ondelete='RESTRICT'))
+    price = Column(Integer, nullable=False)
+    product_id = Column(ForeignKey('products.id', ondelete='CASCADE'), nullable=False)
+    size_name = Column(ForeignKey('productsizes.name', ondelete='RESTRICT'), nullable=False)
 
     product = relationship('Product', back_populates='variations')
 
 
 class Topping(Base):
-    name = Column(String(100))
-    price = Column(Integer)
+    name = Column(String(100), nullable=False)
+    price = Column(Integer, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
-    coffee_house_name = Column(ForeignKey('coffeehouses.name', ondelete='CASCADE'))
+    coffee_house_name = Column(ForeignKey('coffeehouses.name', ondelete='CASCADE'), nullable=False)
 
 
 class OrderStatuses(enum.Enum):
@@ -124,9 +124,9 @@ class Order(Base):
     coffee_house_branch_id = Column(ForeignKey('coffeehousebranchs.id', ondelete='SET NULL'), nullable=True)
     customer_phone_number = Column(ForeignKey('customers.phone_number', ondelete='SET NULL'), nullable=True)
     comment = Column(String(200), nullable=True)
-    time = Column(DateTime(timezone=True))
-    creation_time = Column(DateTime, default=datetime.utcnow)
-    status = Column(Enum(OrderStatuses), default=OrderStatuses.waiting)
+    time = Column(DateTime(timezone=True), nullable=False)
+    creation_time = Column(DateTime, default=datetime.utcnow, nullable=False)
+    status = Column(Enum(OrderStatuses), default=OrderStatuses.waiting, nullable=False)
     cancel_reason = Column(String(150), nullable=True)
 
     customer = relationship('Customer', back_populates='orders')
@@ -149,8 +149,8 @@ class Order(Base):
 
 
 class ProductInOrder(Base):
-    order_id = Column(ForeignKey('orders.id', ondelete='CASCADE'))
-    product_various_id = Column(ForeignKey('productvarious.id', ondelete='CASCADE'))
+    order_id = Column(ForeignKey('orders.id', ondelete='CASCADE'), nullable=False)
+    product_various_id = Column(ForeignKey('productvarious.id', ondelete='CASCADE'), nullable=False)
 
     product_various = relationship('ProductVarious')
     toppings = relationship(
@@ -161,8 +161,8 @@ class ProductInOrder(Base):
 
 
 class Topping2ProductInOrder(Base):
-    product_in_order_id = Column(ForeignKey('productinorders.id', ondelete='CASCADE'))
-    topping_id = Column(ForeignKey('toppings.id', ondelete='CASCADE'))
+    product_in_order_id = Column(ForeignKey('productinorders.id', ondelete='CASCADE'), nullable=False)
+    topping_id = Column(ForeignKey('toppings.id', ondelete='CASCADE'), nullable=False)
 
     topping = relationship('Topping')
 
@@ -170,8 +170,8 @@ class Topping2ProductInOrder(Base):
 class ProductInCart(Base):
     __tablename__ = 'productincart'
 
-    customer_phone_number = Column(ForeignKey('customers.phone_number', ondelete='CASCADE'))
-    product_various_id = Column(ForeignKey('productvarious.id', ondelete='CASCADE'))
+    customer_phone_number = Column(ForeignKey('customers.phone_number', ondelete='CASCADE'), nullable=False)
+    product_various_id = Column(ForeignKey('productvarious.id', ondelete='CASCADE'), nullable=False)
 
     customer = relationship('Customer', back_populates='cart')
     product_various = relationship('ProductVarious')
@@ -183,8 +183,8 @@ class ProductInCart(Base):
 
 
 class Topping2ProductInCart(Base):
-    product_in_cart_id = Column(ForeignKey('productincart.id', ondelete='CASCADE'))
-    topping_id = Column(ForeignKey('toppings.id', ondelete='CASCADE'))
+    product_in_cart_id = Column(ForeignKey('productincart.id', ondelete='CASCADE'), nullable=False)
+    topping_id = Column(ForeignKey('toppings.id', ondelete='CASCADE'), nullable=False)
 
     topping = relationship('Topping')
 
@@ -202,17 +202,17 @@ class DaysOfWeek(enum.Enum):
 class Worktime(Base):
     __tablename__ = 'worktime'
 
-    coffee_house_branch_id = Column(ForeignKey('coffeehousebranchs.id', ondelete='CASCADE'))
-    day_of_week = Column(Enum(DaysOfWeek))
-    open_time = Column(Time)
-    close_time = Column(Time)
+    coffee_house_branch_id = Column(ForeignKey('coffeehousebranchs.id', ondelete='CASCADE'), nullable=False)
+    day_of_week = Column(Enum(DaysOfWeek), nullable=False)
+    open_time = Column(Time, nullable=False)
+    close_time = Column(Time, nullable=False)
 
 
 class LoginCode(Base):
     id = None
     code = Column(Integer, primary_key=True, index=True)
-    customer_phone_number = Column(ForeignKey('customers.phone_number', ondelete='CASCADE'))
-    expire = Column(DateTime)
+    customer_phone_number = Column(ForeignKey('customers.phone_number', ondelete='CASCADE'), nullable=False)
+    expire = Column(DateTime, nullable=False)
 
     customer = relationship('Customer')  # Many to One (ForeignKey here)
 
@@ -228,13 +228,13 @@ class BlackList(Base):
 class FSM(Base):
     __tablename__ = 'fsm'
 
-    telegram_id = Column(BigInteger, unique=True)
+    telegram_id = Column(BigInteger, unique=True, nullable=False)
     state = Column(Integer, nullable=True)
 
 
 class MenuUpdateTime(Base):
-    time = Column(DateTime)
-    coffee_house_name = Column(ForeignKey('coffeehouses.name', ondelete='CASCADE'))
+    time = Column(DateTime, nullable=False)
+    coffee_house_name = Column(ForeignKey('coffeehouses.name', ondelete='CASCADE'), nullable=False)
 
 
 __all__ = ['Customer', 'CoffeeHouse', 'CoffeeHouseBranch', 'ProductType', 'Product', 'ProductSize', 'ProductVarious',
