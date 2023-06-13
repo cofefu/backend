@@ -2,25 +2,15 @@ from datetime import datetime, timedelta
 from typing import Annotated
 from pytz import timezone
 
-from fastapi import Depends, HTTPException, status, Body
+from fastapi import Depends, HTTPException, Body
 from pydantic import constr
 from sqlalchemy.orm import Session
 
-from app.dependencies import get_db, get_not_baned_user
-from app.models import CoffeeHouseBranch, Customer, ProductVarious, Topping, Worktime, DaysOfWeek
+from app.dependencies import get_db
+from app.models import CoffeeHouseBranch, Worktime, DaysOfWeek
+from menu.dependencies import valid_coffee_house_branch_id, valid_product_various_id, valid_topping_id
 from orders.schemas import OrderCreate, ProductInCartCreate
 from orders.services import min_order_preparation_time
-
-
-async def valid_coffee_house_branch_id(
-        coffee_house_branch_id: Annotated[int, Body()],
-        sess: Annotated[Session, Depends(get_db)]
-) -> CoffeeHouseBranch:
-    branch = sess.query(CoffeeHouseBranch).get(coffee_house_branch_id)
-    if branch is None:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail='Неверный идентификатор кофейни')
-    return branch
 
 
 async def valid_order_time(
@@ -58,28 +48,6 @@ async def valid_order_time(
         raise HTTPException(status_code=400, detail="Кофейня закрыта")
 
     return time
-
-
-async def valid_product_various_id(
-        prod_var_id: Annotated[int, Body()],
-        sess: Annotated[Session, Depends(get_db)]
-) -> int:
-    prod_var = sess.query(ProductVarious).get(prod_var_id)
-    if prod_var is None:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail='Неверный идентификатор вариации продукта')
-    return prod_var_id
-
-
-async def valid_topping_id(
-        topping_id: Annotated[int, Body()],
-        sess: Annotated[Session, Depends(get_db)]
-) -> int:
-    topping = sess.query(Topping).get(topping_id)
-    if topping is None:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail='Неверный идентификатор топинга')
-    return topping_id
 
 
 async def valid_ordered_product(

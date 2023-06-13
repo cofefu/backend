@@ -1,0 +1,40 @@
+from typing import Annotated
+
+from fastapi import Body, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+
+from app.dependencies import get_db
+from app.models import CoffeeHouseBranch, ProductVarious, Topping
+
+
+async def valid_coffee_house_branch_id(
+        coffee_house_branch_id: Annotated[int, Body()],
+        sess: Annotated[Session, Depends(get_db)]
+) -> CoffeeHouseBranch:
+    branch = sess.query(CoffeeHouseBranch).get(coffee_house_branch_id)
+    if branch is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail='Неверный идентификатор кофейни')
+    return branch
+
+
+async def valid_product_various_id(
+        prod_var_id: Annotated[int, Body()],
+        sess: Annotated[Session, Depends(get_db)]
+) -> int:
+    prod_var = sess.query(ProductVarious).get(prod_var_id)
+    if prod_var is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail='Неверный идентификатор вариации продукта')
+    return prod_var_id
+
+
+async def valid_topping_id(
+        topping_id: Annotated[int, Body()],
+        sess: Annotated[Session, Depends(get_db)]
+) -> int:
+    topping = sess.query(Topping).get(topping_id)
+    if topping is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail='Неверный идентификатор топинга')
+    return topping_id
