@@ -29,7 +29,12 @@ class Customer(Base):
     chat_id = Column(BigInteger, nullable=True)
 
     orders = relationship('Order', back_populates='customer')
-    cart = relationship('ProductInCart', back_populates='customer')
+    cart = relationship(
+        'ProductInCart',
+        back_populates='customer',
+        cascade="all, delete",
+        passive_deletes=True,
+    )
     ban = relationship("BlackList", uselist=False)
 
     def __str__(self):
