@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 
 from pydantic import BaseModel, validator, constr
 
-from app.models import Order
+from app.models import Order, OrderStatuses
 from menu.schemas import SmallProductResponseModel
 
 
@@ -37,7 +37,7 @@ class OrderResponse(BaseModel):
     coffee_house_branch_id: int
     comment: str = None
     time: datetime
-    status: str
+    status: OrderStatuses
     products: list[SmallProductResponseModel]
 
     @staticmethod

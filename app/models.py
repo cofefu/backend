@@ -110,7 +110,7 @@ class Topping(Base):
     coffee_house_name = Column(ForeignKey('coffeehouses.name', ondelete='CASCADE'), nullable=False)
 
 
-class OrderStatuses(enum.Enum):
+class OrderStatuses(str, enum.Enum):
     waiting = 'В ожидании'
     accepted = 'Принят в работу'
     rejected = 'Отклонен'
@@ -190,7 +190,7 @@ class Topping2ProductInCart(Base):
     topping = relationship('Topping')
 
 
-class DaysOfWeek(enum.Enum):
+class DaysOfWeek(str, enum.Enum):
     monday = 0
     tuesday = 1
     wednesday = 2
