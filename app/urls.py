@@ -1,17 +1,13 @@
 import random
-from typing import List
 
-from apscheduler.jobstores.base import JobLookupError
 from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException, Body
 from pydantic import constr
 from sqlalchemy.orm import Session
 from starlette.responses import FileResponse
 from jose import jwt
 from datetime import datetime, timedelta
-from pytz import timezone
 
-from app.models import (Product, Topping, CoffeeHouse, Customer,
-                        LoginCode, Worktime, MenuUpdateTime, DaysOfWeek)
+from app.models import Customer, LoginCode
 from fastapiProject import schemas
 from fastapiProject.settings import settings
 from bot.bot_funcs import send_login_code, send_feedback_to_telegram, send_bugreport_to_telegram
@@ -26,65 +22,6 @@ def create_token(customer: Customer) -> str:
         "exp": datetime.utcnow() + timedelta(days=14)
     }
     return jwt.encode(user_data, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
-
-
-@router.get('/products',
-            tags=['common'],
-            description='Возвращает список продуктов и его вариации',
-            response_model=List[schemas.ProductResponseModel])
-async def get_products(db: Session = Depends(get_db)):
-    products = []
-    for product in db.query(Product).all():
-        product_with_vars = product.data()
-        product_var = [var.data() for var in product.variations]
-        product_with_vars.update({'variations': product_var})
-        products.append(product_with_vars)
-
-    return products
-
-
-@router.get('/coffee_houses',
-            tags=['common'],
-            description='Возвращает список кофеен с именем и расположением',
-            response_model=List[schemas.CoffeeHouseResponseModel])  # redo
-async def get_coffeehouses(db: Session = Depends(get_db)):
-    response = []
-    for house in db.query(CoffeeHouse).all():
-        house_data = house.data('chat_id', 'is_open')
-
-        weekday = datetime.now(tz=timezone('Asia/Vladivostok')).weekday()
-        worktime = db.query(Worktime).filter(
-            Worktime.coffee_house_branch_id == house.id,
-            Worktime.day_of_week == DaysOfWeek(weekday)
-        ).one_or_none()
-
-        if worktime is None or (not house.is_open):
-            house_data.update({'open_time': None, 'close_time': None})
-        else:
-            house_data.update(worktime.data('id', 'day_of_week', 'coffee_house'))
-        response.append(house_data)
-    return response
-
-
-# TEST delete
-@router.get('/products_various/{prod_id}',
-            tags=['common'],
-            description='Возвращает все вариации продукта или ошибку, если продукта нет',
-            response_model=List[schemas.ProductsVariousResponseModel]
-            )
-async def get_products_various(prod_id: int, db: Session = Depends(get_db)):
-    product: Product = db.query(Product).filter_by(id=prod_id).one_or_none()
-    if product is None:
-        raise HTTPException(status_code=400, detail='Несуществующий идентификатор продукта')
-    return [variation.data() for variation in product.variations]
-
-
-@router.get('/toppings',
-            tags=['common'],
-            description='Возвращает список топингов',
-            response_model=List[schemas.ToppingsResponseModel])
-async def get_toppings(db: Session = Depends(get_db)):
-    return [t.data() for t in db.query(Topping).all()]
 
 
 # TEST return svg or ico depending on the user's browser
@@ -207,20 +144,3 @@ async def change_customer_name(new_name: constr(strip_whitespace=True) = Body(..
             description='Узнать подтвержден ли номер телефона')
 async def get_user_is_confirmed(customer: Customer = Depends(get_current_user)):
     return bool(customer.confirmed)
-
-
-@router.get('/menu',
-            tags=['common'],
-            description='Сверить последнюю дату обновления БД',
-            response_model=schemas.MenuResponseModel)
-async def check_menu_update(time: datetime = None,
-                            db: Session = Depends(get_db)):
-    menu_update = db.query(MenuUpdateTime).one_or_none()  # redo падает, если menu_update = None
-    latest_update = menu_update.time if menu_update else None
-    if latest_update == time:
-        return None
-    return {
-        "time": latest_update,
-        "products": await get_products(db),
-        "toppings": await get_toppings(db)
-    }

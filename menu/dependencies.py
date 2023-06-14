@@ -1,10 +1,10 @@
 from typing import Annotated
 
-from fastapi import Body, Depends, HTTPException, status
+from fastapi import Body, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 
 from app.dependencies import get_db
-from app.models import CoffeeHouseBranch, ProductVarious, Topping
+from app.models import CoffeeHouseBranch, ProductVarious, Topping, CoffeeHouse
 
 
 async def valid_coffee_house_branch_id(
@@ -14,8 +14,19 @@ async def valid_coffee_house_branch_id(
     branch = sess.query(CoffeeHouseBranch).get(coffee_house_branch_id)
     if branch is None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail='Неверный идентификатор кофейни')
+                            detail='Неверный идентификатор филиала кофейни')
     return branch
+
+
+async def valid_coffee_house_name(
+        coffee_house_name: Annotated[str, Query],
+        sess: Annotated[Session, Depends(get_db)]
+) -> CoffeeHouse:
+    coffee_house = sess.query(CoffeeHouse).get(coffee_house_name)
+    if coffee_house is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail='Неверный идентификатор кофейни')
+    return coffee_house
 
 
 async def valid_product_various_id(
