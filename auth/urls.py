@@ -16,6 +16,7 @@ router = APIRouter(prefix='/api')
 
 
 @router.post('/register_customer',
+             tags=['auth'],
              description='Служит для создание аккаунта покупателя',
              response_description="Возвращает jwt-токен customer'а")
 async def register_customer(
@@ -31,7 +32,7 @@ async def register_customer(
 
 
 @router.post('/update_token',
-             tags=['jwt require'],
+             tags=['jwt require', 'auth'],
              description='Служит для обновления токена',
              response_description='Возвращает обновленный jwt-токен')
 async def update_token(
@@ -40,6 +41,7 @@ async def update_token(
 
 
 @router.post('/send_login_code',
+             tags=['auth'],
              description='Отправляет пользователю код для подтверждения входа',
              response_description='Ничего не возвращает')
 async def send_login_code(
@@ -64,6 +66,7 @@ async def send_login_code(
 
 
 @router.get('/verify_login_code',
+            tags=['auth'],
             description='Для проверки login кода и получения jwt-токена',
             response_description='Возвращает jwt-токен')
 async def verify_login_code(
@@ -79,7 +82,7 @@ async def verify_login_code(
 
 
 @router.get('/is_confirmed',
-            tags=['jwt require'],
+            tags=['jwt require', 'auth'],
             description='Узнать подтвержден ли номер телефона')
 async def get_user_is_confirmed(
         customer: Annotated[Customer, Depends(get_current_user)]):
@@ -87,7 +90,7 @@ async def get_user_is_confirmed(
 
 
 @router.put('/change_name',
-            tags=['jwt require'],
+            tags=['jwt require', 'auth'],
             description='Для смены имени пользователя',
             response_model=CustomerResponse)
 async def change_customer_name(
@@ -102,7 +105,7 @@ async def change_customer_name(
 
 
 @router.get('/me',
-            tags=['jwt require'],
+            tags=['jwt require', 'auth'],
             description='Возвращает информацию о текущем пользователе',
             response_model=CustomerResponse)
 async def get_me(

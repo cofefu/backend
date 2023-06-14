@@ -15,7 +15,7 @@ router = APIRouter(prefix='/api')
 
 
 @router.get('/coffee_house_products',
-            tags=['common'],
+            tags=['common', 'menu'],
             description='Возвращает список продуктов кофейни и его вариации',
             response_model=list[ProductsWithTypesResponse])
 async def coffee_house_products(
@@ -51,7 +51,7 @@ async def coffee_house_products(
 
 
 @router.get('/coffee_house_toppings',
-            tags=['common'],
+            tags=['common', 'menu'],
             description='Возвращает список топингов кофейни',
             response_model=list[ToppingsResponseModel])
 async def coffee_house_toppings(
@@ -64,7 +64,7 @@ async def coffee_house_toppings(
 
 
 @router.get('/coffee_house_menu',
-            tags=['common'],
+            tags=['common', 'menu'],
             description='Возвращает меню по одной кофейне',
             response_model=CoffeeHouseMenuResponse)
 async def coffee_house_menu(
@@ -85,7 +85,7 @@ async def coffee_house_menu(
 
 
 @router.get('/menu',
-            tags=['common'],
+            tags=['common', 'menu'],
             description="Возвращает меню всех кофеен",
             response_model=list[CoffeeHouseMenuResponse])
 async def menu(
@@ -97,7 +97,7 @@ async def menu(
 
 
 @router.get('/coffee_houses',
-            tags=['common'],
+            tags=['common', 'menu'],
             description='Возвращает список кофеен с именем и расположением',
             response_model=list[CoffeeHouseResponse])
 async def get_coffeehouses(db: Session = Depends(get_db)):

@@ -21,7 +21,7 @@ router = APIRouter(prefix='/api')
 
 
 @router.post('/add_prod2cart',
-             tags=['jwt require'],
+             tags=['jwt require', 'orders'],
              description='Для добавления продукта в корзину',
              status_code=status.HTTP_200_OK)
 def add_prod2cart(
@@ -46,7 +46,7 @@ def add_prod2cart(
 
 @router.post('/make_order',
              dependencies=[Depends(valid_timeout_between_orders)],
-             tags=['jwt require'],
+             tags=['jwt require', 'orders'],
              description='Служит для создания заказа',
              status_code=status.HTTP_200_OK,
              response_model=OrderNumerResponse)
@@ -86,7 +86,7 @@ async def make_order(
 
 
 @router.put('/cancel_order',
-            tags=['jwt require'],
+            tags=['jwt require', 'orders'],
             description='Служит для отмены заказа')
 async def cancel_order(
         order_id: Annotated[int, Body()],
@@ -103,7 +103,7 @@ async def cancel_order(
 
 
 @router.get('/last_order',
-            tags=['jwt require'],
+            tags=['jwt require', 'orders'],
             description='Возвращает последний заказ пользователя',
             response_model=OrderResponse)
 async def get_last_order(
@@ -116,7 +116,7 @@ async def get_last_order(
 
 
 @router.get('/order_status/{order_id}',
-            tags=['jwt require'],
+            tags=['jwt require', 'orders'],
             description='Возвращает статус заказа по его id или ошибку, если заказа нет',
             response_description=' | '.join(item.value for item in OrderStatuses))
 async def order_status(
@@ -132,7 +132,7 @@ async def order_status(
 
 
 @router.get('/active_orders',
-            tags=['jwt require'],
+            tags=['jwt require', 'orders'],
             description='Возвращает активные заказы пользователя',
             response_model=tuple[OrderResponse])
 async def get_active_orders(
@@ -147,7 +147,7 @@ async def get_active_orders(
 
 
 @router.get('/my_orders',
-            tags=['jwt require'],
+            tags=['jwt require', 'orders'],
             description="Возвращает историю заказов",
             response_model=tuple[OrderResponse])
 async def get_my_order_history(
@@ -156,7 +156,7 @@ async def get_my_order_history(
 
 
 @router.get('/my_cart',
-            tags=['jwt require'],
+            tags=['jwt require', 'orders'],
             description='Возвращает корзину',
             response_model=list[ProductInCartResponse])
 async def my_cart(
