@@ -11,7 +11,7 @@ from bot.bot_funcs import send_order
 from fastapiProject.scheduler import scheduler
 from fastapiProject.settings import settings
 from orders.dependencies import valid_ordered_product, valid_order_info
-from orders.schemas import ProductInCartCreate, OrderCreate, OrderResponse, OrderNumerResponse
+from orders.schemas import ProductInCartCreate, OrderCreate, OrderResponse, OrderNumerResponse, ProductInCartResponse
 from orders.services import gen_order_number, valid_equal_coffee_house, \
     cart2order
 
@@ -151,3 +151,32 @@ async def get_active_orders(
 async def get_my_order_history(
         customer: Annotated[Customer, Depends(get_current_active_user)]):
     return (OrderResponse.to_dict(order) for order in customer.orders)
+
+
+@router.get('/my_cart',
+            tags=['jwt require'],
+            description='Возвращает корзину',
+            response_model=list[ProductInCartResponse])
+async def my_cart(
+        customer: Annotated[Customer, Depends(get_current_active_user)]):
+    result = []
+    prod: ProductInCart
+    top: Topping2ProductInCart
+    for prod in customer.cart:
+        result.append({
+            "product_various_id": prod.product_various_id,
+            "name": prod.product_various.product.name,
+            "description": prod.product_various.product.description,
+            "type": prod.product_various.product.type_name,
+            "price": prod.product_various.price,
+            "size": prod.product_various.size_name,
+            "toppings": [
+                {
+                    "id": top.topping_id,
+                    "name": top.topping.name,
+                    "price": top.topping.price
+                }
+                for top in prod.toppings
+            ]
+        })
+    return result

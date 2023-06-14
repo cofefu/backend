@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from pydantic import BaseModel, validator, constr
 
 from app.models import Order, OrderStatuses
-from menu.schemas import SmallProductResponseModel
+from menu.schemas import SmallProductResponseModel, ToppingsResponseModel
 
 
 class OrderNumerResponse(BaseModel):
@@ -14,6 +14,16 @@ class OrderNumerResponse(BaseModel):
 class ProductInCartCreate(BaseModel):
     product_various_id: int
     toppings: list[int]
+
+
+class ProductInCartResponse(BaseModel):
+    product_various_id: int
+    name: str
+    description: str
+    type: str
+    price: int
+    size: str
+    toppings: list[ToppingsResponseModel]
 
 
 class OrderCreate(BaseModel):
