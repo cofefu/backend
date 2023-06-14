@@ -24,6 +24,7 @@ class Base(declarative_base()):
     def __tablename__(cls):
         return f'{cls.__name__.lower()}s'
 
+    # todo add **kwargs
     def data(self, *args: str) -> dict:
         """args: names of fields to hide"""
         hidden = {'_sa_instance_state'}.union(args)
