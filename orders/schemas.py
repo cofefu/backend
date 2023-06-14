@@ -3,7 +3,12 @@ from datetime import datetime, timedelta
 from pydantic import BaseModel, validator, constr
 
 from app.models import Order
-from fastapiProject.schemas import SmallProductResponseModel
+from menu.schemas import SmallProductResponseModel
+
+
+class OrderResponse(BaseModel):
+    order_numer: str
+    order_id: int
 
 
 class ProductInCartCreate(BaseModel):

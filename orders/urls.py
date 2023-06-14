@@ -2,17 +2,17 @@ from datetime import datetime
 from typing import Annotated
 
 from apscheduler.jobstores.base import JobLookupError
-from fastapi import APIRouter, Depends, status, HTTPException
+from fastapi import APIRouter, Depends, status, HTTPException, Query, Path
 from sqlalchemy.orm import Session
 
 from app.dependencies import get_db, get_current_active_user, get_not_baned_user, timeout_is_over
-from app.models import Customer, Order, ProductInOrder, ProductInCart, Topping2ProductInCart, OrderStatuses
+from app.models import Customer, Order, ProductInCart, Topping2ProductInCart, OrderStatuses
 from bot.bot_funcs import send_order
 from fastapiProject.scheduler import scheduler
 from fastapiProject.settings import settings
 from orders.dependencies import valid_ordered_product, valid_order_info
 from orders.schemas import ProductInCartCreate, OrderCreate, OrderResponse
-from orders.services import get_or_create_cart, gen_order_number, valid_equal_coffee_house, \
+from orders.services import gen_order_number, valid_equal_coffee_house, \
     cart2order
 
 router = APIRouter(prefix='/api')
@@ -42,12 +42,13 @@ def add_prod2cart(
     return 'Success'
 
 
-@router.post('/make_order_new',
+@router.post('/make_order',
              dependencies=[Depends(timeout_is_over)],
              tags=['jwt require'],
              description='Служит для создания заказа',
-             status_code=status.HTTP_200_OK)
-async def make_order_new(
+             status_code=status.HTTP_200_OK,
+             response_model=OrderResponse)
+async def make_order(
         order_info: Annotated[OrderCreate, Depends(valid_order_info)],
         customer: Annotated[Customer, Depends(get_not_baned_user)],
         db: Annotated[Session, Depends(get_db)]):
@@ -76,16 +77,19 @@ async def make_order_new(
                       replace_existing=True,
                       args=[order.id],
                       id=str(order.id))
-    return {'order_number': order.order_number}
+    return {
+        'order_number': order.order_number,
+        'order_id': order.id,
+    }
 
 
 @router.put('/cancel_order',
             tags=['jwt require'],
             description='Служит для отмены заказа')
 async def cancel_order(
-        order_id: int,
-        customer: Customer = Depends(get_current_active_user),
-        db: Session = Depends(get_db)):
+        order_id: Annotated[int, Query()],
+        customer: Annotated[Customer, Depends(get_current_active_user)],
+        db: Annotated[Session, Depends(get_db)]):
     if db.query(Order).filter_by(id=order_id, customer_phone_number=customer.phone_number).delete() == 0:
         raise HTTPException(status_code=400, detail='Заказ не найден.')
     try:
@@ -101,22 +105,22 @@ async def cancel_order(
             description='Возвращает последний заказ пользователя',
             response_model=OrderResponse)
 async def get_last_order(
-        customer: Customer = Depends(get_current_active_user),
-        db: Session = Depends(get_db)):
+        customer: Annotated[Customer, Depends(get_current_active_user)],
+        db: Annotated[Session, Depends(get_db)]):
     order = db.query(Order).filter_by(customer_phone_number=customer.phone_number).order_by(Order.id.desc()).first()
     if order is None:
         return None
     return OrderResponse.to_dict(order)
 
 
-@router.get('/order_status/{number}',
+@router.get('/order_status/{order_id}',
             tags=['jwt require'],
             description='Возвращает статус заказа по его id или ошибку, если заказа нет',
             response_description=' | '.join(item.value for item in OrderStatuses))
 async def order_status(
-        order_id: int,
-        customer: Customer = Depends(get_current_active_user),
-        db: Session = Depends(get_db)):
+        order_id: Annotated[int, Path()],
+        customer: Annotated[Customer, Depends(get_current_active_user)],
+        db: Annotated[Session, Depends(get_db)]):
     order: Order = db.query(Order).filter_by(id=order_id).one_or_none()
     if order is None:
         raise HTTPException(status_code=400, detail="Неверный номер заказа")
@@ -130,8 +134,8 @@ async def order_status(
             description='Возвращает активные заказы пользователя',
             response_model=tuple[OrderResponse])
 async def get_active_orders(
-        customer: Customer = Depends(get_current_active_user),
-        db: Session = Depends(get_db)):
+        customer: Annotated[Customer, Depends(get_current_active_user)],
+        db: Annotated[Session, Depends(get_db)]):
     active_statuses = (OrderStatuses.waiting, OrderStatuses.accepted, OrderStatuses.ready)
     orders = db.query(Order) \
         .filter(Order.customer_phone_number == customer.phone_number, Order.status.in_(active_statuses)) \
@@ -145,5 +149,5 @@ async def get_active_orders(
             description="Возвращает историю заказов",
             response_model=tuple[OrderResponse])
 async def get_my_order_history(
-        customer: Customer = Depends(get_current_active_user)):
+        customer: Annotated[Customer, Depends(get_current_active_user)]):
     return (OrderResponse.to_dict(order) for order in customer.orders)

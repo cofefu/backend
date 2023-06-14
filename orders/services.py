@@ -45,7 +45,7 @@ def valid_equal_coffee_house(
     :rtype: bool
     """
     for prod in prods_in_cart:
-        if prod.product_various.product != prods_in_cart[0].product_various.product:
+        if prod.product_various.product.coffee_house_name != prods_in_cart[0].product_various.product.coffee_house_name:
             return False
     return True
 
