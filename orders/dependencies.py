@@ -2,12 +2,14 @@ from datetime import datetime, timedelta
 from typing import Annotated
 from pytz import timezone
 
-from fastapi import Depends, HTTPException, Body
+from fastapi import Depends, HTTPException, Body, status
 from pydantic import constr
 from sqlalchemy.orm import Session
 
 from app.dependencies import get_db
-from app.models import CoffeeHouseBranch, Worktime, DaysOfWeek
+from app.models import CoffeeHouseBranch, Worktime, DaysOfWeek, Customer, Order
+from auth.dependencies import get_current_active_user
+from fastapiProject.settings import settings
 from menu.dependencies import valid_coffee_house_branch_id, valid_product_various_id, valid_topping_id
 from orders.schemas import OrderCreate, ProductInCartCreate
 from orders.services import min_order_preparation_time
@@ -78,3 +80,20 @@ async def valid_order_info(
         comment=comment,
         time=time
     )
+
+
+def valid_timeout_between_orders(
+        customer: Annotated[Customer, Depends(get_current_active_user)],
+        db: Annotated[Session, Depends(get_db)]
+) -> None:
+    last_order: Order = (db.query(Order)
+                         .filter_by(customer_phone_number=customer.phone_number)
+                         .join(Customer)
+                         .order_by(Order.id.desc())
+                         .first())
+    if last_order is None:
+        return
+
+    if datetime.utcnow() - last_order.creation_time <= settings.order_timeout:
+        raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
+                            detail=f'С момента последнего заказа прошло менее 2 минут')
