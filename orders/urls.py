@@ -2,10 +2,12 @@ from datetime import datetime
 from typing import Annotated
 
 from apscheduler.jobstores.base import JobLookupError
-from fastapi import APIRouter, Depends, status, HTTPException, Query, Path
+from fastapi import APIRouter, Depends, status, HTTPException, Path, Body
 from sqlalchemy.orm import Session
 
-from app.dependencies import get_db, get_current_active_user, get_not_baned_user, timeout_is_over
+from app.dependencies import get_db
+from auth.dependencies import get_current_active_user, get_not_baned_user
+from orders.dependencies import valid_timeout_between_orders
 from app.models import Customer, Order, ProductInCart, Topping2ProductInCart, OrderStatuses
 from bot.bot_funcs import send_order
 from fastapiProject.scheduler import scheduler
@@ -43,7 +45,7 @@ def add_prod2cart(
 
 
 @router.post('/make_order',
-             dependencies=[Depends(timeout_is_over)],
+             dependencies=[Depends(valid_timeout_between_orders)],
              tags=['jwt require'],
              description='Служит для создания заказа',
              status_code=status.HTTP_200_OK,
@@ -87,7 +89,7 @@ async def make_order(
             tags=['jwt require'],
             description='Служит для отмены заказа')
 async def cancel_order(
-        order_id: Annotated[int, Query()],
+        order_id: Annotated[int, Body()],
         customer: Annotated[Customer, Depends(get_current_active_user)],
         db: Annotated[Session, Depends(get_db)]):
     if db.query(Order).filter_by(id=order_id, customer_phone_number=customer.phone_number).delete() == 0:
