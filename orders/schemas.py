@@ -6,7 +6,7 @@ from app.models import Order
 from menu.schemas import SmallProductResponseModel
 
 
-class OrderResponse(BaseModel):
+class OrderNumerResponse(BaseModel):
     order_numer: str
     order_id: int
 

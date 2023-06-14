@@ -11,7 +11,7 @@ from bot.bot_funcs import send_order
 from fastapiProject.scheduler import scheduler
 from fastapiProject.settings import settings
 from orders.dependencies import valid_ordered_product, valid_order_info
-from orders.schemas import ProductInCartCreate, OrderCreate, OrderResponse
+from orders.schemas import ProductInCartCreate, OrderCreate, OrderResponse, OrderNumerResponse
 from orders.services import gen_order_number, valid_equal_coffee_house, \
     cart2order
 
@@ -47,7 +47,7 @@ def add_prod2cart(
              tags=['jwt require'],
              description='Служит для создания заказа',
              status_code=status.HTTP_200_OK,
-             response_model=OrderResponse)
+             response_model=OrderNumerResponse)
 async def make_order(
         order_info: Annotated[OrderCreate, Depends(valid_order_info)],
         customer: Annotated[Customer, Depends(get_not_baned_user)],
