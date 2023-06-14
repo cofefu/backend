@@ -41,6 +41,8 @@ class CoffeeHouse(Base):
     name = Column(String(20), primary_key=True, index=True)
     is_active = Column(Boolean, default=True, nullable=False)
 
+    branches = relationship('CoffeeHouseBranch')
+
 
 class CoffeeHouseBranch(Base):
     placement = Column(String(20), nullable=False)
@@ -80,8 +82,7 @@ class Product(Base):
         cascade="all, delete",
         passive_deletes=True,
     )  # One to Many (ForeignKey in related)
-
-    # tags = relationship('Tag', secondary=Tag2Product, backref='product')
+    tags = relationship('Tag2Product')
 
     def __str__(self):
         return f'<{self.name=}>'
