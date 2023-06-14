@@ -9,7 +9,7 @@ from pathlib import Path
 @lru_cache
 class Settings(BaseSettings):
     base_dir: pathlib.WindowsPath = Path(__file__).resolve().parent.parent
-    apps: tuple[str, ...] = ('app', 'bot', 'orders')
+    apps: tuple[str, ...] = ('app', 'bot', 'orders', 'menu')
 
     db_engine: str = 'postgresql'
     db_user: str = 'postgres'
