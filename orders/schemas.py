@@ -7,7 +7,7 @@ from menu.schemas import SmallProductResponseModel, ToppingsResponseModel
 
 
 class OrderNumerResponse(BaseModel):
-    order_numer: str
+    order_number: str
     order_id: int
 
 

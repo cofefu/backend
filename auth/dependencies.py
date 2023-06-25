@@ -39,7 +39,7 @@ def get_current_user(
 def get_current_active_user(
         customer: Annotated[Customer, Depends(get_current_user)]
 ) -> Customer:
-    if not customer.telegram_id:
+    if customer.telegram_id is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail='Номер телефона не подтвержден.')
     return customer

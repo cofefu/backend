@@ -40,7 +40,7 @@ def send_order(order_number: int):
     db.close()
 
 
-def send_login_code(login_code: LoginCode):
+def send_login_code_to_telegram(login_code: LoginCode):
     msg = f'Код для входа: {login_code.code}'
     bot.send_message(chat_id=login_code.customer.chat_id, text=msg)
 

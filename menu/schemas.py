@@ -50,3 +50,8 @@ class CoffeeHouseMenuResponse(BaseModel):
     time: datetime
     products: list[ProductsWithTypesResponse]
     toppings: list[ToppingsResponseModel]
+
+
+class CoffeeHouseBranchWorktime(BaseModel):
+    open_time: time | None
+    close_time: time | None

@@ -195,7 +195,7 @@ class Topping2ProductInCart(Base):
     topping = relationship('Topping')
 
 
-class DaysOfWeek(str, enum.Enum):
+class DaysOfWeek(int, enum.Enum):
     monday = 0
     tuesday = 1
     wednesday = 2

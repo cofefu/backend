@@ -89,7 +89,7 @@ async def make_order(
             tags=['jwt require', 'orders'],
             description='Служит для отмены заказа')
 async def cancel_order(
-        order_id: Annotated[int, Body()],
+        order_id: Annotated[int, Body(embed=True)],
         customer: Annotated[Customer, Depends(get_current_active_user)],
         db: Annotated[Session, Depends(get_db)]):
     if db.query(Order).filter_by(id=order_id, customer_phone_number=customer.phone_number).delete() == 0:
@@ -134,7 +134,7 @@ async def order_status(
 @router.get('/active_orders',
             tags=['jwt require', 'orders'],
             description='Возвращает активные заказы пользователя',
-            response_model=tuple[OrderResponse])
+            response_model=list[OrderResponse])
 async def get_active_orders(
         customer: Annotated[Customer, Depends(get_current_active_user)],
         db: Annotated[Session, Depends(get_db)]):
@@ -149,7 +149,7 @@ async def get_active_orders(
 @router.get('/my_orders',
             tags=['jwt require', 'orders'],
             description="Возвращает историю заказов",
-            response_model=tuple[OrderResponse])
+            response_model=list[OrderResponse])
 async def get_my_order_history(
         customer: Annotated[Customer, Depends(get_current_active_user)]):
     return (OrderResponse.to_dict(order) for order in customer.orders)

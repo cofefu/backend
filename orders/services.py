@@ -33,7 +33,7 @@ def gen_order_number(
     last_order = db.query(Order).order_by(Order.id.desc()).first()
     if not last_order:
         return '1'
-    return str(int(last_order.order_number) / 1000 + 1)
+    return str(int(last_order.order_number) // 999 + 1)
 
 
 def valid_equal_coffee_house(

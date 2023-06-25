@@ -2,14 +2,14 @@ from datetime import datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
-from pytz import timezone
 from sqlalchemy.orm import Session
 
 from app.dependencies import get_db
-from app.models import Product, CoffeeHouse, Topping, MenuUpdateTime, Worktime, DaysOfWeek
+from app.models import Product, CoffeeHouse, Topping
 from menu.dependencies import valid_coffee_house_name
 from menu.schemas import ProductsWithTypesResponse, ProductResponseModel, ToppingsResponseModel, \
     CoffeeHouseMenuResponse, CoffeeHouseResponse
+from menu.services import coffee_house_branch_worktime_today
 
 router = APIRouter(prefix='/api')
 
@@ -110,16 +110,9 @@ async def get_coffeehouses(db: Session = Depends(get_db)):
         for branch in house.branches:
             branch_data = branch.data('chat_id', 'is_active', 'coffee_house_name')
 
-            weekday = datetime.now(tz=timezone('Asia/Vladivostok')).weekday()
-            worktime = db.query(Worktime).filter(
-                Worktime.coffee_house_branch_id == branch.id,
-                Worktime.day_of_week == DaysOfWeek(weekday)
-            ).one_or_none()
+            today_worktime = coffee_house_branch_worktime_today(branch, db)
+            branch_data.update(today_worktime.dict())
 
-            if worktime is None or (not branch.is_active):
-                branch_data.update({'open_time': None, 'close_time': None})
-            else:
-                branch_data.update(worktime.data('id', 'day_of_week', 'coffee_house_branch_id'))
             house_data['branches'].append(branch_data)
         result.append(house_data)
     return result
