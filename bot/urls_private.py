@@ -4,7 +4,7 @@ from bot import bot
 from telebot import types
 
 from app.models import Customer, FSM, get_or_create
-from bot.bot_funcs import send_bugreport_to_telegram, send_feedback_to_telegram
+from bot.services import send_bugreport_to_telegram, send_feedback_to_telegram
 from bot.filters import States
 from db import SessionLocal
 
@@ -30,8 +30,7 @@ def contact_handler(message):
 
     db: Session = SessionLocal()
     customer: Customer
-    if customer := db.query(Customer).filter_by(phone_number=phone_number[-10:]).first():
-        customer.confirmed = True
+    if customer := db.query(Customer).get(phone_number[-10:]) is None:
         customer.chat_id = message.chat.id
         customer.telegram_id = message.from_user.id
         db.commit()

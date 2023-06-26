@@ -136,7 +136,7 @@ class Order(Base):
     cancel_reason = Column(String(150), nullable=True)
 
     customer = relationship('Customer', back_populates='orders')
-    coffee_house = relationship('CoffeeHouseBranch')
+    coffee_house_branch = relationship('CoffeeHouseBranch')
     products_in_order = relationship(
         'ProductInOrder',
         cascade="all, delete",
@@ -144,7 +144,7 @@ class Order(Base):
     )
 
     def get_status_name(self):
-        return self.status.value if self.cancel_reason is None else self.cancel_reason
+        return self.cancel_reason or self.status.value
 
     # todo переписать
     # def save(self, *args, **kwargs):

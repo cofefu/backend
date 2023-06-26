@@ -9,7 +9,7 @@ from app.models import Customer, LoginCode
 from auth.dependencies import get_current_user, get_current_active_user
 from auth.schemas import CustomerCreate, CustomerResponse, CustomerNewName
 from auth.services import create_token, gen_login_code, min_lifetime_login_code
-from bot.bot_funcs import send_login_code_to_telegram
+from bot.services import send_login_code_to_telegram
 
 router = APIRouter(prefix='/api')
 

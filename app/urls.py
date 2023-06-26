@@ -4,7 +4,7 @@ from starlette.responses import FileResponse
 from app.models import Customer
 from auth.dependencies import get_current_user
 
-from bot.bot_funcs import send_feedback_to_telegram, send_bugreport_to_telegram
+from bot.services import send_feedback_to_telegram, send_bugreport_to_telegram
 
 router = APIRouter(prefix='/api')
 
