@@ -33,16 +33,6 @@ def set_webhook():
         bot.set_webhook(url=webhook_url)
 
 
-def order_not_picked(order: Order):
-    db = SessionLocal()
-    customer = order.customer
-    if db.query(Order) \
-            .filter_by(customer_id=customer.id, status=OrderStatuses.no_taken) \
-            .count() >= settings.max_not_picked_orders:
-        ban_customer(customer, datetime.utcnow(), forever=True)
-    db.close()
-
-
 @router.post(f'/{B_TOKEN}/', include_in_schema=False)
 def process_webhook(update: dict):
     if update:

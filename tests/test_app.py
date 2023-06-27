@@ -6,7 +6,7 @@ from pytz import timezone
 from sqlalchemy.orm import Session
 
 from app.models import Customer, LoginCode
-from app.urls import create_token
+from auth.services import create_token
 from tests.utils import get_random_order, get_or_create_customer, get_or_create_product, get_or_create_product_various, \
     get_or_create_topping, get_or_create_coffee_house, get_or_create_any_customer_order
 
@@ -85,7 +85,7 @@ def test_post_update_token(client: TestClient, db: Session):
 def test_send_login_code(client: TestClient, db: Session):
     customer = get_or_create_customer(db)
     response = client.post(
-        'api/send_login_code',
+        'api/send_login_code_to_telegram',
         json={'name': customer.name, 'phone_number': customer.phone_number},
     )
 
@@ -97,7 +97,7 @@ def test_send_login_code(client: TestClient, db: Session):
 
 def test_send_login_code_not_exist_customer(client: TestClient, db: Session):
     response = client.post(
-        'api/send_login_code',
+        'api/send_login_code_to_telegram',
         json={'name': 'not exist customer', 'phone_number': '1234567890'},
     )
     assert response.status_code == 400
@@ -108,7 +108,7 @@ def test_send_login_code_not_confirmed_customer(client: TestClient, db: Session)
     tmp_customer.save(db)
 
     response = client.post(
-        'api/send_login_code',
+        'api/send_login_code_to_telegram',
         json={'name': tmp_customer.name, 'phone_number': tmp_customer.phone_number},
     )
 

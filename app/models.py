@@ -2,15 +2,14 @@ import enum
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import (Column, Boolean, BigInteger, Integer, String, Enum, DateTime, ForeignKey,
-                        CheckConstraint, Time)
+from sqlalchemy import (Column, Boolean, BigInteger, Integer, String, Enum, DateTime, ForeignKey, Time)
 from sqlalchemy.orm import relationship, Session
-import sqlalchemy
 
 import db
 from db import Base, engine
 
 
+# todo засунуть в Base и переписать
 def get_or_create(session: Session, model, **kwargs):
     instance = session.query(model).filter_by(**kwargs).first()
     if instance:
@@ -23,53 +22,100 @@ def get_or_create(session: Session, model, **kwargs):
 
 
 class Customer(Base):
-    name = Column(String(20))
-    phone_number = Column(String(10))
-    confirmed = Column(Boolean(False))
+    id = None
+    phone_number = Column(BigInteger, primary_key=True, index=True)
+    name = Column(String(20), nullable=False)
     telegram_id = Column(BigInteger, nullable=True)
     chat_id = Column(BigInteger, nullable=True)
 
     orders = relationship('Order', back_populates='customer')
+    cart = relationship(
+        'ProductInCart',
+        back_populates='customer',
+        cascade="all, delete",
+        passive_deletes=True,
+    )
     ban = relationship("BlackList", uselist=False)
 
     def __str__(self):
-        return f'<{self.name=}, {self.phone_number=}, {self.confirmed=}, {self.telegram_id=}, {self.chat_id=}>'
+        return f'<{self.name=}, {self.phone_number=}, {self.telegram_id=}, {self.chat_id=}>'
 
 
-class ProductTypes(enum.Enum):
-    coffee = 'Кофе'
-    no_coffee = 'Не кофе'
+class CoffeeHouse(Base):
+    id = None
+    name = Column(String(20), primary_key=True, index=True)
+    is_active = Column(Boolean, default=True, nullable=False)
+
+    branches = relationship('CoffeeHouseBranch')
+
+
+class CoffeeHouseBranch(Base):
+    placement = Column(String(20), nullable=False)
+    chat_id = Column(BigInteger, nullable=False)
+    is_active = Column(Boolean, default=True, nullable=False)
+    coffee_house_name = Column(ForeignKey('coffeehouses.name', ondelete='CASCADE'), nullable=False)
+
+    worktime = relationship('Worktime')
+
+
+class ProductType(Base):
+    id = None
+    name = Column(String(20), primary_key=True, index=True)
+
+
+class Tag(Base):
+    id = None
+    name = Column(String(20), primary_key=True, index=True)
+
+
+class Tag2Product(Base):
+    id = None
+    tag_name = Column(ForeignKey('tags.name', ondelete='CASCADE'), primary_key=True)
+    product_id = Column(ForeignKey('products.id', ondelete='CASCADE'), primary_key=True, index=True)
 
 
 class Product(Base):
-    type = Column(Enum(ProductTypes))
-    name = Column(String(50))
+    name = Column(String(50), nullable=False)
     description = Column(String(200), nullable=True)
-    img = Column(String(200), nullable=True)
+    is_active = Column(Boolean, default=True, nullable=False)
+    type_name = Column(ForeignKey('producttypes.name', ondelete='RESTRICT'), nullable=False)
+    coffee_house_name = Column(ForeignKey('coffeehouses.name', ondelete='CASCADE'), nullable=False)
 
-    variations = relationship('ProductVarious', back_populates='product')  # One to Many (ForeignKey in related)
+    variations = relationship(
+        'ProductVarious',
+        back_populates='product',
+        cascade="all, delete",
+        passive_deletes=True,
+    )  # One to Many (ForeignKey in related)
+    tags = relationship('Tag2Product')
 
     def __str__(self):
         return f'<{self.name=}>'
 
 
-class ProductSizes(enum.Enum):
-    S = 'S'
-    M = 'M'
-    L = 'L'
+class ProductSize(Base):
+    id = None
+    name = Column(String(4), primary_key=True, index=True)
 
 
 class ProductVarious(Base):
     __tablename__ = 'productvarious'
 
-    product_id = Column(ForeignKey('products.id', ondelete='CASCADE'))
-    size = Column(Enum(ProductSizes))
-    price = Column(Integer)
+    price = Column(Integer, nullable=False)
+    product_id = Column(ForeignKey('products.id', ondelete='CASCADE'), nullable=False)
+    size_name = Column(ForeignKey('productsizes.name', ondelete='RESTRICT'), nullable=False)
 
     product = relationship('Product', back_populates='variations')
 
 
-class OrderStatuses(enum.Enum):
+class Topping(Base):
+    name = Column(String(100), nullable=False)
+    price = Column(Integer, nullable=False)
+    is_active = Column(Boolean, default=True, nullable=False)
+    coffee_house_name = Column(ForeignKey('coffeehouses.name', ondelete='CASCADE'), nullable=False)
+
+
+class OrderStatuses(str, enum.Enum):
     waiting = 'В ожидании'
     accepted = 'Принят в работу'
     rejected = 'Отклонен'
@@ -79,20 +125,26 @@ class OrderStatuses(enum.Enum):
 
 
 class Order(Base):
-    coffee_house_id = Column(Integer, ForeignKey('coffeehouses.id', ondelete='SET NULL'), nullable=True)
-    customer_id = Column(Integer, ForeignKey('customers.id', ondelete='SET NULL'), nullable=True)
+    id = Column(BigInteger, primary_key=True, index=True, autoincrement=True)
+    order_number = Column(String(3), nullable=False)
+    coffee_house_branch_id = Column(ForeignKey('coffeehousebranchs.id', ondelete='SET NULL'), nullable=True)
+    customer_phone_number = Column(ForeignKey('customers.phone_number', ondelete='SET NULL'), nullable=True)
     comment = Column(String(200), nullable=True)
-    time = Column(DateTime(timezone=True))
-    creation_time = Column(DateTime, default=datetime.utcnow)
-    status = Column(Enum(OrderStatuses), default=OrderStatuses.waiting)
+    time = Column(DateTime(timezone=True), nullable=False)
+    creation_time = Column(DateTime, default=datetime.utcnow, nullable=False)
+    status = Column(Enum(OrderStatuses), default=OrderStatuses.waiting, nullable=False)
+    cancel_reason = Column(String(150), nullable=True)
 
     customer = relationship('Customer', back_populates='orders')
-    coffee_house = relationship('CoffeeHouse')
-    ordered_products = relationship('OrderedProduct')
-    cancel_reason = relationship("OrderCancelReason", uselist=False)
+    coffee_house_branch = relationship('CoffeeHouseBranch')
+    products_in_order = relationship(
+        'ProductInOrder',
+        cascade="all, delete",
+        passive_deletes=True,
+    )
 
     def get_status_name(self):
-        return self.status.value if self.cancel_reason is None else self.cancel_reason.reason
+        return self.cancel_reason or self.status.value
 
     # todo переписать
     # def save(self, *args, **kwargs):
@@ -102,24 +154,48 @@ class Order(Base):
     #             ban_customer(self.customer, datetime.utcnow(), forever=True)
 
 
-class OrderedProduct(Base):
-    order_id = Column(Integer, ForeignKey('orders.id', ondelete='CASCADE'))
-    product_id = Column(Integer, ForeignKey('productvarious.id', ondelete='CASCADE'))
+class ProductInOrder(Base):
+    order_id = Column(ForeignKey('orders.id', ondelete='CASCADE'), nullable=False)
+    product_various_id = Column(ForeignKey('productvarious.id', ondelete='CASCADE'), nullable=False)
 
-    product = relationship('ProductVarious')
-    toppings = relationship('ToppingToProduct')
-
-
-class CoffeeHouse(Base):
-    name = Column(String(20))
-    placement = Column(String(20))
-    chat_id = Column(BigInteger)
-    is_open = Column(Boolean)
-
-    worktime = relationship('Worktime')
+    product_various = relationship('ProductVarious')
+    toppings = relationship(
+        'Topping2ProductInOrder',
+        cascade="all, delete",
+        passive_deletes=True,
+    )
 
 
-class DaysOfWeek(enum.Enum):
+class Topping2ProductInOrder(Base):
+    product_in_order_id = Column(ForeignKey('productinorders.id', ondelete='CASCADE'), nullable=False)
+    topping_id = Column(ForeignKey('toppings.id', ondelete='CASCADE'), nullable=False)
+
+    topping = relationship('Topping')
+
+
+class ProductInCart(Base):
+    __tablename__ = 'productincart'
+
+    customer_phone_number = Column(ForeignKey('customers.phone_number', ondelete='CASCADE'), nullable=False)
+    product_various_id = Column(ForeignKey('productvarious.id', ondelete='CASCADE'), nullable=False)
+
+    customer = relationship('Customer', back_populates='cart')
+    product_various = relationship('ProductVarious')
+    toppings = relationship(
+        'Topping2ProductInCart',
+        cascade="all, delete",
+        passive_deletes=True,
+    )
+
+
+class Topping2ProductInCart(Base):
+    product_in_cart_id = Column(ForeignKey('productincart.id', ondelete='CASCADE'), nullable=False)
+    topping_id = Column(ForeignKey('toppings.id', ondelete='CASCADE'), nullable=False)
+
+    topping = relationship('Topping')
+
+
+class DaysOfWeek(int, enum.Enum):
     monday = 0
     tuesday = 1
     wednesday = 2
@@ -132,29 +208,17 @@ class DaysOfWeek(enum.Enum):
 class Worktime(Base):
     __tablename__ = 'worktime'
 
-    coffee_house_id = Column(Integer, ForeignKey('coffeehouses.id', ondelete='CASCADE'))
-    day_of_week = Column(Enum(DaysOfWeek))
-    open_time = Column(Time)
-    close_time = Column(Time)
-
-
-class Topping(Base):
-    name = Column(String(100))
-    price = Column(Integer, CheckConstraint('price >= 0'))
-
-
-# todo maybe change to ARRAY(Integer) in OrderedProduct
-class ToppingToProduct(Base):
-    ordered_product_id = Column(Integer, ForeignKey('orderedproducts.id', ondelete='CASCADE'))
-    topping_id = Column(Integer, ForeignKey('toppings.id', ondelete='CASCADE'))
-
-    topping = relationship('Topping')
+    coffee_house_branch_id = Column(ForeignKey('coffeehousebranchs.id', ondelete='CASCADE'), nullable=False)
+    day_of_week = Column(Enum(DaysOfWeek), nullable=False)
+    open_time = Column(Time, nullable=False)
+    close_time = Column(Time, nullable=False)
 
 
 class LoginCode(Base):
-    customer_id = Column(Integer, ForeignKey('customers.id', ondelete='CASCADE'))
-    code = Column(Integer, unique=True)
-    expire = Column(DateTime)
+    id = None
+    code = Column(Integer, primary_key=True, index=True)
+    customer_phone_number = Column(ForeignKey('customers.phone_number', ondelete='CASCADE'), nullable=False)
+    expire = Column(DateTime, nullable=False)
 
     customer = relationship('Customer')  # Many to One (ForeignKey here)
 
@@ -162,30 +226,26 @@ class LoginCode(Base):
 class BlackList(Base):
     __tablename__ = 'blacklist'
 
-    customer_id = Column(Integer, ForeignKey('customers.id', ondelete='CASCADE'), unique=True)
+    id = None
+    customer = Column(ForeignKey('customers.phone_number', ondelete='CASCADE'), primary_key=True, index=True)
     expire = Column(Time, nullable=True)  # если null - это бан навсегда ???
-    forever = Column(Boolean, default=False)
-
-
-class OrderCancelReason(Base):
-    order_id = Column(Integer, ForeignKey('orders.id', ondelete='CASCADE'), unique=True)
-    reason = Column(String(150))
 
 
 class FSM(Base):
     __tablename__ = 'fsm'
 
-    telegram_id = Column(BigInteger, unique=True)
+    telegram_id = Column(BigInteger, unique=True, nullable=False)
     state = Column(Integer, nullable=True)
 
 
 class MenuUpdateTime(Base):
-    time = Column(DateTime)
+    time = Column(DateTime, nullable=False)
+    coffee_house_name = Column(ForeignKey('coffeehouses.name', ondelete='CASCADE'), nullable=False)
 
 
-__all__ = ['Customer', 'Product', 'CoffeeHouse', 'Order', 'Worktime', 'ProductVarious', 'OrderedProduct',
-           'ToppingToProduct', 'Topping', 'LoginCode', 'BlackList', 'ban_customer', 'OrderCancelReason', 'FSM',
-           'MenuUpdateTime', 'OrderStatuses', 'ProductTypes', 'ProductSizes']
+__all__ = ['Customer', 'CoffeeHouse', 'CoffeeHouseBranch', 'ProductType', 'Product', 'ProductSize', 'ProductVarious',
+           'Topping', 'OrderStatuses', 'Order', 'ProductInOrder', 'Topping2ProductInOrder', 'DaysOfWeek', 'Worktime',
+           'LoginCode', 'BlackList', 'FSM', 'MenuUpdateTime', 'ProductInCart', 'Topping2ProductInCart']
 
 # TODO remove
 if __name__ == '__main__':

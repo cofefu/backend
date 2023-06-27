@@ -12,6 +12,18 @@ tags_metadata = [
     {
         'name': 'jwt require',
         'description': 'Требуется jwt-токен'
+    },
+    {
+        'name': 'menu',
+        'description': 'Для получения информации о меню'
+    },
+    {
+        'name': 'orders',
+        'description': 'Для взаимодействия с заказами (создание, отмена и т.д.)'
+    },
+    {
+        'name': 'auth',
+        'description': 'Все связанное с пользователем'
     }
 ]
 

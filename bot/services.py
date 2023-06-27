@@ -5,17 +5,18 @@ from db import SessionLocal
 from fastapiProject.settings import settings
 
 
-def gen_order_msg_text(order_number: int) -> str:
+def gen_order_msg_text(order_id: int) -> str:
     db = SessionLocal()
-    order: Order = db.get(Order, order_number)
-    products: list[OrderedProduct, ...] = db.query(OrderedProduct).filter_by(order_id=order_number).all()
+    order: Order = db.query(Order).get(order_id)
+    products: list[ProductInOrder] = order.products_in_order
 
-    message = f'<b>Заказ №{order_number}</b>\n'
+    message = f'<b>Заказ №{order.order_number}</b>\n'
     message += f'<i>Содержание:</i>\n'
 
     for prod in products:
-        message += f'  - {prod.product.product.name}, размер {prod.product.size.value}'
-        for top in db.query(ToppingToProduct).filter_by(ordered_product_id=prod.id):
+        message += f'  - {prod.product_various.product.name}, размер {prod.product_various.size_name}'
+        top: Topping2ProductInOrder
+        for top in prod.toppings:
             message += f' + {top.topping.name}'
         message += '\n'
 
@@ -24,23 +25,23 @@ def gen_order_msg_text(order_number: int) -> str:
 
     message += f'<i>Приготовить к:</i> {order.time.strftime("%H:%M")}\n'
     message += f'<i>Имя покупателя:</i> {order.customer.name}\n'
-    message += f'<i>Телефон покупателя:</i> +7{order.customer.phone_number}\n'
+    message += f'<i>Телефон покупателя:</i> +7{order.customer_phone_number}\n'
 
     db.close()
     return message
 
 
-def send_order(order_number: int):
+def send_order(order_id: int):
     db = SessionLocal()
-    if (order := db.get(Order, order_number)) is not None:
-        bot.send_message(chat_id=order.coffee_house.chat_id,
-                         text=gen_order_msg_text(order_number),
+    if (order := db.query(Order).get(order_id)) is not None:
+        bot.send_message(chat_id=order.coffee_house_branch.chat_id,
+                         text=gen_order_msg_text(order_id),
                          parse_mode='HTML',
-                         reply_markup=gen_order_confirmed_buttons(order_number))
+                         reply_markup=gen_order_confirmed_buttons(order_id))
     db.close()
 
 
-def send_login_code(login_code: LoginCode):
+def send_login_code_to_telegram(login_code: LoginCode):
     msg = f'Код для входа: {login_code.code}'
     bot.send_message(chat_id=login_code.customer.chat_id, text=msg)
 
@@ -58,7 +59,7 @@ def send_bugreport_to_telegram(msg: str, customer: Customer = None):
 
 
 def notify_order_change(order: Order):
-    text = f'Заказ №{order.id} <b>{order.get_status_name()}</b>.\n'
-    text += f'Кофейня {order.coffee_house.name} в {order.coffee_house.placement}'
+    text = f'Заказ №{order.order_number} <b>{order.get_status_name()}</b>.\n'
+    text += f'Кофейня {order.coffee_house_branch.coffee_house_name} в {order.coffee_house_branch.placement}'
 
     bot.send_message(chat_id=order.customer.chat_id, text=text, parse_mode='HTML')

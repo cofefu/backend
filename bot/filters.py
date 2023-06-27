@@ -9,12 +9,12 @@ from bot import bot
 from db import SessionLocal
 from sqlalchemy.orm import Session
 
-order_callback_confirmed = CallbackData("order_number", "status", prefix="order_confirmed")
-order_callback_done = CallbackData("order_number", "status", prefix='order_done')
-order_callback_ready = CallbackData('order_number', prefix='order_ready')
+order_callback_confirmed = CallbackData("order_id", "status", prefix="order_confirmed")
+order_callback_done = CallbackData("order_id", "status", prefix='order_done')
+order_callback_ready = CallbackData('order_id', prefix='order_ready')
 
-order_cancel_reason = CallbackData('order_number', 'reason', prefix='order_cancel')
-special_problem = CallbackData('order_number', 'id', 'reason', prefix='cancel_product_reasons')
+order_cancel_reason = CallbackData('order_id', 'reason', prefix='order_cancel')
+special_problem = CallbackData('order_id', 'prod_id', 'reason', prefix='cancel_product_reasons')
 
 
 # reason_bad_mix = CallbackData('order_number', 'product_id', prefix='bad_mix')
