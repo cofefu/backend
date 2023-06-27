@@ -22,6 +22,9 @@ COPY static/ /code/static/
 COPY fastapiProject/ /code/fastapiProject/
 COPY app/ /code/app/
 COPY bot/ /code/bot/
+COPY auth/ /code/auth
+COPY menu/ /code/menu
+COPY orders/ /code/orders
 # COPY tests/ /code/tests/
 
 # Copy files
