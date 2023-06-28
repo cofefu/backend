@@ -26,6 +26,7 @@ COPY auth/ /code/auth
 COPY menu/ /code/menu
 COPY orders/ /code/orders
 COPY alembic/ /code/alembic
+COPY alembic.ini /code/
 # COPY tests/ /code/tests/
 
 # Copy files
@@ -35,5 +36,4 @@ COPY --from=builder /code/requirements.txt .
 
 RUN pip install --no-cache /wheels/*
 
-CMD ["alembic", "upgrade", "head"]
 CMD ["python3", "manage.py", "--runserver"]
