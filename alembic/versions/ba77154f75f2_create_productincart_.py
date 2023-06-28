@@ -36,7 +36,6 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_topping2productincarts_id'), 'topping2productincarts', ['id'], unique=True)
-    op.drop_index('ix_apscheduler_jobs_next_run_time', table_name='apscheduler_jobs')
     op.drop_index('ix_toppingtoproducts_id', table_name='topping2orderedproducts')
     op.create_index(op.f('ix_topping2orderedproducts_id'), 'topping2orderedproducts', ['id'], unique=True)
     # ### end Alembic commands ###
