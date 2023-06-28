@@ -36,4 +36,4 @@ COPY --from=builder /code/requirements.txt .
 
 RUN pip install --no-cache /wheels/*
 
-CMD ["python3", "manage.py", "--runserver"]
+CMD alembic upgrade head;python3 manage.py --runserver
