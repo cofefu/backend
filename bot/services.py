@@ -1,3 +1,5 @@
+from pytz import timezone
+
 from bot import bot
 from app.models import *
 from bot.keyboards import gen_order_confirmed_buttons
@@ -23,7 +25,8 @@ def gen_order_msg_text(order_id: int) -> str:
     if order.comment:
         message += f'<i>Комментарий:</i> {order.comment}\n'
 
-    message += f'<i>Приготовить к:</i> {order.time.strftime("%H:%M")}\n'
+    order_time = order.time.astimezone(tz=timezone('Asia/Vladivostok'))
+    message += f'<i>Приготовить к:</i> {order_time.strftime("%H:%M")}\n'
     message += f'<i>Имя покупателя:</i> {order.customer.name}\n'
     message += f'<i>Телефон покупателя:</i> +7{order.customer_phone_number}\n'
 
