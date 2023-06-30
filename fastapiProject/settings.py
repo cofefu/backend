@@ -49,7 +49,7 @@ class Settings(BaseSettings):
     bot_port: int = 443
     bot_prefix: str = ''
     feedback_chat: str
-    domain: str
+    bot_domain: str
 
     jwt_secret_key: str
     jwt_algorithm: str = 'HS256'

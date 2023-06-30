@@ -41,7 +41,7 @@ def custom_sender(method, url: str, **kwargs):
     if url.endswith('getWebhookInfo'):
         webhook_url = AnyHttpUrl.build(
             scheme='https',
-            host=settings.domain,
+            host=settings.bot_domain,
             port=str(settings.bot_port),
             path=f"/{settings.bot_prefix}/bot/{settings.bot_token.replace(':', '_')}/"
         )
