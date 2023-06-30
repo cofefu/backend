@@ -16,7 +16,7 @@ import bot.urls_groups
 
 from bot import bot
 
-router = APIRouter(prefix='/bot')
+router = APIRouter(prefix=settings.bot_prefix)
 B_TOKEN = settings.bot_token.replace(':', '_')
 
 
