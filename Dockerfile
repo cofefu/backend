@@ -19,7 +19,7 @@ COPY manage.py /code/
 
 COPY db/ /code/db/
 COPY static/ /code/static/
-COPY fastapiProject/ /code/fastapiProject/
+COPY config/ /code/fastapiProject/
 COPY site/ /code/site/
 COPY bot/ /code/bot/
 COPY auth/ /code/auth

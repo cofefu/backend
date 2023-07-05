@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from db.dependencies import get_db
 from db.models import CoffeeHouseBranch, Worktime, DaysOfWeek, Customer, Order
 from auth.dependencies import get_current_active_user
-from fastapiProject.settings import settings
+from config.settings import settings
 from menu.dependencies import valid_coffee_house_branch_id, valid_product_various_id, valid_topping_id
 from orders.schemas import OrderCreate, ProductInCartCreate
 from orders.services import min_order_preparation_time

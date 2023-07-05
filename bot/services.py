@@ -4,7 +4,7 @@ from bot import bot
 from db.models import *
 from bot.keyboards import gen_order_confirmed_buttons
 from db import SessionLocal
-from fastapiProject.settings import settings
+from config.settings import settings
 
 
 def gen_order_msg_text(order_id: int) -> str:

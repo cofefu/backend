@@ -1,7 +1,7 @@
 import logging
 import telebot
 
-from fastapiProject.settings import settings
+from config.settings import settings
 
 logger = telebot.logger
 telebot.logger.setLevel(logging.INFO)

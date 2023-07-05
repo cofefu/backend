@@ -2,7 +2,7 @@ import importlib
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapiProject.settings import settings
+from config.settings import settings
 
 tags_metadata = [
     {

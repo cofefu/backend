@@ -3,7 +3,7 @@ import telebot
 from pydantic import AnyHttpUrl
 
 from bot.filters import bind_bot_filters
-from fastapiProject.settings import settings
+from config.settings import settings
 
 from bot.keyboards import gen_send_contact_button
 

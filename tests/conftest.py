@@ -10,8 +10,8 @@ from starlette.testclient import TestClient
 from telebot import apihelper, util
 
 from db.dependencies import get_db
-from fastapiProject.main import app
-from fastapiProject.settings import settings
+from config.main import app
+from config.settings import settings
 
 
 @pytest.fixture(scope="session")

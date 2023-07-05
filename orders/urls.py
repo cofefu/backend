@@ -10,8 +10,8 @@ from auth.dependencies import get_current_active_user, get_not_baned_user
 from orders.dependencies import valid_timeout_between_orders
 from db.models import Customer, Order, ProductInCart, Topping2ProductInCart, OrderStatuses
 from bot.services import send_order
-from fastapiProject.scheduler import scheduler
-from fastapiProject.settings import settings
+from config.scheduler import scheduler
+from config.settings import settings
 from orders.dependencies import valid_ordered_product, valid_order_info
 from orders.schemas import ProductInCartCreate, OrderCreate, OrderResponse, OrderNumerResponse, ProductInCartResponse
 from orders.services import gen_order_number, valid_equal_coffee_house, \

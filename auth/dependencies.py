@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from db.dependencies import get_db
 from db.models import Customer
-from fastapiProject.settings import settings
+from config.settings import settings
 
 
 def decode_jwt_token(

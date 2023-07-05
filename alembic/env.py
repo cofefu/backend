@@ -9,7 +9,7 @@ from alembic import context
 from dotenv import load_dotenv
 
 from db import Base
-from fastapiProject.settings import settings
+from config.settings import settings
 
 load_dotenv()
 

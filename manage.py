@@ -2,7 +2,7 @@
 import argparse
 import uvicorn
 
-from fastapiProject.settings import settings
+from config.settings import settings
 
 # init parser
 parser = argparse.ArgumentParser(add_help=False)
@@ -14,7 +14,7 @@ args = parser.parse_args()
 def main():
     if args.runserver:
         uvicorn.run(
-            'fastapiProject.main:app',
+            'config.main:app',
             port=settings.server_port,
             log_level='info',
             workers=settings.workers,
