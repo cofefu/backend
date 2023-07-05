@@ -17,7 +17,7 @@ WORKDIR /code
 
 COPY manage.py /code/
 
-COPY src/ code/src
+COPY src/ /code/src
 COPY alembic/ /code/alembic
 COPY alembic.ini /code/
 
