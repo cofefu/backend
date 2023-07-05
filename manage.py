@@ -14,7 +14,7 @@ args = parser.parse_args()
 def main():
     if args.runserver:
         uvicorn.run(
-            'app.config.main:app',
+            'src.config.main:app',
             port=settings.server_port,
             log_level='info',
             workers=settings.workers,
