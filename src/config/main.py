@@ -2,7 +2,7 @@ import importlib
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from config.settings import settings
+from src.config.settings import settings
 
 tags_metadata = [
     {
@@ -44,7 +44,7 @@ app.add_middleware(
 )
 
 for app_ in settings.apps:
-    router = getattr(importlib.import_module(f'{app_}.urls'), 'router')
+    router = getattr(importlib.import_module(f'app.{app_}.urls'), 'router')
     if router is None:
         raise ImportError(f'The {app_} application does not contain "router"')
     app.include_router(router)

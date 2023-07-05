@@ -4,8 +4,8 @@ from datetime import timedelta, datetime
 from jose import jwt
 from sqlalchemy.orm import Session
 
-from db.models import LoginCode, Customer
-from config.settings import settings
+from src.db.models import LoginCode, Customer
+from src.config.settings import settings
 
 
 def create_token(

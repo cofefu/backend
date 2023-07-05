@@ -2,15 +2,12 @@ from fastapi import APIRouter
 import telebot
 from pydantic import AnyHttpUrl
 
-from bot.filters import bind_bot_filters
-from config.settings import settings
+from src.bot.filters import bind_bot_filters
+from src.config.settings import settings
 
-from bot.keyboards import gen_send_contact_button
+from src.bot.keyboards import gen_send_contact_button
 
-import bot.urls_private
-import bot.urls_groups
-
-from bot import bot
+from src.bot import bot
 
 router = APIRouter(prefix=settings.bot_prefix)
 B_TOKEN = settings.bot_token.replace(':', '_')

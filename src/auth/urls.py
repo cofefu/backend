@@ -4,12 +4,12 @@ from typing import Annotated
 from fastapi import APIRouter, Body, Depends, HTTPException, BackgroundTasks, Query
 from sqlalchemy.orm import Session
 
-from db.dependencies import get_db
-from db.models import Customer, LoginCode
-from auth.dependencies import get_current_user, get_current_active_user
-from auth.schemas import CustomerCreate, CustomerResponse, CustomerNewName
-from auth.services import create_token, gen_login_code, min_lifetime_login_code
-from bot.services import send_login_code_to_telegram
+from src.db.dependencies import get_db
+from src.db.models import Customer, LoginCode
+from src.auth.dependencies import get_current_user, get_current_active_user
+from src.auth.schemas import CustomerCreate, CustomerResponse, CustomerNewName
+from src.auth.services import create_token, gen_login_code, min_lifetime_login_code
+from src.bot.services import send_login_code_to_telegram
 
 router = APIRouter(prefix='/api')
 

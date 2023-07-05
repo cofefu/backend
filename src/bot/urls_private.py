@@ -1,12 +1,12 @@
 from sqlalchemy.orm import Session
 
-from bot import bot
+from src.bot import bot
 from telebot import types
 
-from db.models import Customer, FSM, get_or_create
-from bot.services import send_bugreport_to_telegram, send_feedback_to_telegram
-from bot.filters import States
-from db import SessionLocal
+from src.db.models import Customer, FSM, get_or_create
+from src.bot.services import send_bugreport_to_telegram, send_feedback_to_telegram
+from src.bot.filters import States
+from src.db import SessionLocal
 
 
 @bot.message_handler(commands=['help'], chat_types=['private'])

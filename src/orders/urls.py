@@ -5,16 +5,16 @@ from apscheduler.jobstores.base import JobLookupError
 from fastapi import APIRouter, Depends, status, HTTPException, Path, Body
 from sqlalchemy.orm import Session
 
-from db.dependencies import get_db
-from auth.dependencies import get_current_active_user, get_not_baned_user
-from orders.dependencies import valid_timeout_between_orders
-from db.models import Customer, Order, ProductInCart, Topping2ProductInCart, OrderStatuses
-from bot.services import send_order
-from config.scheduler import scheduler
-from config.settings import settings
-from orders.dependencies import valid_ordered_product, valid_order_info
-from orders.schemas import ProductInCartCreate, OrderCreate, OrderResponse, OrderNumerResponse, ProductInCartResponse
-from orders.services import gen_order_number, valid_equal_coffee_house, \
+from src.db.dependencies import get_db
+from src.auth.dependencies import get_current_active_user, get_not_baned_user
+from src.orders.dependencies import valid_timeout_between_orders
+from src.db.models import Customer, Order, ProductInCart, Topping2ProductInCart, OrderStatuses
+from src.bot.services import send_order
+from src.config import scheduler
+from src.config.settings import settings
+from src.orders.dependencies import valid_ordered_product, valid_order_info
+from src.orders.schemas import ProductInCartCreate, OrderCreate, OrderResponse, OrderNumerResponse, ProductInCartResponse
+from src.orders.services import gen_order_number, valid_equal_coffee_house, \
     cart2order
 
 router = APIRouter(prefix='/api')

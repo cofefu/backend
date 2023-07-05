@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, BackgroundTasks, Body
 from starlette.responses import FileResponse
 
-from db.models import Customer
-from auth.dependencies import get_current_user
+from src.db.models import Customer
+from src.auth.dependencies import get_current_user
 
-from bot.services import send_feedback_to_telegram, send_bugreport_to_telegram
+from src.bot.services import send_feedback_to_telegram, send_bugreport_to_telegram
 
 router = APIRouter(prefix='/api')
 

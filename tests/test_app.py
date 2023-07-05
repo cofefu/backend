@@ -5,8 +5,8 @@ from fastapi.testclient import TestClient
 from pytz import timezone
 from sqlalchemy.orm import Session
 
-from db.models import Customer, LoginCode
-from auth.services import create_token
+from src.db.models import Customer, LoginCode
+from src.auth.services import create_token
 from tests.utils import get_or_create_customer, get_or_create_product, get_or_create_topping, get_or_create_coffee_house, get_or_create_any_customer_order
 
 

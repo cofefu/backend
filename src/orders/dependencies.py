@@ -6,13 +6,13 @@ from fastapi import Depends, HTTPException, Body, status
 from pydantic import constr
 from sqlalchemy.orm import Session
 
-from db.dependencies import get_db
-from db.models import CoffeeHouseBranch, Worktime, DaysOfWeek, Customer, Order
-from auth.dependencies import get_current_active_user
-from config.settings import settings
-from menu.dependencies import valid_coffee_house_branch_id, valid_product_various_id, valid_topping_id
-from orders.schemas import OrderCreate, ProductInCartCreate
-from orders.services import min_order_preparation_time
+from src.db.dependencies import get_db
+from src.db.models import CoffeeHouseBranch, Worktime, DaysOfWeek, Customer, Order
+from src.auth.dependencies import get_current_active_user
+from src.config.settings import settings
+from src.menu.dependencies import valid_coffee_house_branch_id, valid_product_various_id, valid_topping_id
+from src.orders.schemas import OrderCreate, ProductInCartCreate
+from src.orders.services import min_order_preparation_time
 
 
 async def valid_order_time(

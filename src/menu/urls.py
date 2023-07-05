@@ -4,12 +4,12 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from db.dependencies import get_db
-from db.models import Product, CoffeeHouse, Topping
-from menu.dependencies import valid_coffee_house_name
-from menu.schemas import ProductsWithTypesResponse, ProductResponseModel, ToppingsResponseModel, \
+from src.db.dependencies import get_db
+from src.db.models import Product, CoffeeHouse, Topping
+from src.menu.dependencies import valid_coffee_house_name
+from src.menu.schemas import ProductsWithTypesResponse, ProductResponseModel, ToppingsResponseModel, \
     CoffeeHouseMenuResponse, CoffeeHouseResponse
-from menu.services import coffee_house_branch_worktime_today
+from src.menu.services import coffee_house_branch_worktime_today
 
 router = APIRouter(prefix='/api')
 

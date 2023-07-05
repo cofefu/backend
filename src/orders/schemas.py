@@ -2,8 +2,8 @@ from datetime import datetime, timedelta
 
 from pydantic import BaseModel, constr
 
-from db.models import Order, OrderStatuses
-from menu.schemas import SmallProductResponseModel, ToppingsResponseModel
+from src.db.models import Order, OrderStatuses
+from src.menu.schemas import SmallProductResponseModel, ToppingsResponseModel
 
 
 class OrderNumerResponse(BaseModel):

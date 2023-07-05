@@ -1,7 +1,7 @@
 import logging
 import telebot
 
-from config.settings import settings
+from src.config.settings import settings
 
 logger = telebot.logger
 telebot.logger.setLevel(logging.INFO)

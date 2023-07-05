@@ -1,9 +1,9 @@
 from telebot.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 
-from db.models import ProductInOrder, Topping2ProductInOrder
-from bot.filters import order_callback_confirmed, order_callback_done, order_callback_ready, order_cancel_reason, \
+from src.db.models import ProductInOrder, Topping2ProductInOrder
+from src.bot.filters import order_callback_confirmed, order_callback_done, order_callback_ready, order_cancel_reason, \
     CancelReasons, special_problem
-from db import SessionLocal
+from src.db import SessionLocal
 
 
 def gen_send_contact_button() -> ReplyKeyboardMarkup:

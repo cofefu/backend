@@ -3,8 +3,8 @@ from datetime import datetime
 from pytz import timezone
 from sqlalchemy.orm import Session
 
-from db.models import CoffeeHouseBranch, Worktime, DaysOfWeek
-from menu.schemas import CoffeeHouseBranchWorktime
+from src.db.models import CoffeeHouseBranch, Worktime, DaysOfWeek
+from src.menu.schemas import CoffeeHouseBranchWorktime
 
 
 def coffee_house_branch_worktime_today(

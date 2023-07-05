@@ -3,8 +3,8 @@ from typing import Annotated
 from fastapi import Body, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 
-from db.dependencies import get_db
-from db.models import CoffeeHouseBranch, ProductVarious, Topping, CoffeeHouse
+from src.db.dependencies import get_db
+from src.db.models import CoffeeHouseBranch, ProductVarious, Topping, CoffeeHouse
 
 
 async def valid_coffee_house_branch_id(

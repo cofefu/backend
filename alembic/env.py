@@ -8,8 +8,8 @@ from alembic import context
 # import os
 from dotenv import load_dotenv
 
-from db import Base
-from config.settings import settings
+from src.db import Base
+from src.config.settings import settings
 
 load_dotenv()
 

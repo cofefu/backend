@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 
 from pytz import timezone
 from sqlalchemy.orm import Session
-from db.models import Order, Customer, Product, ProductVarious, Topping, ProductTypes, ProductSizes, CoffeeHouse, \
+from src.db.models import Order, Customer, Product, ProductVarious, Topping, ProductType, ProductSize, CoffeeHouse, \
     DaysOfWeek, Worktime
 
 
@@ -45,7 +45,7 @@ def get_or_create_product(db: Session) -> Product:
     if prod := db.query(Product).first():
         return prod
     new_prod = Product(
-        type=ProductTypes.coffee,
+        type='coffee',
         name='Какой-то напиток',
         description='Описание продукта',
     )
@@ -59,7 +59,7 @@ def get_or_create_product_various(db: Session, prod: Product) -> ProductVarious:
         return prod_var
     new_prod_var = ProductVarious(
         product_id=prod.id,
-        size=ProductSizes.S,
+        size='S',
         price=100
     )
     new_prod_var.save(db)

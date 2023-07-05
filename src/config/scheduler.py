@@ -1,6 +1,6 @@
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from db import engine
+from src.db import engine
 
 # engine_str = DATABASE.get('engine').lower() + '://'
 # engine_str += DATABASE.get('user') + ':'

@@ -5,8 +5,8 @@ from typing import Optional
 from sqlalchemy import (Column, Boolean, BigInteger, Integer, String, Enum, DateTime, ForeignKey, Time)
 from sqlalchemy.orm import relationship, Session
 
-import db
-from db import Base, engine
+from src import db
+from src.db import Base, engine
 
 
 # todo засунуть в Base и переписать

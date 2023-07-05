@@ -1,10 +1,10 @@
 from pytz import timezone
 
-from bot import bot
-from db.models import *
-from bot.keyboards import gen_order_confirmed_buttons
-from db import SessionLocal
-from config.settings import settings
+from src.bot import bot
+from src.db.models import *
+from src.bot.keyboards import gen_order_confirmed_buttons
+from src.db import SessionLocal
+from src.config.settings import settings
 
 
 def gen_order_msg_text(order_id: int) -> str:

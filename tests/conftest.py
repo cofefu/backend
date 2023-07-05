@@ -9,9 +9,9 @@ from sqlalchemy.orm import Session, sessionmaker
 from starlette.testclient import TestClient
 from telebot import apihelper, util
 
-from db.dependencies import get_db
-from config.main import app
-from config.settings import settings
+from src.db.dependencies import get_db
+from src.config.main import app
+from src.config.settings import settings
 
 
 @pytest.fixture(scope="session")

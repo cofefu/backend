@@ -1,18 +1,18 @@
 from sqlalchemy.orm import Session
 
-from bot import bot
-from bot.services import gen_order_msg_text, notify_order_change
-from bot.filters import order_callback_confirmed, order_callback_done, order_callback_ready, order_cancel_reason, \
+from src.bot import bot
+from src.bot.services import gen_order_msg_text, notify_order_change
+from src.bot.filters import order_callback_confirmed, order_callback_done, order_callback_ready, order_cancel_reason, \
     CancelReasons, special_problem
-from bot.keyboards import gen_order_done_buttons, gen_order_ready_button, \
+from src.bot.keyboards import gen_order_done_buttons, gen_order_ready_button, \
     gen_order_cancel_reasons_buttons, gen_bad_mix_button, gen_no_product_button, gen_no_topping_button
 from telebot import types
 
-from db.models import Order, Customer, CoffeeHouse, ban_customer, Product, OrderStatuses, CoffeeHouseBranch
+from src.db.models import Order, Customer, CoffeeHouse, ban_customer, Product, OrderStatuses, CoffeeHouseBranch
 
 from datetime import datetime, timedelta
 
-from db import SessionLocal
+from src.db import SessionLocal
 
 
 @bot.message_handler(commands=['help'], chat_types=['group', 'supergroup'])

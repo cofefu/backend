@@ -1,9 +1,9 @@
 from telebot import types, AdvancedCustomFilter
 from telebot.callback_data import CallbackData, CallbackDataFilter
 
-from db.models import FSM
-from bot import bot
-from db import SessionLocal
+from src.db.models import FSM
+from src.bot import bot
+from src.db import SessionLocal
 from sqlalchemy.orm import Session
 
 order_callback_confirmed = CallbackData("order_id", "status", prefix="order_confirmed")
