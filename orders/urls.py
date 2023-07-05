@@ -5,7 +5,7 @@ from apscheduler.jobstores.base import JobLookupError
 from fastapi import APIRouter, Depends, status, HTTPException, Path, Body
 from sqlalchemy.orm import Session
 
-from app.dependencies import get_db
+from db.dependencies import get_db
 from auth.dependencies import get_current_active_user, get_not_baned_user
 from orders.dependencies import valid_timeout_between_orders
 from app.models import Customer, Order, ProductInCart, Topping2ProductInCart, OrderStatuses

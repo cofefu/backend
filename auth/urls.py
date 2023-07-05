@@ -4,7 +4,7 @@ from typing import Annotated
 from fastapi import APIRouter, Body, Depends, HTTPException, BackgroundTasks, Query
 from sqlalchemy.orm import Session
 
-from app.dependencies import get_db
+from db.dependencies import get_db
 from app.models import Customer, LoginCode
 from auth.dependencies import get_current_user, get_current_active_user
 from auth.schemas import CustomerCreate, CustomerResponse, CustomerNewName

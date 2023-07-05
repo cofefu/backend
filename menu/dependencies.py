@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import Body, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 
-from app.dependencies import get_db
+from db.dependencies import get_db
 from app.models import CoffeeHouseBranch, ProductVarious, Topping, CoffeeHouse
 
 

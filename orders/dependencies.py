@@ -6,7 +6,7 @@ from fastapi import Depends, HTTPException, Body, status
 from pydantic import constr
 from sqlalchemy.orm import Session
 
-from app.dependencies import get_db
+from db.dependencies import get_db
 from app.models import CoffeeHouseBranch, Worktime, DaysOfWeek, Customer, Order
 from auth.dependencies import get_current_active_user
 from fastapiProject.settings import settings

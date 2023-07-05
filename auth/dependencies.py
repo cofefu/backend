@@ -5,7 +5,7 @@ from fastapi import Header, HTTPException, status, Depends
 from jose import jwt, ExpiredSignatureError, JWTError
 from sqlalchemy.orm import Session
 
-from app.dependencies import get_db
+from db.dependencies import get_db
 from app.models import Customer
 from fastapiProject.settings import settings
 

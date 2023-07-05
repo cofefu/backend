@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from starlette.testclient import TestClient
 from telebot import apihelper, util
 
-from app.dependencies import get_db
+from db.dependencies import get_db
 from fastapiProject.main import app
 from fastapiProject.settings import settings
 
