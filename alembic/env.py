@@ -8,7 +8,6 @@ from alembic import context
 # import os
 from dotenv import load_dotenv
 
-from app.models import *
 from db import Base
 from fastapiProject.settings import settings
 

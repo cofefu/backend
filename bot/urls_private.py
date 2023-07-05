@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from bot import bot
 from telebot import types
 
-from app.models import Customer, FSM, get_or_create
+from db.models import Customer, FSM, get_or_create
 from bot.services import send_bugreport_to_telegram, send_feedback_to_telegram
 from bot.filters import States
 from db import SessionLocal

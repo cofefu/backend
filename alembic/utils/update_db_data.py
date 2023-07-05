@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine, text
-from app.models import *
-from app.models import get_or_create
+from db.models import *
+from db.models import get_or_create
 from db import SessionLocal
 
 import os

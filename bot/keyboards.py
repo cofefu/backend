@@ -1,7 +1,6 @@
-from telebot import types
 from telebot.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 
-from app.models import Order, ProductInOrder, Topping2ProductInOrder
+from db.models import ProductInOrder, Topping2ProductInOrder
 from bot.filters import order_callback_confirmed, order_callback_done, order_callback_ready, order_cancel_reason, \
     CancelReasons, special_problem
 from db import SessionLocal

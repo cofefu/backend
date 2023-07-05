@@ -1,8 +1,8 @@
 from datetime import datetime, timedelta
 
-from pydantic import BaseModel, validator, constr
+from pydantic import BaseModel, constr
 
-from app.models import Order, OrderStatuses
+from db.models import Order, OrderStatuses
 from menu.schemas import SmallProductResponseModel, ToppingsResponseModel
 
 

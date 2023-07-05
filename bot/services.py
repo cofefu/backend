@@ -1,7 +1,7 @@
 from pytz import timezone
 
 from bot import bot
-from app.models import *
+from db.models import *
 from bot.keyboards import gen_order_confirmed_buttons
 from db import SessionLocal
 from fastapiProject.settings import settings

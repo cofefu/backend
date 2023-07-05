@@ -4,7 +4,7 @@ from datetime import timedelta, datetime
 from jose import jwt
 from sqlalchemy.orm import Session
 
-from app.models import LoginCode, Customer
+from db.models import LoginCode, Customer
 from fastapiProject.settings import settings
 
 

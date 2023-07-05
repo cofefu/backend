@@ -7,7 +7,7 @@ from pydantic import constr
 from sqlalchemy.orm import Session
 
 from db.dependencies import get_db
-from app.models import CoffeeHouseBranch, Worktime, DaysOfWeek, Customer, Order
+from db.models import CoffeeHouseBranch, Worktime, DaysOfWeek, Customer, Order
 from auth.dependencies import get_current_active_user
 from fastapiProject.settings import settings
 from menu.dependencies import valid_coffee_house_branch_id, valid_product_various_id, valid_topping_id

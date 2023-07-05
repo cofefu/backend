@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from db.dependencies import get_db
-from app.models import Product, CoffeeHouse, Topping
+from db.models import Product, CoffeeHouse, Topping
 from menu.dependencies import valid_coffee_house_name
 from menu.schemas import ProductsWithTypesResponse, ProductResponseModel, ToppingsResponseModel, \
     CoffeeHouseMenuResponse, CoffeeHouseResponse

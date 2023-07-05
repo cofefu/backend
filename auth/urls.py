@@ -5,7 +5,7 @@ from fastapi import APIRouter, Body, Depends, HTTPException, BackgroundTasks, Qu
 from sqlalchemy.orm import Session
 
 from db.dependencies import get_db
-from app.models import Customer, LoginCode
+from db.models import Customer, LoginCode
 from auth.dependencies import get_current_user, get_current_active_user
 from auth.schemas import CustomerCreate, CustomerResponse, CustomerNewName
 from auth.services import create_token, gen_login_code, min_lifetime_login_code

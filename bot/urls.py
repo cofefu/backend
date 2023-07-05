@@ -1,12 +1,8 @@
-from datetime import datetime, timedelta
-
 from fastapi import APIRouter
 import telebot
 from pydantic import AnyHttpUrl
 
-from app.models import Order, ban_customer, Customer, OrderStatuses
 from bot.filters import bind_bot_filters
-from db import SessionLocal
 from fastapiProject.settings import settings
 
 from bot.keyboards import gen_send_contact_button

@@ -6,7 +6,7 @@ from jose import jwt, ExpiredSignatureError, JWTError
 from sqlalchemy.orm import Session
 
 from db.dependencies import get_db
-from app.models import Customer
+from db.models import Customer
 from fastapiProject.settings import settings
 
 

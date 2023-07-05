@@ -3,7 +3,7 @@ from datetime import datetime
 from pytz import timezone
 from sqlalchemy.orm import Session
 
-from app.models import CoffeeHouseBranch, Worktime, DaysOfWeek
+from db.models import CoffeeHouseBranch, Worktime, DaysOfWeek
 from menu.schemas import CoffeeHouseBranchWorktime
 
 

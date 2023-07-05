@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, BackgroundTasks, Body
 from starlette.responses import FileResponse
 
-from app.models import Customer
+from db.models import Customer
 from auth.dependencies import get_current_user
 
 from bot.services import send_feedback_to_telegram, send_bugreport_to_telegram

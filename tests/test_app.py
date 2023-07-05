@@ -5,10 +5,9 @@ from fastapi.testclient import TestClient
 from pytz import timezone
 from sqlalchemy.orm import Session
 
-from app.models import Customer, LoginCode
+from db.models import Customer, LoginCode
 from auth.services import create_token
-from tests.utils import get_random_order, get_or_create_customer, get_or_create_product, get_or_create_product_various, \
-    get_or_create_topping, get_or_create_coffee_house, get_or_create_any_customer_order
+from tests.utils import get_or_create_customer, get_or_create_product, get_or_create_topping, get_or_create_coffee_house, get_or_create_any_customer_order
 
 
 def test_get_products(client: TestClient):

@@ -1,10 +1,7 @@
-from enum import Enum
-
-import telebot
 from telebot import types, AdvancedCustomFilter
 from telebot.callback_data import CallbackData, CallbackDataFilter
 
-from app.models import FSM
+from db.models import FSM
 from bot import bot
 from db import SessionLocal
 from sqlalchemy.orm import Session

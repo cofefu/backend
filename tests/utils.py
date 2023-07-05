@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 
 from pytz import timezone
 from sqlalchemy.orm import Session
-from app.models import Order, Customer, Product, ProductVarious, Topping, ProductTypes, ProductSizes, CoffeeHouse, \
+from db.models import Order, Customer, Product, ProductVarious, Topping, ProductTypes, ProductSizes, CoffeeHouse, \
     DaysOfWeek, Worktime
 
 
