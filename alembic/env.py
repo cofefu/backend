@@ -8,6 +8,7 @@ from alembic import context
 # import os
 from dotenv import load_dotenv
 
+from src.db.models import *
 from src.db import Base
 from src.config.settings import settings
 

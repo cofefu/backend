@@ -17,17 +17,9 @@ WORKDIR /code
 
 COPY manage.py /code/
 
-COPY src/db/ /code/db/
-COPY src/static/ /code/static/
-COPY src/config/ /code/fastapiProject/
-COPY src/site/ /code/site/
-COPY src/bot/ /code/bot/
-COPY src/auth/ /code/auth
-COPY src/menu/ /code/menu
-COPY src/orders/ /code/orders
+COPY src/ code/src
 COPY alembic/ /code/alembic
 COPY alembic.ini /code/
-# COPY tests/ /code/tests/
 
 # Copy files
 
