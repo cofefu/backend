@@ -6,5 +6,4 @@ migrations/
 __pycache__
 webhook_cert.pem
 webhook_pkey.pem
-app/field_db.py
 /.pytest_cache/
