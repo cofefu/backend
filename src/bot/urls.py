@@ -7,6 +7,9 @@ from src.config.settings import settings
 
 from src.bot.keyboards import gen_send_contact_button
 
+import src.bot.urls_private
+import src.bot.urls_groups
+
 from src.bot import bot
 
 router = APIRouter(prefix=settings.bot_prefix)
