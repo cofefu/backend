@@ -10,7 +10,7 @@ from src.auth.dependencies import get_current_active_user, get_not_baned_user
 from src.orders.dependencies import valid_timeout_between_orders
 from src.db.models import Customer, Order, ProductInCart, Topping2ProductInCart, OrderStatuses
 from src.bot.services import send_order
-from src.config import scheduler
+from src.config.scheduler import scheduler
 from src.config.settings import settings
 from src.orders.dependencies import valid_ordered_product, valid_order_info
 from src.orders.schemas import ProductInCartCreate, OrderCreate, OrderResponse, OrderNumerResponse, ProductInCartResponse
